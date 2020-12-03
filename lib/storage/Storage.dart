@@ -17,7 +17,6 @@ class Storage {
   final Directory _appStorageRoot;
   final Directory _headshotsDir;
   final Directory _backgroundsDir;
-  final Directory _slideThumbnailsDir;
 
   static Storage get instance {
     if (_initalized == false) {
@@ -35,8 +34,7 @@ class Storage {
       Directory slideThumbnails})
       : _appStorageRoot = appStorageRoot,
         _headshotsDir = headshots,
-        _backgroundsDir = backgrounds,
-        _slideThumbnailsDir = slideThumbnails;
+        _backgroundsDir = backgrounds;
 
   static Future<void> initalize() async {
     if (_initalized) {

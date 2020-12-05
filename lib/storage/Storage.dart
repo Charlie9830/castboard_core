@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:castboard_core/models/ActorModel.dart';
 import 'package:castboard_core/models/ManifestModel.dart';
@@ -15,7 +16,7 @@ import 'package:castboard_core/storage/StorageException.dart';
 import 'package:flutter/material.dart';
 
 import 'package:path/path.dart' as p;
-import 'package:path_provider/path_provider.dart';
+import 'package:path_provider/path_provider.dart' as pathProvider;
 
 import 'package:archive/archive.dart';
 import 'package:archive/archive_io.dart';
@@ -25,12 +26,23 @@ const _headshotsTempDirName = 'headshots';
 const _backgroundsTempDirName = 'backgrounds';
 const _slideThumbnails = 'slidethumbnails';
 
+// Player Directory Names
+const _playerDirName = 'playerfiles';
+
+// Player Show File Name.
+const _playerCurrentShowFileName = 'currentshow.castboard';
+
 // Save File Names.
 const _headshotsSaveDirName = 'headshots';
 const _backgroundsSaveDirName = 'backgrounds';
 const _manifestSaveName = 'manifest.json';
 const _slideDataSaveName = 'slidedata.json';
 const _showDataSaveName = 'showdata.json';
+
+enum StorageMode {
+  editor,
+  player,
+}
 
 class Storage {
   static Storage _instance;
@@ -39,6 +51,7 @@ class Storage {
   final Directory _appStorageRoot;
   final Directory _headshotsDir;
   final Directory _backgroundsDir;
+  final Directory _playerDir;
 
   static Storage get instance {
     if (_initalized == false) {
@@ -50,24 +63,42 @@ class Storage {
   }
 
   Storage(
-      {Directory appStorageRoot, Directory headshots, Directory backgrounds})
+      {Directory appStorageRoot,
+      Directory headshots,
+      Directory backgrounds,
+      Directory playerDir})
       : _appStorageRoot = appStorageRoot,
         _headshotsDir = headshots,
-        _backgroundsDir = backgrounds;
+        _backgroundsDir = backgrounds,
+        _playerDir = playerDir;
 
-  static Future<void> initalize() async {
+  static Future<void> initalize(StorageMode mode) async {
     if (_initalized) {
       throw StorageException(
           'Storage is already initalized. Ensure you are only calling Storage.initalize once');
     }
 
-    final appStorageRoot = await Directory(p.join(
-            (await getTemporaryDirectory()).path, 'com.charliehall.castboard'))
-        .create();
+    String appStorageRootDirName = '';
+    if (mode == StorageMode.editor) {
+      appStorageRootDirName = 'com.charliehall.castboard-editor';
+    } else {
+      appStorageRootDirName = 'com.charliehall.castboard_player';
+    }
+
+    final appStorageRoot = mode == StorageMode.editor
+        ? await Directory(p.join(
+                (await pathProvider.getTemporaryDirectory()).path,
+                appStorageRootDirName))
+            .create()
+        : await Directory(p.join(
+                (await pathProvider.getApplicationDocumentsDirectory()).path,
+                appStorageRootDirName))
+            .create();
 
     // Build Directories.
     Directory headshots;
     Directory backgrounds;
+    Directory playerDir;
     await Future.wait([
       () async {
         headshots =
@@ -81,12 +112,19 @@ class Storage {
             .create();
         return;
       }(),
+      if (mode == StorageMode.player)
+        () async {
+          playerDir =
+              await Directory(p.join(appStorageRoot.path, _playerDirName))
+                  .create();
+        }()
     ]);
 
     _instance = Storage(
         appStorageRoot: appStorageRoot,
         headshots: headshots,
-        backgrounds: backgrounds);
+        backgrounds: backgrounds,
+        playerDir: playerDir);
     _initalized = true;
   }
 
@@ -160,22 +198,6 @@ class Storage {
     return;
   }
 
-  Future<File> _searchForFile(Directory directory, String uid) async {
-    if (await directory.exists()) {
-      final stream = directory.list();
-
-      await for (var entity in stream) {
-        if (entity is File && p.basenameWithoutExtension(entity.path) == uid) {
-          return entity;
-        }
-      }
-
-      return null;
-    }
-
-    return null;
-  }
-
   File getHeadshotFile(PhotoRef ref) {
     return File(
         p.join(_appStorageRoot.path, _headshotsTempDirName, ref.basename));
@@ -188,6 +210,29 @@ class Storage {
 
   File getSlideThumbnailFile(String slideId) {
     return File(p.join(_appStorageRoot.path, _slideThumbnails, '$slideId.jpg'));
+  }
+
+  Future<void> copyShowFileIntoPlayerStorage(List<int> bytes) async {
+    final targetFile = File(p.join(
+        _appStorageRoot.path, _playerDir.path, _playerCurrentShowFileName));
+
+    await targetFile.writeAsBytes(bytes);
+    return;
+  }
+
+  Future<bool> isPlayerStoragePopulated() async {
+    if (await File(p.join(_playerDir.path, _playerCurrentShowFileName))
+        .exists()) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  Future<ImportedShowData> readFromPlayerStorage() async {
+    final file = File(p.join(_playerDir.path, _playerCurrentShowFileName));
+
+    return readFromPermanentStorage(file: file);
   }
 
   Future<ImportedShowData> readFromPermanentStorage(
@@ -210,6 +255,7 @@ class Storage {
     final bytes = await file.readAsBytes();
     final unzipper = ZipDecoder();
     final archive = unzipper.decodeBytes(bytes);
+
     Map<String, dynamic> rawManifest = {};
     Map<String, dynamic> rawShowData = {};
     Map<String, dynamic> rawSlideData = {};

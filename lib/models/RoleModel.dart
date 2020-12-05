@@ -18,4 +18,20 @@ class RoleModel {
       title: title ?? this.title,
     );
   }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'uid': uid,
+      'title': title,
+    };
+  }
+
+  factory RoleModel.fromMap(Map<String, dynamic> map) {
+    if (map == null) return null;
+  
+    return RoleModel(
+      uid: map['uid'],
+      title: map['title'],
+    );
+  }
 }

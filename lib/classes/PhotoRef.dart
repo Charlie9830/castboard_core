@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:quiver/core.dart';
 
 class PhotoRef {
@@ -22,4 +24,25 @@ class PhotoRef {
     }
     return false;
   }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'uid': uid,
+      'ext': ext,
+    };
+  }
+
+  factory PhotoRef.fromMap(Map<String, dynamic> map) {
+    if (map == null) return null;
+
+    return PhotoRef(
+      map['uid'],
+      map['ext'],
+    );
+  }
+
+  String toJson() => json.encode(toMap());
+
+  factory PhotoRef.fromJson(String source) =>
+      PhotoRef.fromMap(json.decode(source));
 }

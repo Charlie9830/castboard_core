@@ -1,5 +1,8 @@
-import 'package:castboard_core/classes/PhotoRef.dart';
+import 'dart:convert';
+
 import 'package:flutter/foundation.dart';
+
+import 'package:castboard_core/classes/PhotoRef.dart';
 
 class ActorModel {
   final String uid;
@@ -21,6 +24,24 @@ class ActorModel {
       uid: uid ?? this.uid,
       name: name ?? this.name,
       headshotRef: headshotRef ?? this.headshotRef,
+    );
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'uid': uid,
+      'name': name,
+      'headshotRef': headshotRef?.toMap(),
+    };
+  }
+
+  factory ActorModel.fromMap(Map<String, dynamic> map) {
+    if (map == null) return null;
+  
+    return ActorModel(
+      uid: map['uid'],
+      name: map['name'],
+      headshotRef: PhotoRef.fromMap(map['headshotRef']),
     );
   }
 }

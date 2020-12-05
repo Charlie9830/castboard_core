@@ -1,5 +1,8 @@
-import 'package:castboard_core/classes/LayoutElementChild.dart';
+import 'package:castboard_core/enum-converters/textAlignConverters.dart';
+import 'package:castboard_core/models/ColorModel.dart';
 import 'package:flutter/material.dart';
+
+import 'package:castboard_core/classes/LayoutElementChild.dart';
 
 class TextElementModel extends LayoutElementChild {
   final String text;
@@ -12,15 +15,22 @@ class TextElementModel extends LayoutElementChild {
   final Color color;
 
   TextElementModel({
-    this.text,
-    this.fontFamily = 'Arial',
-    this.fontSize = 24.0,
-    this.italics = false,
-    this.bold = false,
-    this.underline = false,
-    this.alignment = TextAlign.center,
-    this.color = Colors.black,
-  });
+    String text,
+    String fontFamily,
+    double fontSize,
+    bool italics,
+    bool bold,
+    bool underline,
+    TextAlign alignment,
+    Color color,
+  })  : this.text = text ?? '',
+        this.fontFamily = fontFamily ?? 'Arial',
+        this.fontSize = fontSize ?? 16,
+        this.italics = italics ?? false,
+        this.bold = bold ?? false,
+        this.underline = underline ?? false,
+        this.alignment = alignment ?? TextAlign.center,
+        this.color = color ?? Colors.black;
 
   TextElementModel copyWith({
     String text,
@@ -42,5 +52,19 @@ class TextElementModel extends LayoutElementChild {
       alignment: alignment ?? this.alignment,
       color: color ?? this.color,
     );
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'elementType': 'text',
+      'text': text,
+      'fontFamily': fontFamily,
+      'fontSize': fontSize,
+      'italics': italics,
+      'bold': bold,
+      'underline': underline,
+      'alignment': convertTextAlign(alignment),
+      'color': ColorModel.fromColor(color).toMap(),
+    };
   }
 }

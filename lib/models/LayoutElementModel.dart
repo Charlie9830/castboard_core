@@ -1,5 +1,6 @@
-import 'package:castboard_core/classes/LayoutElementChild.dart';
 import 'package:flutter/material.dart';
+
+import 'package:castboard_core/classes/LayoutElementChild.dart';
 
 class LayoutElementModel {
   final String uid;
@@ -38,6 +39,32 @@ class LayoutElementModel {
       height: height ?? this.height,
       rotation: rotation ?? this.rotation,
       child: child ?? this.child,
+    );
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'uid': uid,
+      'xPos': xPos,
+      'yPos': yPos,
+      'width': width,
+      'height': height,
+      'rotation': rotation,
+      'child': child?.toMap(),
+    };
+  }
+
+  factory LayoutElementModel.fromMap(Map<String, dynamic> map) {
+    if (map == null) return null;
+
+    return LayoutElementModel(
+      uid: map['uid'],
+      xPos: map['xPos'],
+      yPos: map['yPos'],
+      width: map['width'],
+      height: map['height'],
+      rotation: map['rotation'],
+      child: LayoutElementChild.fromMap(map['child']),
     );
   }
 }

@@ -1,6 +1,9 @@
+import 'package:castboard_core/enum-converters/shapeElementTypeConverters.dart';
+import 'package:castboard_core/models/ColorModel.dart';
+import 'package:flutter/material.dart';
+
 import 'package:castboard_core/classes/LayoutElementChild.dart';
 import 'package:castboard_core/enums.dart';
-import 'package:flutter/material.dart';
 
 class ShapeElementModel extends LayoutElementChild {
   final ShapeElementType type;
@@ -8,12 +11,12 @@ class ShapeElementModel extends LayoutElementChild {
   final Color lineColor;
   final double lineWeight;
 
-  ShapeElementModel({
-    this.type = ShapeElementType.square,
-    this.fill = Colors.blueAccent,
-    this.lineColor = Colors.black,
-    this.lineWeight = 1.0,
-  });
+  ShapeElementModel(
+      {ShapeElementType type, Color fill, Color lineColor, double lineWeight})
+      : this.type = type ?? ShapeElementType.square,
+        this.fill = fill ?? Colors.blue,
+        this.lineColor = lineColor ?? Colors.black,
+        this.lineWeight = lineWeight ?? 1;
 
   ShapeElementModel copyWith({
     ShapeElementType type,
@@ -27,5 +30,15 @@ class ShapeElementModel extends LayoutElementChild {
       lineColor: lineColor ?? this.lineColor,
       lineWeight: lineWeight ?? this.lineWeight,
     );
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'elementType': 'shape',
+      'type': convertShapeElementType(type),
+      'fill': ColorModel.fromColor(fill).toMap(),
+      'lineColor': ColorModel.fromColor(lineColor).toMap(),
+      'lineWeight': lineWeight,
+    };
   }
 }

@@ -1,11 +1,14 @@
-import 'package:castboard_core/elements/TextElementModel.dart';
+import 'package:castboard_core/enum-converters/textAlignConverters.dart';
+import 'package:castboard_core/models/ColorModel.dart';
 import 'package:flutter/material.dart';
+
+import 'package:castboard_core/elements/TextElementModel.dart';
 
 class ActorElementModel extends TextElementModel {
   final String roleId;
 
   ActorElementModel({
-    this.roleId = '',
+    @required String roleId,
     String text,
     String fontFamily = "Arial",
     double fontSize = 24,
@@ -14,7 +17,8 @@ class ActorElementModel extends TextElementModel {
     bool underline = false,
     TextAlign alignment = TextAlign.center,
     Color color = Colors.white,
-  }) : super(
+  })  : this.roleId = roleId ?? '',
+        super(
           text: '',
           fontFamily: fontFamily,
           fontSize: fontSize,
@@ -47,5 +51,20 @@ class ActorElementModel extends TextElementModel {
       alignment: alignment ?? this.alignment,
       color: color ?? this.color,
     );
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'elementType': 'actor',
+      'roleId': roleId,
+      'text': text,
+      'fontFamily': fontFamily,
+      'fontSize': fontSize,
+      'italics': italics,
+      'bold': bold,
+      'underline': underline,
+      'alignment': convertTextAlign(alignment),
+      'color': ColorModel.fromColor(color).toMap(),
+    };
   }
 }

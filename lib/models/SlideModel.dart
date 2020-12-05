@@ -1,6 +1,10 @@
+import 'dart:convert';
+
+import 'package:castboard_core/models/ColorModel.dart';
+import 'package:flutter/material.dart';
+
 import 'package:castboard_core/classes/PhotoRef.dart';
 import 'package:castboard_core/models/LayoutElementModel.dart';
-import 'package:flutter/material.dart';
 
 class SlideModel {
   final String uid;
@@ -48,5 +52,49 @@ class SlideModel {
       holdTime: holdTime ?? this.holdTime,
       elements: elements ?? this.elements,
     );
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'uid': uid,
+      'index': index,
+      'name': name,
+      'backgroundRef': backgroundRef?.toMap(),
+      'backgroundFileName': backgroundFileName,
+      'backgroundColor': ColorModel(backgroundColor.alpha, backgroundColor.red,
+              backgroundColor.green, backgroundColor.blue)
+          .toMap(),
+      'usePreviousBackground': usePreviousBackground,
+      'holdTime': holdTime,
+      'elements': Map<String, dynamic>.fromEntries(elements.entries
+          .map((entry) => MapEntry(entry.key, entry.value.toMap()))),
+    };
+  }
+
+  factory SlideModel.fromMap(Map<String, dynamic> map) {
+    if (map == null) return null;
+
+    return SlideModel(
+      uid: map['uid'],
+      index: map['index'],
+      name: map['name'],
+      backgroundRef: PhotoRef.fromMap(map['backgroundRef']),
+      backgroundFileName: map['backgroundFileName'],
+      backgroundColor: ColorModel.fromMap(map['backgroundColor']).toColor(),
+      usePreviousBackground: map['usePreviousBackground'],
+      holdTime: map['holdTime'],
+      elements: _mapElements(map['elements']),
+    );
+  }
+
+  static Map<String, LayoutElementModel> _mapElements(
+      Map<String, dynamic> map) {
+    if (map == null || map.isEmpty) {
+      return const {};
+    }
+
+    return Map<String, LayoutElementModel>.fromEntries(map.entries.map(
+        (entry) =>
+            MapEntry(entry.key, LayoutElementModel.fromMap(entry.value))));
   }
 }

@@ -1,4 +1,4 @@
-import 'dart:convert';
+const _defaultBuiltInPresetId = 'DEFAULT-BUILT-IN-PRESET';
 
 class PresetModel {
   final String uid;
@@ -12,6 +12,12 @@ class PresetModel {
     this.details = '',
     this.assignments = const {},
   });
+
+  const PresetModel.builtIn()
+      : uid = _defaultBuiltInPresetId,
+        name = 'Default',
+        details = '',
+        assignments = const {};
 
   PresetModel copyWith({
     String uid,
@@ -38,7 +44,7 @@ class PresetModel {
 
   factory PresetModel.fromMap(Map<String, dynamic> map) {
     if (map == null) return null;
-  
+
     return PresetModel(
       uid: map['uid'],
       name: map['name'],
@@ -46,4 +52,6 @@ class PresetModel {
       assignments: Map<String, String>.from(map['assignments']),
     );
   }
+
+  bool get isBuiltIn => uid == _defaultBuiltInPresetId;
 }

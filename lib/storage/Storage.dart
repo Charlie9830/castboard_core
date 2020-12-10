@@ -300,6 +300,8 @@ class Storage {
 
     await Future.wait(fileWriteRequests);
 
+    // TODO: Verification and Coercion.
+    // -> Coerce a default Preset into existence if not already existing.
     return ImportedShowData(
         manifest: ManifestModel.fromMap(rawManifest),
         slides: Map<String, SlideModel>.fromEntries(rawSlideData.entries.map(

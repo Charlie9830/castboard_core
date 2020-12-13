@@ -199,17 +199,29 @@ class Storage {
   }
 
   File getHeadshotFile(PhotoRef ref) {
+    if (ref == null) {
+      return null;
+    }
+
+    if (ref.uid == null || ref.uid.isEmpty) {
+      return null;
+    }
+
     return File(
         p.join(_appStorageRoot.path, _headshotsTempDirName, ref.basename));
   }
 
   File getBackgroundFile(PhotoRef ref) {
+    if (ref == null) {
+      return null;
+    }
+
+    if (ref.uid == null || ref.uid.isEmpty) {
+      return null;
+    }
+
     return File(
         p.join(_appStorageRoot.path, _backgroundsTempDirName, ref.basename));
-  }
-
-  File getSlideThumbnailFile(String slideId) {
-    return File(p.join(_appStorageRoot.path, _slideThumbnails, '$slideId.jpg'));
   }
 
   Future<void> copyShowFileIntoPlayerStorage(List<int> bytes) async {

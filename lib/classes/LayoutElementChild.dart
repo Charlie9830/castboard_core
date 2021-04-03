@@ -1,4 +1,5 @@
 import 'package:castboard_core/elements/ActorElementModel.dart';
+import 'package:castboard_core/elements/ContainerElementModel.dart';
 import 'package:castboard_core/elements/HeadshotElementModel.dart';
 import 'package:castboard_core/elements/ShapeElementModel.dart';
 import 'package:castboard_core/elements/TextElementModel.dart';
@@ -13,6 +14,10 @@ abstract class LayoutElementChild {
 
   factory LayoutElementChild.fromMap(Map<String, dynamic> map) {
     final String elementType = map['elementType'];
+
+    if (elementType == 'container') {
+      return ContainerElementModel();
+    }
 
     if (elementType == 'text') {
       return TextElementModel(

@@ -1,8 +1,8 @@
 name: castboard_core
 description: Core library for castboard
 version: 0.0.1
-author: null
-homepage: null
+author: Charlie Hall
+homepage: www.github.com/charlie9830
 
 environment:
   sdk: ">=2.7.0 <3.0.0"

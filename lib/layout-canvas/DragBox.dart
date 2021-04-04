@@ -6,9 +6,7 @@ typedef void OnClickCallback(int pointerId);
 typedef void OnMouseUpCallback(int pointerId);
 
 typedef void OnPositionChangeCallback(
-  double xDelta,
-  double yDelta,
-);
+    double xDelta, double yDelta);
 
 class DragBox extends StatelessWidget {
   final bool selected;
@@ -49,8 +47,10 @@ class DragBox extends StatelessWidget {
                 if (pointerEvent.down) {
                   final transformedEvent =
                       pointerEvent.transformed(Matrix4.rotationZ(0));
-                  onPositionChange?.call(transformedEvent.localDelta.dx,
-                      transformedEvent.localDelta.dy);
+                  onPositionChange?.call(
+                    transformedEvent.localDelta.dx,
+                    transformedEvent.localDelta.dy,
+                  );
                 }
               },
               onPointerUp: (pointerEvent) {

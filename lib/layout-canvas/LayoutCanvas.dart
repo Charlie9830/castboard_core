@@ -856,7 +856,7 @@ class _LayoutCanvasState extends State<LayoutCanvas> {
     final scaledDeltaY = deltaY / widget.renderScale;
     double deltaXSinceLastSnap = _deltaXSinceLastSnap + scaledDeltaX;
 
-    if (primaryElement.xPos + deltaXSinceLastSnap > rightBound + deadZone) {
+    if (deltaXSinceLastSnap > gridSize) {
       // Snap to Right Bound
       deltaXSinceLastSnap = rightBound - primaryElement.xPos;
 
@@ -869,13 +869,11 @@ class _LayoutCanvasState extends State<LayoutCanvas> {
             deltaXSinceLastSnap,
             scaledDeltaY);
       });
-    } else if (primaryElement.xPos + deltaXSinceLastSnap <
-            leftBound + deadZone &&
-        (deltaXSinceLastSnap * -1) >= gridSize) {
+    } else if (deltaXSinceLastSnap * -1 > gridSize) {
       // Snap to Left Bound.
-       
-      
-      deltaXSinceLastSnap = primaryElement.xPos == leftBound ? gridSize * -1 : leftBound - primaryElement.xPos;
+      deltaXSinceLastSnap = primaryElement.xPos == leftBound
+          ? gridSize * -1
+          : leftBound - primaryElement.xPos;
 
       setState(() {
         _deltaXSinceLastSnap = 0.0;

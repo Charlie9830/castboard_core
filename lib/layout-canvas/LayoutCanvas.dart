@@ -59,10 +59,8 @@ class _LayoutCanvasState extends State<LayoutCanvas> {
   Offset _dragSelectAnchorPoint = Offset(0, 0);
   Offset _dragSelectMousePoint = Offset(0, 0);
   Set<String> _dragSelectionPreviews = <String>{};
-
-  // Class Storage
-  double _deltaXSinceLastSnapAccumlator = 0.0;
-  double _deltaYSinceLastSnapAccumlator = 0.0;
+  double _deltaXSnapAccumulator = 0.0; // Accumulates Delta Values up until the object or handle is snapped to a grid. In which case Accumulation will start again.
+  double _deltaYSnapAccumulator = 0.0; // Accumulates Delta Values up until the object or handle is snapped to a grid. In which case Accumulation will start again.
 
   double _currentBlockWidth = 0.0;
   @override
@@ -105,8 +103,8 @@ class _LayoutCanvasState extends State<LayoutCanvas> {
                 },
                 onDragBoxMouseUp: (blockId, pointerId) {
                   setState(() {
-                    _deltaXSinceLastSnapAccumlator = 0.0;
-                    _deltaYSinceLastSnapAccumlator = 0.0;
+                    _deltaXSnapAccumulator = 0.0;
+                    _deltaYSnapAccumulator = 0.0;
                   });
                 },
                 onDragHandleDragged: _handleResizeHandleDragged,
@@ -399,7 +397,6 @@ class _LayoutCanvasState extends State<LayoutCanvas> {
             _getRotationOffsetVector(existingPrimary, interimPrimary);
 
         setState(() {
-          // START
           final finalizedPrimaryElement = interimPrimary.copyWith(
             xPos: interimPrimary.xPos - (offsetVector.x / widget.renderScale),
             yPos: interimPrimary.yPos - (offsetVector.y / widget.renderScale),
@@ -427,7 +424,6 @@ class _LayoutCanvasState extends State<LayoutCanvas> {
                   ));
             }
           }));
-          // FINISH
           _logicalResizeHandle = _getOpposingResizeHandle(currentLogicalHandle,
               isFlippingLeftToRight, isFlippingTopToBottom);
           _lastPointerId = pointerId;
@@ -447,7 +443,6 @@ class _LayoutCanvasState extends State<LayoutCanvas> {
             _getRotationOffsetVector(existingPrimary, interimPrimary);
 
         setState(() {
-          // START
           final finalizedPrimaryElement = interimPrimary.copyWith(
             xPos: interimPrimary.xPos - (offsetVector.x / widget.renderScale),
             yPos: interimPrimary.yPos - (offsetVector.y / widget.renderScale),
@@ -475,15 +470,6 @@ class _LayoutCanvasState extends State<LayoutCanvas> {
                   ));
             }
           }));
-          // FINISH
-
-          // _activeElements = Map<String, LayoutBlock>.from(_activeElements)
-          //   ..addAll({
-          //     blockId: interimPrimary.copyWith(
-          //       xPos: interimPrimary.xPos - offsetVector.x,
-          //       yPos: interimPrimary.yPos - offsetVector.y,
-          //     )
-          //   });
           _logicalResizeHandle = isFlippingTopToBottom
               ? opposingResizeHandles[currentLogicalHandle]
               : currentLogicalHandle;
@@ -509,7 +495,6 @@ class _LayoutCanvasState extends State<LayoutCanvas> {
             _getRotationOffsetVector(existingPrimary, interimPrimary);
 
         setState(() {
-          // START
           final finalizedPrimaryElement = interimPrimary.copyWith(
             xPos: interimPrimary.xPos - (offsetVector.x / widget.renderScale),
             yPos: interimPrimary.yPos + (offsetVector.y / widget.renderScale),
@@ -537,7 +522,6 @@ class _LayoutCanvasState extends State<LayoutCanvas> {
                   ));
             }
           }));
-          // FINISH
 
           _logicalResizeHandle = _getOpposingResizeHandle(currentLogicalHandle,
               isFlippingRightToLeft, isFlippingTopToBottom);
@@ -591,15 +575,7 @@ class _LayoutCanvasState extends State<LayoutCanvas> {
                   ));
             }
           }));
-          // FINISH
 
-          // _activeElements = Map<String, LayoutBlock>.from(_activeElements)
-          //   ..addAll({
-          //     blockId: interimPrimary.copyWith(
-          //       xPos: interimPrimary.xPos + offsetVector.x,
-          //       yPos: interimPrimary.yPos + offsetVector.y,
-          //     )
-          //   });
           _logicalResizeHandle = isFlippingRightToLeft
               ? opposingResizeHandles[currentLogicalHandle]
               : currentLogicalHandle;
@@ -653,15 +629,6 @@ class _LayoutCanvasState extends State<LayoutCanvas> {
                   ));
             }
           }));
-          // FINISH
-
-          // _activeElements = Map<String, LayoutBlock>.from(_activeElements)
-          //   ..addAll({
-          //     blockId: interimPrimary.copyWith(
-          //       xPos: interimPrimary.xPos + offsetVector.x,
-          //       yPos: interimPrimary.yPos + offsetVector.y,
-          //     )
-          //   });
           _logicalResizeHandle = _getOpposingResizeHandle(currentLogicalHandle,
               isFlippingRightToLeft, isFlippingBottomToTop);
           _lastPointerId = pointerId;
@@ -710,15 +677,6 @@ class _LayoutCanvasState extends State<LayoutCanvas> {
                   ));
             }
           }));
-          // FINISH
-
-          // _activeElements = Map<String, LayoutBlock>.from(_activeElements)
-          //   ..addAll({
-          //     blockId: interimPrimary.copyWith(
-          //       xPos: interimPrimary.xPos + offsetVector.x,
-          //       yPos: interimPrimary.yPos + offsetVector.y,
-          //     )
-          //   });
           _logicalResizeHandle = isFlippingBottomToTop
               ? opposingResizeHandles[currentLogicalHandle]
               : currentLogicalHandle;
@@ -773,15 +731,7 @@ class _LayoutCanvasState extends State<LayoutCanvas> {
                   ));
             }
           }));
-          // FINISH
 
-          // _activeElements = Map<String, LayoutBlock>.from(_activeElements)
-          //   ..addAll({
-          //     blockId: interimPrimary.copyWith(
-          //       xPos: interimPrimary.xPos + offsetVector.x,
-          //       yPos: interimPrimary.yPos + offsetVector.y,
-          //     )
-          //   });
           _logicalResizeHandle = _getOpposingResizeHandle(currentLogicalHandle,
               isFlippingLeftToRight, isFlippingBottomToTop);
           _lastPointerId = pointerId;
@@ -830,17 +780,7 @@ class _LayoutCanvasState extends State<LayoutCanvas> {
                   ));
             }
           }));
-          // FINISH
 
-          // _activeElements = Map<String, LayoutBlock>.from(_activeElements)
-          //   ..addAll(
-          //     {
-          //       blockId: interimPrimary.copyWith(
-          //         xPos: interimPrimary.xPos - offsetVector.x,
-          //         yPos: interimPrimary.yPos - offsetVector.y,
-          //       )
-          //     },
-          //   );
           _logicalResizeHandle = isFlippingLeftToRight
               ? opposingResizeHandles[currentLogicalHandle]
               : currentLogicalHandle;
@@ -908,6 +848,16 @@ class _LayoutCanvasState extends State<LayoutCanvas> {
     });
   }
 
+  /// Returns an Accumulated Delta value. If SnapDelta is 0, signalling that no snap was required, then accumulator is returned as is. Else accumulator is returned with the
+  /// snapDelta subtracted from it to account for any leftover delta after a Snap has occurred.
+  double _updateDeltaAccumulator(double snapDelta, double accumulator) {
+    if (snapDelta == 0) {
+      return accumulator;
+    } else {
+      return accumulator - snapDelta;
+    }
+  }
+
   void _handleSnappingPositionChange(
       String uid,
       Set<String> selectedElements,
@@ -916,41 +866,39 @@ class _LayoutCanvasState extends State<LayoutCanvas> {
       double scaledDeltaX,
       double scaledDeltaY) {
     final primaryElement = activeElements[uid] ?? elements[uid];
-    final double deltaXSinceLastSnap =
-        _deltaXSinceLastSnapAccumlator + scaledDeltaX;
-    final double deltaYSinceLastSnap =
-        _deltaYSinceLastSnapAccumlator + scaledDeltaY;
+    final double deltaXSnapAccumulator =
+        _deltaXSnapAccumulator + scaledDeltaX; // Get updated Delta Accumulators.
+    final double deltaYSnapAccumulator =
+        _deltaYSnapAccumulator + scaledDeltaY; // Get updated Delta Accumulators.
 
     // Determine the delta required to snap to the next appropriate gridline (if any).
     final double snapDeltaX = _getSnapDelta(primaryElement.xPos,
-        deltaXSinceLastSnap, _gridSize, _gridSnapDeadZoneRatio);
+        deltaXSnapAccumulator, _gridSize, _gridSnapDeadZoneRatio);
     final double snapDeltaY = _getSnapDelta(primaryElement.yPos,
-        deltaYSinceLastSnap, _gridSize, _gridSnapDeadZoneRatio);
+        deltaYSnapAccumulator, _gridSize, _gridSnapDeadZoneRatio);
 
     if (snapDeltaX != 0 || snapDeltaY != 0) {
-      // Conditionally update deltasSinceLastSnaps. If no snap is requried, just accumulate the delta of this move. If a snap update is required,
-      // Update with the remainder of delta leftover after the snap, if we don't update the remainder, the cursor will get ahead of the object during quick moves.
-      final newDeltaXSinceLastSnap = snapDeltaX == 0
-          ? deltaXSinceLastSnap
-          : deltaXSinceLastSnap - snapDeltaX;
-      final newDeltaYSinceLastSnap = snapDeltaY == 0
-          ? deltaYSinceLastSnap
-          : deltaYSinceLastSnap - snapDeltaY;
+      // Get updated values for the deltaAccumulators.
+      final newDeltaXSnapAccumulator =
+          _updateDeltaAccumulator(snapDeltaX, deltaXSnapAccumulator);
+
+      final newDeltaYSnapAccumulator =
+          _updateDeltaAccumulator(snapDeltaY, deltaYSnapAccumulator);
 
       // Apply new delta values to the active elements.
       final newActiveElements = _applyDeltaPositionUpdates(
           selectedElements, activeElements, elements, snapDeltaX, snapDeltaY);
 
       setState(() {
-        _deltaXSinceLastSnapAccumlator = newDeltaXSinceLastSnap;
-        _deltaYSinceLastSnapAccumlator = newDeltaYSinceLastSnap;
+        _deltaXSnapAccumulator = newDeltaXSnapAccumulator;
+        _deltaYSnapAccumulator = newDeltaYSnapAccumulator;
         _activeElements = newActiveElements;
       });
     } else {
       // Neither the X-Axis or the Y-Axis required snapping to the next appropriate gridline. So just accumlate our deltaSinceLastSnap values.
       setState(() {
-        _deltaXSinceLastSnapAccumlator = deltaXSinceLastSnap;
-        _deltaYSinceLastSnapAccumlator = deltaYSinceLastSnap;
+        _deltaXSnapAccumulator = deltaXSnapAccumulator;
+        _deltaYSnapAccumulator = deltaYSnapAccumulator;
       });
     }
   }

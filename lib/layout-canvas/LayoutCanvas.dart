@@ -59,12 +59,16 @@ class _LayoutCanvasState extends State<LayoutCanvas> {
   Offset _dragSelectAnchorPoint = Offset(0, 0);
   Offset _dragSelectMousePoint = Offset(0, 0);
   Set<String> _dragSelectionPreviews = <String>{};
-  double _deltaXSnapAccumulator = 0.0; // Accumulates Delta Values up until the object or handle is snapped to a grid. In which case Accumulation will start again.
-  double _deltaYSnapAccumulator = 0.0; // Accumulates Delta Values up until the object or handle is snapped to a grid. In which case Accumulation will start again.
+  double _deltaXSnapAccumulator =
+      0.0; // Accumulates Delta Values up until the object or handle is snapped to a grid. In which case Accumulation will start again.
+  double _deltaYSnapAccumulator =
+      0.0; // Accumulates Delta Values up until the object or handle is snapped to a grid. In which case Accumulation will start again.
 
   double _currentBlockWidth = 0.0;
   @override
   Widget build(BuildContext context) {
+    print(_deltaYSnapAccumulator);
+    print(_deltaXSnapAccumulator);
     final dragSelectRect =
         Rect.fromPoints(_dragSelectAnchorPoint, _dragSelectMousePoint);
     return Listener(
@@ -101,12 +105,7 @@ class _LayoutCanvasState extends State<LayoutCanvas> {
                 onPositionChange: (xPosDelta, yPosDelta, blockId) {
                   _handlePositionChange(blockId, xPosDelta, yPosDelta);
                 },
-                onDragBoxMouseUp: (blockId, pointerId) {
-                  setState(() {
-                    _deltaXSnapAccumulator = 0.0;
-                    _deltaYSnapAccumulator = 0.0;
-                  });
-                },
+                onDragBoxMouseUp: (blockId, pointerId) {},
                 onDragHandleDragged: _handleResizeHandleDragged,
                 onResizeDone: _handleResizeDone,
                 onResizeStart: _handleResizeStart,
@@ -139,6 +138,8 @@ class _LayoutCanvasState extends State<LayoutCanvas> {
       widget.onElementsChanged(_activeElements);
       setState(() {
         _activeElements = const {};
+        _deltaXSnapAccumulator = 0.0;
+        _deltaYSnapAccumulator = 0.0;
       });
     }
 
@@ -866,10 +867,10 @@ class _LayoutCanvasState extends State<LayoutCanvas> {
       double scaledDeltaX,
       double scaledDeltaY) {
     final primaryElement = activeElements[uid] ?? elements[uid];
-    final double deltaXSnapAccumulator =
-        _deltaXSnapAccumulator + scaledDeltaX; // Get updated Delta Accumulators.
-    final double deltaYSnapAccumulator =
-        _deltaYSnapAccumulator + scaledDeltaY; // Get updated Delta Accumulators.
+    final double deltaXSnapAccumulator = _deltaXSnapAccumulator +
+        scaledDeltaX; // Get updated Delta Accumulators.
+    final double deltaYSnapAccumulator = _deltaYSnapAccumulator +
+        scaledDeltaY; // Get updated Delta Accumulators.
 
     // Determine the delta required to snap to the next appropriate gridline (if any).
     final double snapDeltaX = _getSnapDelta(primaryElement.xPos,

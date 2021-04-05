@@ -13,6 +13,7 @@ import 'package:vector_math/vector_math_64.dart' hide Colors;
 import 'package:flutter/material.dart';
 
 const double _gridSnapDeadZoneRatio = 0.5;
+const double _gridSize = 50;
 
 typedef void OnSelectedElementsChangedCallback(Set<String> selectedElements);
 typedef void OnElementsChangedCallback(
@@ -21,6 +22,7 @@ typedef void OnPlaceCallback(double xPos, double yPos);
 
 class LayoutCanvas extends StatefulWidget {
   final bool interactive;
+  final bool showGrid;
   final Map<String, LayoutBlock> elements;
   final Set<String> selectedElements;
   final double renderScale;
@@ -32,6 +34,7 @@ class LayoutCanvas extends StatefulWidget {
   LayoutCanvas(
       {Key key,
       this.interactive = true,
+      this.showGrid = false,
       this.elements = const {},
       this.selectedElements = const {},
       this.placing = false,
@@ -74,7 +77,10 @@ class _LayoutCanvasState extends State<LayoutCanvas> {
         color: Colors
             .transparent, // If a color isn't set. Hit testing for the Parent Listener stops working.
         child: CustomPaint(
-          painter: GridPainter(gridSize: 50, renderScale: widget.renderScale),
+          painter: widget.showGrid
+              ? GridPainter(
+                  gridSize: _gridSize, renderScale: widget.renderScale)
+              : null,
           child: Stack(
             children: [
               DragBoxLayer(
@@ -854,8 +860,8 @@ class _LayoutCanvasState extends State<LayoutCanvas> {
   ///
   /// Calculates the delta required to snap the element to the next appropriate gridline. Returns 0 if the element does not need to move.
   ///
-  double _getSnapDelta(
-      double currentPos, double deltaSinceLastSnap, double gridSize, double deadZoneRatio) {
+  double _getSnapDelta(double currentPos, double deltaSinceLastSnap,
+      double gridSize, double deadZoneRatio) {
     if (deltaSinceLastSnap >= gridSize * deadZoneRatio) {
       // Snap to Right or Bottom grid Line. (Increasing value on the X or Y Axis)
       final double nextSnap =
@@ -874,20 +880,52 @@ class _LayoutCanvasState extends State<LayoutCanvas> {
   }
 
   void _handlePositionChange(String uid, double rawDeltaX, double rawDeltaY) {
-    final double gridSize = 50;
-    final primaryElement = _activeElements[uid] ?? widget.elements[uid];
-    final scaledRawDeltaX = rawDeltaX / widget.renderScale;
-    final scaledRawDeltaY = rawDeltaY / widget.renderScale;
+    final scaledDeltaX = rawDeltaX / widget.renderScale;
+    final scaledDeltaY = rawDeltaY / widget.renderScale;
+
+    if (widget.showGrid == true) {
+      _handleSnappingPositionChange(uid, widget.selectedElements,
+          _activeElements, widget.elements, scaledDeltaX, scaledDeltaY);
+    } else {
+      _handleStandardPositionChange(uid, widget.selectedElements,
+          _activeElements, widget.elements, scaledDeltaX, scaledDeltaY);
+    }
+  }
+
+  void _handleStandardPositionChange(
+      String uid,
+      Set<String> selectedElements,
+      Map<String, LayoutBlock> activeElements,
+      Map<String, LayoutBlock> elements,
+      double scaledDeltaX,
+      double scaledDeltaY) {
+    // Apply new delta values to the active elements.
+    final newActiveElements = _applyDeltaPositionUpdates(
+        selectedElements, activeElements, elements, scaledDeltaX, scaledDeltaY);
+
+    setState(() {
+      _activeElements = newActiveElements;
+    });
+  }
+
+  void _handleSnappingPositionChange(
+      String uid,
+      Set<String> selectedElements,
+      Map<String, LayoutBlock> activeElements,
+      Map<String, LayoutBlock> elements,
+      double scaledDeltaX,
+      double scaledDeltaY) {
+    final primaryElement = activeElements[uid] ?? elements[uid];
     final double deltaXSinceLastSnap =
-        _deltaXSinceLastSnapAccumlator + scaledRawDeltaX;
+        _deltaXSinceLastSnapAccumlator + scaledDeltaX;
     final double deltaYSinceLastSnap =
-        _deltaYSinceLastSnapAccumlator + scaledRawDeltaY;
+        _deltaYSinceLastSnapAccumlator + scaledDeltaY;
 
     // Determine the delta required to snap to the next appropriate gridline (if any).
-    final double snapDeltaX =
-        _getSnapDelta(primaryElement.xPos, deltaXSinceLastSnap, gridSize, _gridSnapDeadZoneRatio);
-    final double snapDeltaY =
-        _getSnapDelta(primaryElement.yPos, deltaYSinceLastSnap, gridSize, _gridSnapDeadZoneRatio);
+    final double snapDeltaX = _getSnapDelta(primaryElement.xPos,
+        deltaXSinceLastSnap, _gridSize, _gridSnapDeadZoneRatio);
+    final double snapDeltaY = _getSnapDelta(primaryElement.yPos,
+        deltaYSinceLastSnap, _gridSize, _gridSnapDeadZoneRatio);
 
     if (snapDeltaX != 0 || snapDeltaY != 0) {
       // Conditionally update deltasSinceLastSnaps. If no snap is requried, just accumulate the delta of this move. If a snap update is required,
@@ -901,11 +939,7 @@ class _LayoutCanvasState extends State<LayoutCanvas> {
 
       // Apply new delta values to the active elements.
       final newActiveElements = _applyDeltaPositionUpdates(
-          widget.selectedElements,
-          _activeElements,
-          widget.elements,
-          snapDeltaX,
-          snapDeltaY);
+          selectedElements, activeElements, elements, snapDeltaX, snapDeltaY);
 
       setState(() {
         _deltaXSinceLastSnapAccumlator = newDeltaXSinceLastSnap;

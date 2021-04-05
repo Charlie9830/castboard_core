@@ -12,6 +12,8 @@ import 'package:vector_math/vector_math_64.dart' hide Colors;
 
 import 'package:flutter/material.dart';
 
+const double _gridSnapDeadZoneRatio = 0.5;
+
 typedef void OnSelectedElementsChangedCallback(Set<String> selectedElements);
 typedef void OnElementsChangedCallback(
     Map<String, LayoutBlock> changedElements);
@@ -64,81 +66,54 @@ class _LayoutCanvasState extends State<LayoutCanvas> {
   Widget build(BuildContext context) {
     final dragSelectRect =
         Rect.fromPoints(_dragSelectAnchorPoint, _dragSelectMousePoint);
-    return Column(
-      children: [
-        ElevatedButton(
-          child: Text("Move"),
-          onPressed: () {
-            if (widget.selectedElements.isEmpty) {
-              return;
-            }
-
-            final selectedItemId = widget.selectedElements.first;
-            _handlePositionChange(selectedItemId, 50, 0);
-          },
-        ),
-        ElevatedButton(
-            child: Text("Reset"),
-            onPressed: () {
-              setState(() {
-                _deltaXSinceLastSnapAccumlator = 0.0;
-                _deltaYSinceLastSnapAccumlator = 0.0;
-              });
-            }),
-        Expanded(
-          child: Listener(
-            onPointerDown: widget.interactive ? _handleRootPointerDown : null,
-            onPointerUp: widget.interactive ? _handleRootPointerUp : null,
-            onPointerMove: widget.interactive ? _handleRootPointerMove : null,
-            child: Container(
-              color: Colors
-                  .transparent, // If a color isn't set. Hit testing for the Parent Listener stops working.
-              child: CustomPaint(
-                painter:
-                    GridPainter(gridSize: 50, renderScale: widget.renderScale),
-                child: Stack(
-                  children: [
-                    DragBoxLayer(
-                      interactive: widget.interactive,
-                      selectedElementIds:
-                          Set<String>.from(widget.selectedElements)
-                            ..addAll(_dragSelectionPreviews),
-                      renderScale: widget.renderScale,
-                      blocks: _buildBlocks(),
-                      isDragSelecting: _isDragSelecting,
-                      dragSelectXPos: dragSelectRect.topLeft.dx,
-                      dragSelectYPos: dragSelectRect.topLeft.dy,
-                      dragSelectHeight: dragSelectRect.height,
-                      dragSelectWidth: dragSelectRect.width,
-                      onDragBoxClick: (elementId, pointerId) {
-                        _notifySelection(elementId);
-                        setState(() {
-                          _lastPointerId = pointerId;
-                        });
-                      },
-                      onPositionChange: (xPosDelta, yPosDelta, blockId) {
-                        _handlePositionChange(blockId, xPosDelta, yPosDelta);
-                      },
-                      onDragBoxMouseUp: (blockId, pointerId) {
-                        setState(() {
-                          _deltaXSinceLastSnapAccumlator = 0.0;
-                          _deltaYSinceLastSnapAccumlator = 0.0;
-                        });
-                      },
-                      onDragHandleDragged: _handleResizeHandleDragged,
-                      onResizeDone: _handleResizeDone,
-                      onResizeStart: _handleResizeStart,
-                      onRotateStart: _handleRotateStart,
-                      onRotate: _handleRotate,
-                      onRotateDone: _handleRotateDone,
-                    ),
-                  ],
-                ),
+    return Listener(
+      onPointerDown: widget.interactive ? _handleRootPointerDown : null,
+      onPointerUp: widget.interactive ? _handleRootPointerUp : null,
+      onPointerMove: widget.interactive ? _handleRootPointerMove : null,
+      child: Container(
+        color: Colors
+            .transparent, // If a color isn't set. Hit testing for the Parent Listener stops working.
+        child: CustomPaint(
+          painter: GridPainter(gridSize: 50, renderScale: widget.renderScale),
+          child: Stack(
+            children: [
+              DragBoxLayer(
+                interactive: widget.interactive,
+                selectedElementIds: Set<String>.from(widget.selectedElements)
+                  ..addAll(_dragSelectionPreviews),
+                renderScale: widget.renderScale,
+                blocks: _buildBlocks(),
+                isDragSelecting: _isDragSelecting,
+                dragSelectXPos: dragSelectRect.topLeft.dx,
+                dragSelectYPos: dragSelectRect.topLeft.dy,
+                dragSelectHeight: dragSelectRect.height,
+                dragSelectWidth: dragSelectRect.width,
+                onDragBoxClick: (elementId, pointerId) {
+                  _notifySelection(elementId);
+                  setState(() {
+                    _lastPointerId = pointerId;
+                  });
+                },
+                onPositionChange: (xPosDelta, yPosDelta, blockId) {
+                  _handlePositionChange(blockId, xPosDelta, yPosDelta);
+                },
+                onDragBoxMouseUp: (blockId, pointerId) {
+                  setState(() {
+                    _deltaXSinceLastSnapAccumlator = 0.0;
+                    _deltaYSinceLastSnapAccumlator = 0.0;
+                  });
+                },
+                onDragHandleDragged: _handleResizeHandleDragged,
+                onResizeDone: _handleResizeDone,
+                onResizeStart: _handleResizeStart,
+                onRotateStart: _handleRotateStart,
+                onRotate: _handleRotate,
+                onRotateDone: _handleRotateDone,
               ),
-            ),
+            ],
           ),
         ),
-      ],
+      ),
     );
   }
 
@@ -878,17 +853,17 @@ class _LayoutCanvasState extends State<LayoutCanvas> {
 
   ///
   /// Calculates the delta required to snap the element to the next appropriate gridline. Returns 0 if the element does not need to move.
-  /// 
+  ///
   double _getSnapDelta(
-      double currentPos, double deltaSinceLastSnap, double gridSize) {
-    if (deltaSinceLastSnap >= gridSize) {
+      double currentPos, double deltaSinceLastSnap, double gridSize, double deadZoneRatio) {
+    if (deltaSinceLastSnap >= gridSize * deadZoneRatio) {
       // Snap to Right or Bottom grid Line. (Increasing value on the X or Y Axis)
       final double nextSnap =
           ((currentPos + deltaSinceLastSnap) / gridSize).round() * gridSize;
       return nextSnap - currentPos;
     }
 
-    if (deltaSinceLastSnap * -1 >= gridSize) {
+    if (deltaSinceLastSnap * -1 >= gridSize * deadZoneRatio) {
       // Snap to Left or Top grid line. (Decreasing value on the X or Y Axis)
       final prevSnap =
           ((currentPos + deltaSinceLastSnap) / gridSize).round() * gridSize;
@@ -903,22 +878,26 @@ class _LayoutCanvasState extends State<LayoutCanvas> {
     final primaryElement = _activeElements[uid] ?? widget.elements[uid];
     final scaledRawDeltaX = rawDeltaX / widget.renderScale;
     final scaledRawDeltaY = rawDeltaY / widget.renderScale;
-    final double deltaXSinceLastSnap = _deltaXSinceLastSnapAccumlator + scaledRawDeltaX;
-    final double deltaYSinceLastSnap = _deltaYSinceLastSnapAccumlator + scaledRawDeltaY;
+    final double deltaXSinceLastSnap =
+        _deltaXSinceLastSnapAccumlator + scaledRawDeltaX;
+    final double deltaYSinceLastSnap =
+        _deltaYSinceLastSnapAccumlator + scaledRawDeltaY;
 
     // Determine the delta required to snap to the next appropriate gridline (if any).
     final double snapDeltaX =
-        _getSnapDelta(primaryElement.xPos, deltaXSinceLastSnap, gridSize);
+        _getSnapDelta(primaryElement.xPos, deltaXSinceLastSnap, gridSize, _gridSnapDeadZoneRatio);
     final double snapDeltaY =
-        _getSnapDelta(primaryElement.yPos, deltaYSinceLastSnap, gridSize);
+        _getSnapDelta(primaryElement.yPos, deltaYSinceLastSnap, gridSize, _gridSnapDeadZoneRatio);
 
     if (snapDeltaX != 0 || snapDeltaY != 0) {
       // Conditionally update deltasSinceLastSnaps. If no snap is requried, just accumulate the delta of this move. If a snap update is required,
       // Update with the remainder of delta leftover after the snap, if we don't update the remainder, the cursor will get ahead of the object during quick moves.
-      final newDeltaXSinceLastSnap =
-          snapDeltaX == 0 ? deltaXSinceLastSnap : deltaXSinceLastSnap - snapDeltaX;
-      final newDeltaYSinceLastSnap =
-          snapDeltaY == 0 ? deltaYSinceLastSnap : deltaYSinceLastSnap - snapDeltaY;
+      final newDeltaXSinceLastSnap = snapDeltaX == 0
+          ? deltaXSinceLastSnap
+          : deltaXSinceLastSnap - snapDeltaX;
+      final newDeltaYSinceLastSnap = snapDeltaY == 0
+          ? deltaYSinceLastSnap
+          : deltaYSinceLastSnap - snapDeltaY;
 
       // Apply new delta values to the active elements.
       final newActiveElements = _applyDeltaPositionUpdates(
@@ -940,47 +919,6 @@ class _LayoutCanvasState extends State<LayoutCanvas> {
         _deltaYSinceLastSnapAccumlator = deltaYSinceLastSnap;
       });
     }
-
-    // if (deltaXSinceLastSnap > gridSize) {
-    //   // Snap to Right Bound
-    //   final rightBound =
-    //       ((primaryElement.xPos + deltaXSinceLastSnap) / gridSize).floor() *
-    //           gridSize;
-    //   deltaXSinceLastSnap = rightBound - primaryElement.xPos;
-
-    //   setState(() {
-    //     _deltaXSinceLastSnap = 0.0;
-    //     _activeElements = _applyDeltaPositionUpdates(
-    //         widget.selectedElements,
-    //         _activeElements,
-    //         widget.elements,
-    //         deltaXSinceLastSnap,
-    //         scaledRawDeltaY);
-    //   });
-    // } else if (deltaXSinceLastSnap * -1 > gridSize) {
-    //   final leftBound =
-    //       (((primaryElement.xPos + deltaXSinceLastSnap) / gridSize).floor() *
-    //           gridSize);
-    //   // Snap to Left Bound.
-    //   deltaXSinceLastSnap = primaryElement.xPos % gridSize == 0
-    //       ? gridSize * -1
-    //       : leftBound - primaryElement.xPos;
-
-    //   setState(() {
-    //     _deltaXSinceLastSnap = 0.0;
-    //     _activeElements = _applyDeltaPositionUpdates(
-    //         widget.selectedElements,
-    //         _activeElements,
-    //         widget.elements,
-    //         deltaXSinceLastSnap,
-    //         scaledRawDeltaY);
-    //   });
-    // } else {
-    //   // No Position Update Required Yet.
-    //   setState(() {
-    //     _deltaXSinceLastSnap = deltaXSinceLastSnap;
-    //   });
-    // }
   }
 
   /// Applies delta changes to all elements referenced by selectedElements.

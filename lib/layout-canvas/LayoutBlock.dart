@@ -6,8 +6,6 @@ class LayoutBlock extends StatelessWidget {
   final Widget child;
   final double xPos;
   final double yPos;
-  final double desiredXPos;
-  final double desiredYPos;
   final double width;
   final double height;
   final double rotation;
@@ -20,8 +18,6 @@ class LayoutBlock extends StatelessWidget {
     this.xPos,
     this.yPos,
     this.width,
-    this.desiredXPos,
-    this.desiredYPos,
     this.height,
     this.child,
     this.rotation,
@@ -38,8 +34,6 @@ class LayoutBlock extends StatelessWidget {
     double rotation,
     double debugRenderXPos,
     double debugRenderYPos,
-    double desiredXPos,
-    double desiredYPos,
   }) {
     return LayoutBlock(
       id: this.id,
@@ -49,8 +43,6 @@ class LayoutBlock extends StatelessWidget {
       height: height ?? this.height,
       rotation: rotation ?? this.rotation,
       child: child ?? this.child,
-      desiredXPos: desiredXPos ?? this.desiredXPos,
-      desiredYPos: desiredYPos ?? this.desiredYPos,
       debugRenderXPos: debugRenderXPos ?? this.debugRenderXPos,
       debugRenderYPos: debugRenderYPos ?? this.debugRenderYPos,
     );

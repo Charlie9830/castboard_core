@@ -13,7 +13,7 @@ import 'package:vector_math/vector_math_64.dart' hide Colors;
 import 'package:flutter/material.dart';
 
 const double _gridSnapDeadZoneRatio = 0.5;
-const double _gridSize = 50;
+const double _gridSize = 80;
 
 typedef void OnSelectedElementsChangedCallback(Set<String> selectedElements);
 typedef void OnElementsChangedCallback(

@@ -56,8 +56,8 @@ class _LayoutCanvasState extends State<LayoutCanvas> {
   Set<String> _dragSelectionPreviews = <String>{};
 
   // Class Storage
-  double _deltaXSinceLastSnap = 0.0;
-  double _deltaYSinceLastSnap = 0.0;
+  double _deltaXSinceLastSnapAccumlator = 0.0;
+  double _deltaYSinceLastSnapAccumlator = 0.0;
 
   double _currentBlockWidth = 0.0;
   @override
@@ -81,8 +81,8 @@ class _LayoutCanvasState extends State<LayoutCanvas> {
             child: Text("Reset"),
             onPressed: () {
               setState(() {
-                _deltaXSinceLastSnap = 0.0;
-                _deltaYSinceLastSnap = 0.0;
+                _deltaXSinceLastSnapAccumlator = 0.0;
+                _deltaYSinceLastSnapAccumlator = 0.0;
               });
             }),
         Expanded(
@@ -121,8 +121,8 @@ class _LayoutCanvasState extends State<LayoutCanvas> {
                       },
                       onDragBoxMouseUp: (blockId, pointerId) {
                         setState(() {
-                          _deltaXSinceLastSnap = 0.0;
-                          _deltaYSinceLastSnap = 0.0;
+                          _deltaXSinceLastSnapAccumlator = 0.0;
+                          _deltaYSinceLastSnapAccumlator = 0.0;
                         });
                       },
                       onDragHandleDragged: _handleResizeHandleDragged,
@@ -876,17 +876,20 @@ class _LayoutCanvasState extends State<LayoutCanvas> {
       ..translate(width / 2 * -1, height / 2 * -1);
   }
 
+  ///
+  /// Calculates the delta required to snap the element to the next appropriate gridline. Returns 0 if the element does not need to move.
+  /// 
   double _getSnapDelta(
       double currentPos, double deltaSinceLastSnap, double gridSize) {
     if (deltaSinceLastSnap >= gridSize) {
-      // Snap to Right or Bottom grid Line.
+      // Snap to Right or Bottom grid Line. (Increasing value on the X or Y Axis)
       final double nextSnap =
           ((currentPos + deltaSinceLastSnap) / gridSize).round() * gridSize;
       return nextSnap - currentPos;
     }
 
     if (deltaSinceLastSnap * -1 >= gridSize) {
-      // Snap to Left or Top grid line.
+      // Snap to Left or Top grid line. (Decreasing value on the X or Y Axis)
       final prevSnap =
           ((currentPos + deltaSinceLastSnap) / gridSize).round() * gridSize;
       return currentPos % gridSize == 0 ? gridSize * -1 : prevSnap - currentPos;
@@ -900,19 +903,24 @@ class _LayoutCanvasState extends State<LayoutCanvas> {
     final primaryElement = _activeElements[uid] ?? widget.elements[uid];
     final scaledRawDeltaX = rawDeltaX / widget.renderScale;
     final scaledRawDeltaY = rawDeltaY / widget.renderScale;
-    double deltaXSinceLastSnap = _deltaXSinceLastSnap + scaledRawDeltaX;
-    double deltaYSinceLastSnap = _deltaYSinceLastSnap + scaledRawDeltaY;
+    final double deltaXSinceLastSnap = _deltaXSinceLastSnapAccumlator + scaledRawDeltaX;
+    final double deltaYSinceLastSnap = _deltaYSinceLastSnapAccumlator + scaledRawDeltaY;
 
+    // Determine the delta required to snap to the next appropriate gridline (if any).
     final double snapDeltaX =
         _getSnapDelta(primaryElement.xPos, deltaXSinceLastSnap, gridSize);
     final double snapDeltaY =
         _getSnapDelta(primaryElement.yPos, deltaYSinceLastSnap, gridSize);
 
     if (snapDeltaX != 0 || snapDeltaY != 0) {
+      // Conditionally update deltasSinceLastSnaps. If no snap is requried, just accumulate the delta of this move. If a snap update is required,
+      // Update with the remainder of delta leftover after the snap, if we don't update the remainder, the cursor will get ahead of the object during quick moves.
       final newDeltaXSinceLastSnap =
           snapDeltaX == 0 ? deltaXSinceLastSnap : deltaXSinceLastSnap - snapDeltaX;
       final newDeltaYSinceLastSnap =
           snapDeltaY == 0 ? deltaYSinceLastSnap : deltaYSinceLastSnap - snapDeltaY;
+
+      // Apply new delta values to the active elements.
       final newActiveElements = _applyDeltaPositionUpdates(
           widget.selectedElements,
           _activeElements,
@@ -921,14 +929,15 @@ class _LayoutCanvasState extends State<LayoutCanvas> {
           snapDeltaY);
 
       setState(() {
-        _deltaXSinceLastSnap = newDeltaXSinceLastSnap;
-        _deltaYSinceLastSnap = newDeltaYSinceLastSnap;
+        _deltaXSinceLastSnapAccumlator = newDeltaXSinceLastSnap;
+        _deltaYSinceLastSnapAccumlator = newDeltaYSinceLastSnap;
         _activeElements = newActiveElements;
       });
     } else {
+      // Neither the X-Axis or the Y-Axis required snapping to the next appropriate gridline. So just accumlate our deltaSinceLastSnap values.
       setState(() {
-        _deltaXSinceLastSnap = deltaXSinceLastSnap;
-        _deltaYSinceLastSnap = deltaYSinceLastSnap;
+        _deltaXSinceLastSnapAccumlator = deltaXSinceLastSnap;
+        _deltaYSinceLastSnapAccumlator = deltaYSinceLastSnap;
       });
     }
 

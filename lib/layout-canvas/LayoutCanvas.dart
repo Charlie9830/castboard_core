@@ -156,7 +156,7 @@ class _LayoutCanvasState extends State<LayoutCanvas> {
     }
     if (widget.placing) {
       widget.onPlace
-          ?.call(pointerEvent.localPosition.dx, pointerEvent.localPosition.dy);
+          ?.call(pointerEvent.localPosition.dx / widget.renderScale, pointerEvent.localPosition.dy / widget.renderScale);
     }
   }
 

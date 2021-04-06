@@ -1,4 +1,5 @@
 import 'package:castboard_core/inherited/RenderScaleProvider.dart';
+import 'package:castboard_core/slide-viewport/SlideScroller.dart';
 import 'package:flutter/material.dart';
 
 class SlideViewport extends StatelessWidget {
@@ -6,6 +7,7 @@ class SlideViewport extends StatelessWidget {
   final double width;
   final double height;
   final double renderScale;
+  final bool enableScrolling;
   final BoxDecoration background;
 
   const SlideViewport({
@@ -14,6 +16,7 @@ class SlideViewport extends StatelessWidget {
     @required this.renderScale,
     this.width = 1920,
     this.height = 1080,
+    this.enableScrolling = true,
     this.background,
   }) : super(key: key);
 
@@ -24,12 +27,14 @@ class SlideViewport extends StatelessWidget {
         color: Theme.of(context).scaffoldBackgroundColor,
         child: RenderScale(
           scale: renderScale,
-          child: Container(
-            decoration: background,
-            alignment: Alignment.center,
-            width: width * renderScale,
-            height: height * renderScale,
-            child: child,
+          child: SlideScroller(
+            child: Container(
+              decoration: background,
+              alignment: Alignment.center,
+              width: width * renderScale,
+              height: height * renderScale,
+              child: child,
+            ),
           ),
         ));
   }

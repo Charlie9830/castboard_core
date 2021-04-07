@@ -23,19 +23,21 @@ class SlideViewport extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-        alignment: Alignment.center,
-        color: Theme.of(context).scaffoldBackgroundColor,
-        child: RenderScale(
-          scale: renderScale,
-          child: SlideScroller(
-            child: Container(
-              decoration: background,
-              alignment: Alignment.center,
-              width: width * renderScale,
-              height: height * renderScale,
-              child: child,
-            ),
+      alignment: Alignment.center,
+      color: Theme.of(context).scaffoldBackgroundColor,
+      child: RenderScale(
+        scale: renderScale,
+        child: SlideScroller(
+          enabled: enableScrolling,
+          child: Container(
+            decoration: background,
+            alignment: Alignment.center,
+            width: width * renderScale,
+            height: height * renderScale,
+            child: child,
           ),
-        ));
+        ),
+      ),
+    );
   }
 }

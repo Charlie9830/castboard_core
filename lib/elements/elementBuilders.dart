@@ -10,6 +10,7 @@ import 'package:castboard_core/elements/ShapeElement.dart';
 import 'package:castboard_core/elements/ShapeElementModel.dart';
 import 'package:castboard_core/elements/TextElement.dart';
 import 'package:castboard_core/elements/TextElementModel.dart';
+import 'package:castboard_core/elements/TrackElementModel.dart';
 import 'package:castboard_core/layout-canvas/LayoutBlock.dart';
 import 'package:castboard_core/models/ActorModel.dart';
 import 'package:castboard_core/models/LayoutElementModel.dart';
@@ -57,12 +58,14 @@ Widget _buildChild({
 }) {
   if (element is ContainerElementModel) {
     return ContainerElement(
-      alignment: HorizontalAlignment.spaceEvenly,//element.horizontalAlignment,
-      children: element.children.map((child) => _buildChild(
-          element: child,
-          selectedPreset: selectedPreset,
-          actors: actors,
-          tracks: tracks)).toList(),
+      alignment: HorizontalAlignment.spaceEvenly, //element.horizontalAlignment,
+      children: element.children
+          .map((child) => _buildChild(
+              element: child,
+              selectedPreset: selectedPreset,
+              actors: actors,
+              tracks: tracks))
+          .toList(),
     );
   }
 
@@ -99,9 +102,8 @@ Widget _buildChild({
   }
 
   if (element is TextElementModel) {
-    final text = element is ActorElementModel
-        ? _lookupActorName(element.trackId, selectedPreset, actors, tracks)
-        : element.text;
+    String text = _lookupText(element, selectedPreset, actors, tracks);
+
     return TextElement(
       text: text,
       style: TextElementStyle(
@@ -127,18 +129,44 @@ Widget _buildChild({
   return SizedBox.fromSize(size: Size.zero);
 }
 
+String _lookupText(TextElementModel element, PresetModel selectedPreset,
+    Map<String, ActorModel> actors, Map<String, TrackModel> tracks) {
+  if (element is ActorElementModel) {
+    return _lookupActorName(element.trackId, selectedPreset, actors, tracks);
+  }
+
+  if (element is TrackElementModel) {
+    return _lookupTrackName(element.trackId, selectedPreset, actors, tracks);
+  }
+
+  return element.text;
+}
+
+String _lookupTrackName(String trackId, PresetModel preset,
+    Map<String, ActorModel> actors, Map<String, TrackModel> tracks) {
+  if (trackId == null ||
+      trackId.isEmpty ||
+      tracks == null ||
+      tracks.containsKey(trackId) == false) {
+    return 'Unassigned';
+  }
+
+  return tracks[trackId]?.title ?? 'No Name Track';
+}
+
 String _lookupActorName(String trackId, PresetModel preset,
     Map<String, ActorModel> actors, Map<String, TrackModel> tracks) {
   if (trackId == null ||
       trackId.isEmpty ||
       tracks == null ||
       tracks.containsKey(trackId) == false) {
-    return 'Unassigned Track';
+    return 'Unassigned';
   }
 
   final track = tracks[trackId];
-  final trackTitle =
-      track.title == null || track.title.isEmpty ? 'No Name Track' : track.title;
+  final trackTitle = track.title == null || track.title.isEmpty
+      ? 'No Name Track'
+      : track.title;
 
   if (preset == null) {
     return trackTitle;
@@ -151,7 +179,7 @@ String _lookupActorName(String trackId, PresetModel preset,
 
   final actor = actors[preset.assignments[trackId]];
   if (actor == null) {
-    return "Could find actor";
+    return "No Actor Found";
   }
 
   return actor.name;

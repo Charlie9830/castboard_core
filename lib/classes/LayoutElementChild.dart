@@ -3,6 +3,7 @@ import 'package:castboard_core/elements/ContainerElementModel.dart';
 import 'package:castboard_core/elements/HeadshotElementModel.dart';
 import 'package:castboard_core/elements/ShapeElementModel.dart';
 import 'package:castboard_core/elements/TextElementModel.dart';
+import 'package:castboard_core/elements/TrackElementModel.dart';
 import 'package:castboard_core/enum-converters/horizontalAlignmentConverters.dart';
 import 'package:castboard_core/enum-converters/shapeElementTypeConverters.dart';
 import 'package:castboard_core/enum-converters/textAlignConverters.dart';
@@ -19,7 +20,8 @@ abstract class LayoutElementChild {
 
     if (elementType == 'container') {
       return ContainerElementModel(
-        horizontalAlignment: parseHorizontalAlignment(map['horiztonalAlignment']),
+        horizontalAlignment:
+            parseHorizontalAlignment(map['horiztonalAlignment']),
         verticalAlignment: parseVerticalAlignment(map['verticalAlignment']),
         children: (map['children'] as List<Map<String, dynamic>>)
             .map((Map<String, dynamic> child) =>
@@ -43,6 +45,19 @@ abstract class LayoutElementChild {
 
     if (elementType == 'actor') {
       return ActorElementModel(
+        trackId: map['trackId'],
+        fontFamily: map['fontFamily'],
+        fontSize: map['fontSize'],
+        italics: map['italics'],
+        bold: map['bold'],
+        underline: map['underline'],
+        alignment: parseTextAlign(map['alignment']),
+        color: ColorModel.fromMap(map['color'])?.toColor(),
+      );
+    }
+
+    if (elementType == 'track') {
+      return TrackElementModel(
         trackId: map['trackId'],
         fontFamily: map['fontFamily'],
         fontSize: map['fontSize'],

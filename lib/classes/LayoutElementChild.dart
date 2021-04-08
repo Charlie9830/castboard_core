@@ -3,8 +3,10 @@ import 'package:castboard_core/elements/ContainerElementModel.dart';
 import 'package:castboard_core/elements/HeadshotElementModel.dart';
 import 'package:castboard_core/elements/ShapeElementModel.dart';
 import 'package:castboard_core/elements/TextElementModel.dart';
+import 'package:castboard_core/enum-converters/horizontalAlignmentConverters.dart';
 import 'package:castboard_core/enum-converters/shapeElementTypeConverters.dart';
 import 'package:castboard_core/enum-converters/textAlignConverters.dart';
+import 'package:castboard_core/enum-converters/verticalAlignmentConverters.dart';
 import 'package:castboard_core/models/ColorModel.dart';
 
 abstract class LayoutElementChild {
@@ -16,7 +18,14 @@ abstract class LayoutElementChild {
     final String elementType = map['elementType'];
 
     if (elementType == 'container') {
-      return ContainerElementModel();
+      return ContainerElementModel(
+        horizontalAlignment: parseHorizontalAlignment(map['horiztonalAlignment']),
+        verticalAlignment: parseVerticalAlignment(map['verticalAlignment']),
+        children: (map['children'] as List<Map<String, dynamic>>)
+            .map((Map<String, dynamic> child) =>
+                LayoutElementChild.fromMap(child))
+            .toList(),
+      );
     }
 
     if (elementType == 'text') {

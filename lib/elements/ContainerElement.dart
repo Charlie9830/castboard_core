@@ -20,11 +20,14 @@ class ContainerElement extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment:
-          _alignmentMapping[alignment] ?? MainAxisAlignment.center,
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: children ?? const [],
+    return Container(
+      color: Color.fromARGB(128, 128, 128, 128),
+      child: Row(
+        mainAxisAlignment:
+            _alignmentMapping[alignment] ?? MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: children ?? const [],
+      ),
     );
   }
 }

@@ -1,5 +1,7 @@
 import 'package:castboard_core/classes/LayoutElementChild.dart';
 import 'package:castboard_core/elements/ActorElementModel.dart';
+import 'package:castboard_core/elements/ContainerElement.dart';
+import 'package:castboard_core/elements/ContainerElementModel.dart';
 import 'package:castboard_core/elements/HeadshotElementModel.dart';
 import 'package:castboard_core/elements/NoActorFallback.dart';
 import 'package:castboard_core/elements/NoHeadshotFallback.dart';
@@ -53,6 +55,17 @@ Widget _buildChild({
   Map<String, ActorModel> actors = const {},
   Map<String, RoleModel> roles = const {},
 }) {
+  if (element is ContainerElementModel) {
+    return ContainerElement(
+      alignment: HorizontalAlignment.spaceEvenly,//element.horizontalAlignment,
+      children: element.children.map((child) => _buildChild(
+          element: child,
+          selectedPreset: selectedPreset,
+          actors: actors,
+          roles: roles)).toList(),
+    );
+  }
+
   if (element is HeadshotElementModel) {
     final actor = _getAssignedActor(element, selectedPreset, actors);
 

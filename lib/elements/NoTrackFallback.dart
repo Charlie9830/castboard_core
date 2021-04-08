@@ -1,8 +1,8 @@
 import 'package:castboard_core/inherited/RenderScaleProvider.dart';
 import 'package:flutter/material.dart';
 
-class NoRoleFallback extends StatelessWidget {
-  const NoRoleFallback({
+class NoTrackFallback extends StatelessWidget {
+  const NoTrackFallback({
     Key key,
   }) : super(key: key);
 
@@ -24,7 +24,7 @@ class NoRoleFallback extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Icon(Icons.person, size: 100 * renderScale, color: Colors.black),
-          Text('No Role Assigned', style: textStyle),
+          Text('No Track Assigned', style: textStyle),
         ],
       ),
     );

@@ -5,7 +5,7 @@ import 'dart:typed_data';
 import 'package:castboard_core/models/ActorModel.dart';
 import 'package:castboard_core/models/ManifestModel.dart';
 import 'package:castboard_core/models/PresetModel.dart';
-import 'package:castboard_core/models/RoleModel.dart';
+import 'package:castboard_core/models/TrackModel.dart';
 import 'package:castboard_core/models/SlideModel.dart';
 import 'package:castboard_core/storage/Exceptions.dart';
 import 'package:castboard_core/storage/ImportedShowData.dart';
@@ -308,7 +308,7 @@ class Storage {
 
     final Map<String, dynamic> rawPresets = rawShowData['presets'] ?? const {};
     final Map<String, dynamic> rawActors = rawShowData['actors'] ?? const {};
-    final Map<String, dynamic> rawRoles = rawShowData['roles'] ?? const {};
+    final Map<String, dynamic> rawTracks = rawShowData['tracks'] ?? const {};
 
     await Future.wait(fileWriteRequests);
 
@@ -320,8 +320,8 @@ class Storage {
             (entry) => MapEntry(entry.key, SlideModel.fromMap(entry.value)))),
         actors: Map<String, ActorModel>.fromEntries(rawActors.entries.map(
             (entry) => MapEntry(entry.key, ActorModel.fromMap(entry.value)))),
-        roles: Map<String, RoleModel>.fromEntries(rawRoles.entries.map(
-            (entry) => MapEntry(entry.key, RoleModel.fromMap(entry.value)))),
+        tracks: Map<String, TrackModel>.fromEntries(rawTracks.entries.map(
+            (entry) => MapEntry(entry.key, TrackModel.fromMap(entry.value)))),
         presets: Map<String, PresetModel>.fromEntries(rawPresets.entries.map(
             (entry) => MapEntry(entry.key, PresetModel.fromMap(entry.value)))));
   }
@@ -355,7 +355,7 @@ class Storage {
   Future<void> writeToPermanentStorage(
       {@required Map<String, ActorModel> actors,
       @required Map<String, SlideModel> slides,
-      @required Map<String, RoleModel> roles,
+      @required Map<String, TrackModel> tracks,
       @required Map<String, PresetModel> presets,
       @required ManifestModel manifest,
       @required File targetFile}) async {
@@ -368,7 +368,7 @@ class Storage {
       _stageHeadshots(mfs, actors),
       _stageBackgrounds(mfs, slides),
       _stageSlideData(mfs, slides),
-      _stageShowData(mfs, roles, actors, presets),
+      _stageShowData(mfs, tracks, actors, presets),
     ]);
 
     final zipper = ZipFileEncoder();
@@ -397,12 +397,12 @@ class Storage {
 
   Future<void> _stageShowData(
       memoryFs.MemoryFileSystem mfs,
-      Map<String, RoleModel> roles,
+      Map<String, TrackModel> tracks,
       Map<String, ActorModel> actors,
       Map<String, PresetModel> presets) async {
     final data = <String, dynamic>{
-      'roles': Map<String, dynamic>.fromEntries(
-          roles.values.map((role) => MapEntry(role.uid, role.toMap()))),
+      'tracks': Map<String, dynamic>.fromEntries(
+          tracks.values.map((track) => MapEntry(track.uid, track.toMap()))),
       'actors': Map<String, dynamic>.fromEntries(
           actors.values.map((actor) => MapEntry(actor.uid, actor.toMap()))),
       'presets': Map<String, dynamic>.fromEntries(

@@ -1,22 +1,22 @@
 import 'package:flutter/foundation.dart';
 
-class RoleModel {
+class TrackModel {
   final String uid;
   final String title;
   final String internalTitle;
 
-  RoleModel({
+  TrackModel({
     @required this.uid,
     this.title = '',
     this.internalTitle = '',
   });
 
-  RoleModel copyWith({
+  TrackModel copyWith({
     String uid,
     String title,
     String internalTitle,
   }) {
-    return RoleModel(
+    return TrackModel(
       uid: uid ?? this.uid,
       title: title ?? this.title,
       internalTitle: internalTitle ?? this.internalTitle,
@@ -31,10 +31,10 @@ class RoleModel {
     };
   }
 
-  factory RoleModel.fromMap(Map<String, dynamic> map) {
+  factory TrackModel.fromMap(Map<String, dynamic> map) {
     if (map == null) return null;
 
-    return RoleModel(
+    return TrackModel(
       uid: map['uid'],
       title: map['title'],
       internalTitle: map['internalTitle'],

@@ -43,7 +43,7 @@ abstract class LayoutElementChild {
 
     if (elementType == 'actor') {
       return ActorElementModel(
-        roleId: map['roleId'],
+        trackId: map['trackId'],
         fontFamily: map['fontFamily'],
         fontSize: map['fontSize'],
         italics: map['italics'],
@@ -65,7 +65,7 @@ abstract class LayoutElementChild {
 
     if (elementType == 'headshot') {
       return HeadshotElementModel(
-        roleId: map['roleId'],
+        trackId: map['trackId'],
       );
     }
 

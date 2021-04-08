@@ -5,7 +5,7 @@ import 'package:castboard_core/elements/ContainerElementModel.dart';
 import 'package:castboard_core/elements/HeadshotElementModel.dart';
 import 'package:castboard_core/elements/NoActorFallback.dart';
 import 'package:castboard_core/elements/NoHeadshotFallback.dart';
-import 'package:castboard_core/elements/NoRoleFallback.dart';
+import 'package:castboard_core/elements/NoTrackFallback.dart';
 import 'package:castboard_core/elements/ShapeElement.dart';
 import 'package:castboard_core/elements/ShapeElementModel.dart';
 import 'package:castboard_core/elements/TextElement.dart';
@@ -14,7 +14,7 @@ import 'package:castboard_core/layout-canvas/LayoutBlock.dart';
 import 'package:castboard_core/models/ActorModel.dart';
 import 'package:castboard_core/models/LayoutElementModel.dart';
 import 'package:castboard_core/models/PresetModel.dart';
-import 'package:castboard_core/models/RoleModel.dart';
+import 'package:castboard_core/models/TrackModel.dart';
 import 'package:castboard_core/models/SlideModel.dart';
 import 'package:castboard_core/storage/Storage.dart';
 import 'package:flutter/material.dart';
@@ -23,7 +23,7 @@ Map<String, LayoutBlock> buildElements({
   SlideModel slide,
   PresetModel preset,
   Map<String, ActorModel> actors,
-  Map<String, RoleModel> roles,
+  Map<String, TrackModel> tracks,
 }) {
   final Map<String, LayoutElementModel> elements =
       slide?.elements ?? <String, LayoutElementModel>{};
@@ -42,7 +42,7 @@ Map<String, LayoutBlock> buildElements({
           element: element.child,
           selectedPreset: preset,
           actors: actors,
-          roles: roles,
+          tracks: tracks,
         ),
       ),
     ),
@@ -53,7 +53,7 @@ Widget _buildChild({
   LayoutElementChild element,
   PresetModel selectedPreset,
   Map<String, ActorModel> actors = const {},
-  Map<String, RoleModel> roles = const {},
+  Map<String, TrackModel> tracks = const {},
 }) {
   if (element is ContainerElementModel) {
     return ContainerElement(
@@ -62,32 +62,32 @@ Widget _buildChild({
           element: child,
           selectedPreset: selectedPreset,
           actors: actors,
-          roles: roles)).toList(),
+          tracks: tracks)).toList(),
     );
   }
 
   if (element is HeadshotElementModel) {
     final actor = _getAssignedActor(element, selectedPreset, actors);
 
-    if (roles == null) {
-      return NoRoleFallback();
+    if (tracks == null) {
+      return NoTrackFallback();
     }
 
-    final role = roles[element.roleId];
+    final track = tracks[element.trackId];
 
-    if (role == null) {
-      return NoRoleFallback();
+    if (track == null) {
+      return NoTrackFallback();
     }
 
     if (actor == null) {
       return NoActorFallback(
-        roleTitle: role.title,
+        trackTitle: track.title,
       );
     }
 
     if (actor.headshotRef == null || actor.headshotRef.uid.isEmpty) {
       return NoHeadshotFallback(
-        roleTitle: role.title,
+        trackTitle: track.title,
       );
     }
 
@@ -100,7 +100,7 @@ Widget _buildChild({
 
   if (element is TextElementModel) {
     final text = element is ActorElementModel
-        ? _lookupActorName(element.roleId, selectedPreset, actors, roles)
+        ? _lookupActorName(element.trackId, selectedPreset, actors, tracks)
         : element.text;
     return TextElement(
       text: text,
@@ -127,29 +127,29 @@ Widget _buildChild({
   return SizedBox.fromSize(size: Size.zero);
 }
 
-String _lookupActorName(String roleId, PresetModel preset,
-    Map<String, ActorModel> actors, Map<String, RoleModel> roles) {
-  if (roleId == null ||
-      roleId.isEmpty ||
-      roles == null ||
-      roles.containsKey(roleId) == false) {
-    return 'Unassigned Role';
+String _lookupActorName(String trackId, PresetModel preset,
+    Map<String, ActorModel> actors, Map<String, TrackModel> tracks) {
+  if (trackId == null ||
+      trackId.isEmpty ||
+      tracks == null ||
+      tracks.containsKey(trackId) == false) {
+    return 'Unassigned Track';
   }
 
-  final role = roles[roleId];
-  final roleTitle =
-      role.title == null || role.title.isEmpty ? 'No Name Role' : role.title;
+  final track = tracks[trackId];
+  final trackTitle =
+      track.title == null || track.title.isEmpty ? 'No Name Track' : track.title;
 
   if (preset == null) {
-    return roleTitle;
+    return trackTitle;
   }
 
   if (preset.assignments == null ||
-      preset.assignments.containsKey(roleId) == false) {
-    return roleTitle;
+      preset.assignments.containsKey(trackId) == false) {
+    return trackTitle;
   }
 
-  final actor = actors[preset.assignments[roleId]];
+  final actor = actors[preset.assignments[trackId]];
   if (actor == null) {
     return "Could find actor";
   }
@@ -163,7 +163,7 @@ ActorModel _getAssignedActor(HeadshotElementModel element,
     return null;
   }
 
-  final actorId = selectedPreset.assignments[element.roleId];
+  final actorId = selectedPreset.assignments[element.trackId];
 
   if (actorId == null ||
       actorId == '' ||

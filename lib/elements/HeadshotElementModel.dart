@@ -2,24 +2,24 @@ import 'package:castboard_core/classes/LayoutElementChild.dart';
 import 'package:flutter/foundation.dart';
 
 class HeadshotElementModel extends LayoutElementChild {
-  final String roleId;
+  final String trackId;
 
   HeadshotElementModel({
-    @required String roleId,
-  }) : this.roleId = roleId ?? '';
+    @required String trackId,
+  }) : this.trackId = trackId ?? '';
 
   HeadshotElementModel copyWith({
-    String roleId,
+    String trackId,
   }) {
     return HeadshotElementModel(
-      roleId: roleId ?? this.roleId,
+      trackId: trackId ?? this.trackId,
     );
   }
 
   Map<String, dynamic> toMap() {
     return {
       'elementType': 'headshot',
-      'roleId': roleId,
+      'trackId': trackId,
     };
   }
 }

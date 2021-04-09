@@ -2,6 +2,8 @@ import 'package:castboard_core/classes/LayoutElementChild.dart';
 import 'package:castboard_core/elements/ActorElementModel.dart';
 import 'package:castboard_core/elements/ContainerElement.dart';
 import 'package:castboard_core/elements/ContainerElementModel.dart';
+import 'package:castboard_core/elements/GroupElement.dart';
+import 'package:castboard_core/elements/GroupElementModel.dart';
 import 'package:castboard_core/elements/HeadshotElementModel.dart';
 import 'package:castboard_core/elements/NoActorFallback.dart';
 import 'package:castboard_core/elements/NoHeadshotFallback.dart';
@@ -65,6 +67,27 @@ Widget _buildChild({
               selectedPreset: selectedPreset,
               actors: actors,
               tracks: tracks))
+          .toList(),
+    );
+  }
+
+  if (element is GroupElementModel) {
+    return GroupElement(
+      children: element.children
+          .map(
+            (child) => Positioned(
+              left: child.xPos,
+              top: child.yPos,
+              width: child.width,
+              height: child.height,
+              // TODO Rotation
+              child: _buildChild(
+                  element: child.child,
+                  actors: actors,
+                  tracks: tracks,
+                  selectedPreset: selectedPreset),
+            ),
+          )
           .toList(),
     );
   }

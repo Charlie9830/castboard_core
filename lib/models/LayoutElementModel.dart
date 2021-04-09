@@ -42,6 +42,16 @@ class LayoutElementModel {
     );
   }
 
+  LayoutElementModel copyWithOffset({
+    double x,
+    double y,
+  }) {
+    return copyWith(
+      xPos: xPos - x,
+      yPos: yPos - y,
+    );
+  }
+
   Map<String, dynamic> toMap() {
     return {
       'uid': uid,

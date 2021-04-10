@@ -461,12 +461,20 @@ class _LayoutCanvasState extends State<LayoutCanvas> {
                   existingSecondary.height / primaryElement.height);
               return MapEntry(
                   id,
-                  existingSecondary.copyWith(
-                    xPos: existingSecondary.xPos + scaledDeltas.xPos,
-                    yPos: existingSecondary.yPos + scaledDeltas.yPos,
-                    width: existingSecondary.width + scaledDeltas.width,
-                    height: existingSecondary.height + scaledDeltas.height,
-                  ));
+                  existingSecondary
+                      .copyWith(
+                        xPos: existingSecondary.xPos + scaledDeltas.xPos,
+                        yPos: existingSecondary.yPos + scaledDeltas.yPos,
+                        width: existingSecondary.width + scaledDeltas.width,
+                        height: existingSecondary.height + scaledDeltas.height,
+                      )
+                      .copyWithMultiChildUpdates(
+                        ratioX: (existingSecondary.width + scaledDeltas.width) /
+                            existingSecondary.width,
+                        ratioY:
+                            (existingSecondary.height + scaledDeltas.height) /
+                                existingSecondary.height,
+                      ));
             }
           }));
           _logicalResizeHandle = _getOpposingResizeHandle(currentLogicalHandle,
@@ -519,12 +527,18 @@ class _LayoutCanvasState extends State<LayoutCanvas> {
                   existingSecondary.height / primaryElement.height);
               return MapEntry(
                   id,
-                  existingSecondary.copyWith(
-                    xPos: existingSecondary.xPos + scaledDeltas.xPos,
-                    yPos: existingSecondary.yPos + scaledDeltas.yPos,
-                    width: existingSecondary.width + scaledDeltas.width,
-                    height: existingSecondary.height + scaledDeltas.height,
-                  ));
+                  existingSecondary
+                      .copyWith(
+                        xPos: existingSecondary.xPos + scaledDeltas.xPos,
+                        yPos: existingSecondary.yPos + scaledDeltas.yPos,
+                        width: existingSecondary.width + scaledDeltas.width,
+                        height: existingSecondary.height + scaledDeltas.height,
+                      )
+                      .copyWithMultiChildUpdates(
+                        ratioY:
+                            (existingSecondary.height + scaledDeltas.height) /
+                                existingSecondary.height,
+                      ));
             }
           }));
           _logicalResizeHandle = isFlippingTopToBottom
@@ -588,12 +602,20 @@ class _LayoutCanvasState extends State<LayoutCanvas> {
                   existingSecondary.height / primaryElement.height);
               return MapEntry(
                   id,
-                  existingSecondary.copyWith(
-                    xPos: existingSecondary.xPos + scaledDeltas.xPos,
-                    yPos: existingSecondary.yPos + scaledDeltas.yPos,
-                    width: existingSecondary.width + scaledDeltas.width,
-                    height: existingSecondary.height + scaledDeltas.height,
-                  ));
+                  existingSecondary
+                      .copyWith(
+                        xPos: existingSecondary.xPos + scaledDeltas.xPos,
+                        yPos: existingSecondary.yPos + scaledDeltas.yPos,
+                        width: existingSecondary.width + scaledDeltas.width,
+                        height: existingSecondary.height + scaledDeltas.height,
+                      )
+                      .copyWithMultiChildUpdates(
+                        ratioX: (existingSecondary.width + scaledDeltas.width) /
+                            existingSecondary.width,
+                        ratioY:
+                            (existingSecondary.height + scaledDeltas.height) /
+                                existingSecondary.height,
+                      ));
             }
           }));
 
@@ -651,12 +673,19 @@ class _LayoutCanvasState extends State<LayoutCanvas> {
                     existingSecondary.height / primaryElement.height);
                 return MapEntry(
                     id,
-                    existingSecondary.copyWith(
-                      xPos: existingSecondary.xPos + scaledDeltas.xPos,
-                      yPos: existingSecondary.yPos + scaledDeltas.yPos,
-                      width: existingSecondary.width + scaledDeltas.width,
-                      height: existingSecondary.height + scaledDeltas.height,
-                    ));
+                    existingSecondary
+                        .copyWith(
+                          xPos: existingSecondary.xPos + scaledDeltas.xPos,
+                          yPos: existingSecondary.yPos + scaledDeltas.yPos,
+                          width: existingSecondary.width + scaledDeltas.width,
+                          height:
+                              existingSecondary.height + scaledDeltas.height,
+                        )
+                        .copyWithMultiChildUpdates(
+                          ratioX:
+                              (existingSecondary.width + scaledDeltas.width) /
+                                  existingSecondary.width,
+                        ));
               }
             }),
           );
@@ -722,12 +751,20 @@ class _LayoutCanvasState extends State<LayoutCanvas> {
                   existingSecondary.height / primaryElement.height);
               return MapEntry(
                   id,
-                  existingSecondary.copyWith(
-                    xPos: existingSecondary.xPos + scaledDeltas.xPos,
-                    yPos: existingSecondary.yPos + scaledDeltas.yPos,
-                    width: existingSecondary.width + scaledDeltas.width,
-                    height: existingSecondary.height + scaledDeltas.height,
-                  ));
+                  existingSecondary
+                      .copyWith(
+                        xPos: existingSecondary.xPos + scaledDeltas.xPos,
+                        yPos: existingSecondary.yPos + scaledDeltas.yPos,
+                        width: existingSecondary.width + scaledDeltas.width,
+                        height: existingSecondary.height + scaledDeltas.height,
+                      )
+                      .copyWithMultiChildUpdates(
+                        ratioX: (existingSecondary.width + scaledDeltas.width) /
+                            existingSecondary.width,
+                        ratioY:
+                            (existingSecondary.height + scaledDeltas.height) /
+                                existingSecondary.height,
+                      ));
             }
           }));
           _logicalResizeHandle = _getOpposingResizeHandle(currentLogicalHandle,
@@ -780,12 +817,18 @@ class _LayoutCanvasState extends State<LayoutCanvas> {
                   existingSecondary.height / primaryElement.height);
               return MapEntry(
                   id,
-                  existingSecondary.copyWith(
-                    xPos: existingSecondary.xPos + scaledDeltas.xPos,
-                    yPos: existingSecondary.yPos + scaledDeltas.yPos,
-                    width: existingSecondary.width + scaledDeltas.width,
-                    height: existingSecondary.height + scaledDeltas.height,
-                  ));
+                  existingSecondary
+                      .copyWith(
+                        xPos: existingSecondary.xPos + scaledDeltas.xPos,
+                        yPos: existingSecondary.yPos + scaledDeltas.yPos,
+                        width: existingSecondary.width + scaledDeltas.width,
+                        height: existingSecondary.height + scaledDeltas.height,
+                      )
+                      .copyWithMultiChildUpdates(
+                        ratioY:
+                            (existingSecondary.height + scaledDeltas.height) /
+                                existingSecondary.height,
+                      ));
             }
           }));
           _logicalResizeHandle = isFlippingBottomToTop
@@ -850,12 +893,20 @@ class _LayoutCanvasState extends State<LayoutCanvas> {
                   existingSecondary.height / primaryElement.height);
               return MapEntry(
                   id,
-                  existingSecondary.copyWith(
-                    xPos: existingSecondary.xPos + scaledDeltas.xPos,
-                    yPos: existingSecondary.yPos + scaledDeltas.yPos,
-                    width: existingSecondary.width + scaledDeltas.width,
-                    height: existingSecondary.height + scaledDeltas.height,
-                  ));
+                  existingSecondary
+                      .copyWith(
+                        xPos: existingSecondary.xPos + scaledDeltas.xPos,
+                        yPos: existingSecondary.yPos + scaledDeltas.yPos,
+                        width: existingSecondary.width + scaledDeltas.width,
+                        height: existingSecondary.height + scaledDeltas.height,
+                      )
+                      .copyWithMultiChildUpdates(
+                        ratioX: (existingSecondary.width + scaledDeltas.width) /
+                            existingSecondary.width,
+                        ratioY:
+                            (existingSecondary.height + scaledDeltas.height) /
+                                existingSecondary.height,
+                      ));
             }
           }));
 
@@ -909,12 +960,17 @@ class _LayoutCanvasState extends State<LayoutCanvas> {
                   existingSecondary.height / primaryElement.height);
               return MapEntry(
                   id,
-                  existingSecondary.copyWith(
-                    xPos: existingSecondary.xPos + scaledDeltas.xPos,
-                    yPos: existingSecondary.yPos + scaledDeltas.yPos,
-                    width: existingSecondary.width + scaledDeltas.width,
-                    height: existingSecondary.height + scaledDeltas.height,
-                  ));
+                  existingSecondary
+                      .copyWith(
+                        xPos: existingSecondary.xPos + scaledDeltas.xPos,
+                        yPos: existingSecondary.yPos + scaledDeltas.yPos,
+                        width: existingSecondary.width + scaledDeltas.width,
+                        height: existingSecondary.height + scaledDeltas.height,
+                      )
+                      .copyWithMultiChildUpdates(
+                        ratioX: (existingSecondary.width + scaledDeltas.width) /
+                            existingSecondary.width,
+                      ));
             }
           }));
 

@@ -13,24 +13,21 @@ class TextElement extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      color: Colors.purple,
+    return Center(
+      child: Text(
+        text ?? '',
+        textAlign: style.alignment,
+        style: TextStyle(
+          color: style.color,
+          fontFamily: style.fontFamily,
+          fontSize: style.fontSize * RenderScale.of(context).scale,
+          fontStyle: style.italics ? FontStyle.italic : FontStyle.normal,
+          fontWeight: style.bold ? FontWeight.bold : FontWeight.normal,
+          decoration:
+              style.underline ? TextDecoration.underline : TextDecoration.none,
+        ),
+      ),
     );
-    // return Center(
-    //   child: Text(
-    //     text ?? '',
-    //     textAlign: style.alignment,
-    //     style: TextStyle(
-    //       color: style.color,
-    //       fontFamily: style.fontFamily,
-    //       fontSize: style.fontSize * RenderScale.of(context).scale,
-    //       fontStyle: style.italics ? FontStyle.italic : FontStyle.normal,
-    //       fontWeight: style.bold ? FontWeight.bold : FontWeight.normal,
-    //       decoration:
-    //           style.underline ? TextDecoration.underline : TextDecoration.none,
-    //     ),
-    //   ),
-    // );
   }
 }
 

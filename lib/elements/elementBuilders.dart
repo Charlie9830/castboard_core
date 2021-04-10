@@ -82,7 +82,7 @@ Widget _buildChild({
               yPos: child.yPos,
               width: child.width,
               height: child.height,
-              // TODO rotation.
+              rotation: child.rotation,
               child: _buildChild(
                   element: child.child,
                   actors: actors,

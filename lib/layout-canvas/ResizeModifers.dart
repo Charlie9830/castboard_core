@@ -1,4 +1,6 @@
 import 'package:castboard_core/layout-canvas/LayoutBlock.dart';
+import 'package:castboard_core/layout-canvas/MultiChildCanvasItem.dart';
+import 'package:flutter/material.dart';
 
 //
 // Top
@@ -84,7 +86,6 @@ LayoutBlock applyRightCrossoverUpdate(LayoutBlock existing, double deltaX) {
 //
 // Helpers
 //
-
 double _invertSign(double value) {
   if (value == value.sign) {
     return value;

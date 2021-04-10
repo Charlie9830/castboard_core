@@ -155,8 +155,8 @@ class _LayoutCanvasState extends State<LayoutCanvas> {
       });
     }
     if (widget.placing) {
-      widget.onPlace
-          ?.call(pointerEvent.localPosition.dx / widget.renderScale, pointerEvent.localPosition.dy / widget.renderScale);
+      widget.onPlace?.call(pointerEvent.localPosition.dx / widget.renderScale,
+          pointerEvent.localPosition.dy / widget.renderScale);
     }
   }
 
@@ -445,7 +445,14 @@ class _LayoutCanvasState extends State<LayoutCanvas> {
           _activeElements = Map<String, LayoutBlock>.fromEntries(
               widget.selectedElements.map((id) {
             if (id == blockId) {
-              return MapEntry(id, finalizedPrimaryElement);
+              return MapEntry(
+                  id,
+                  finalizedPrimaryElement.copyWithMultiChildUpdates(
+                    ratioX:
+                        finalizedPrimaryElement.width / primaryElement.width,
+                    ratioY:
+                        finalizedPrimaryElement.height / primaryElement.height,
+                  ));
             } else {
               final existingSecondary =
                   _activeElements[id] ?? widget.elements[id];
@@ -487,7 +494,7 @@ class _LayoutCanvasState extends State<LayoutCanvas> {
               maybeSnappedDeltaY, deltaYSnapAccumulator);
 
           // Update Elements.
-          // 
+          //
           final finalizedPrimaryElement = interimPrimary.copyWith(
             xPos: interimPrimary.xPos - (offsetVector.x / widget.renderScale),
             yPos: interimPrimary.yPos - (offsetVector.y / widget.renderScale),
@@ -498,7 +505,12 @@ class _LayoutCanvasState extends State<LayoutCanvas> {
           _activeElements = Map<String, LayoutBlock>.fromEntries(
               widget.selectedElements.map((id) {
             if (id == blockId) {
-              return MapEntry(id, finalizedPrimaryElement);
+              return MapEntry(
+                  id,
+                  finalizedPrimaryElement.copyWithMultiChildUpdates(
+                    ratioY:
+                        finalizedPrimaryElement.height / primaryElement.height,
+                  ));
             } else {
               final existingSecondary =
                   _activeElements[id] ?? widget.elements[id];
@@ -560,7 +572,14 @@ class _LayoutCanvasState extends State<LayoutCanvas> {
           _activeElements = Map<String, LayoutBlock>.fromEntries(
               widget.selectedElements.map((id) {
             if (id == blockId) {
-              return MapEntry(id, finalizedPrimaryElement);
+              return MapEntry(
+                  id,
+                  finalizedPrimaryElement.copyWithMultiChildUpdates(
+                    ratioX:
+                        finalizedPrimaryElement.width / primaryElement.width,
+                    ratioY:
+                        finalizedPrimaryElement.height / primaryElement.height,
+                  ));
             } else {
               final existingSecondary =
                   _activeElements[id] ?? widget.elements[id];
@@ -616,25 +635,31 @@ class _LayoutCanvasState extends State<LayoutCanvas> {
           final deltas = finalizedPrimaryElement.getDeltas(primaryElement);
 
           _activeElements = Map<String, LayoutBlock>.fromEntries(
-              widget.selectedElements.map((id) {
-            if (id == blockId) {
-              return MapEntry(id, finalizedPrimaryElement);
-            } else {
-              final existingSecondary =
-                  _activeElements[id] ?? widget.elements[id];
-              final scaledDeltas = deltas.scaled(
-                  existingSecondary.width / primaryElement.width,
-                  existingSecondary.height / primaryElement.height);
-              return MapEntry(
-                  id,
-                  existingSecondary.copyWith(
-                    xPos: existingSecondary.xPos + scaledDeltas.xPos,
-                    yPos: existingSecondary.yPos + scaledDeltas.yPos,
-                    width: existingSecondary.width + scaledDeltas.width,
-                    height: existingSecondary.height + scaledDeltas.height,
-                  ));
-            }
-          }));
+            widget.selectedElements.map((id) {
+              if (id == blockId) {
+                return MapEntry(
+                    id,
+                    finalizedPrimaryElement.copyWithMultiChildUpdates(
+                      ratioX:
+                          finalizedPrimaryElement.width / primaryElement.width,
+                    ));
+              } else {
+                final existingSecondary =
+                    _activeElements[id] ?? widget.elements[id];
+                final scaledDeltas = deltas.scaled(
+                    existingSecondary.width / primaryElement.width,
+                    existingSecondary.height / primaryElement.height);
+                return MapEntry(
+                    id,
+                    existingSecondary.copyWith(
+                      xPos: existingSecondary.xPos + scaledDeltas.xPos,
+                      yPos: existingSecondary.yPos + scaledDeltas.yPos,
+                      width: existingSecondary.width + scaledDeltas.width,
+                      height: existingSecondary.height + scaledDeltas.height,
+                    ));
+              }
+            }),
+          );
 
           _logicalResizeHandle = isFlippingRightToLeft
               ? opposingResizeHandles[currentLogicalHandle]
@@ -681,7 +706,14 @@ class _LayoutCanvasState extends State<LayoutCanvas> {
           _activeElements = Map<String, LayoutBlock>.fromEntries(
               widget.selectedElements.map((id) {
             if (id == blockId) {
-              return MapEntry(id, finalizedPrimaryElement);
+              return MapEntry(
+                  id,
+                  finalizedPrimaryElement.copyWithMultiChildUpdates(
+                    ratioX:
+                        finalizedPrimaryElement.width / primaryElement.width,
+                    ratioY:
+                        finalizedPrimaryElement.height / primaryElement.height,
+                  ));
             } else {
               final existingSecondary =
                   _activeElements[id] ?? widget.elements[id];
@@ -734,7 +766,12 @@ class _LayoutCanvasState extends State<LayoutCanvas> {
           _activeElements = Map<String, LayoutBlock>.fromEntries(
               widget.selectedElements.map((id) {
             if (id == blockId) {
-              return MapEntry(id, finalizedPrimaryElement);
+              return MapEntry(
+                  id,
+                  finalizedPrimaryElement.copyWithMultiChildUpdates(
+                    ratioY:
+                        finalizedPrimaryElement.height / primaryElement.height,
+                  ));
             } else {
               final existingSecondary =
                   _activeElements[id] ?? widget.elements[id];
@@ -797,7 +834,14 @@ class _LayoutCanvasState extends State<LayoutCanvas> {
           _activeElements = Map<String, LayoutBlock>.fromEntries(
               widget.selectedElements.map((id) {
             if (id == blockId) {
-              return MapEntry(id, finalizedPrimaryElement);
+              return MapEntry(
+                  id,
+                  finalizedPrimaryElement.copyWithMultiChildUpdates(
+                    ratioX:
+                        finalizedPrimaryElement.width / primaryElement.width,
+                    ratioY:
+                        finalizedPrimaryElement.height / primaryElement.height,
+                  ));
             } else {
               final existingSecondary =
                   _activeElements[id] ?? widget.elements[id];
@@ -851,7 +895,12 @@ class _LayoutCanvasState extends State<LayoutCanvas> {
           _activeElements = Map<String, LayoutBlock>.fromEntries(
               widget.selectedElements.map((id) {
             if (id == blockId) {
-              return MapEntry(id, finalizedPrimaryElement);
+              return MapEntry(
+                  id,
+                  finalizedPrimaryElement.copyWithMultiChildUpdates(
+                    ratioX:
+                        finalizedPrimaryElement.width / primaryElement.width,
+                  ));
             } else {
               final existingSecondary =
                   _activeElements[id] ?? widget.elements[id];

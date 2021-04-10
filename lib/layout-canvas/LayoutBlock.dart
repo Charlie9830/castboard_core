@@ -1,4 +1,5 @@
 import 'package:castboard_core/layout-canvas/BlockDeltas.dart';
+import 'package:castboard_core/layout-canvas/MultiChildCanvasItem.dart';
 import 'package:flutter/material.dart';
 
 class LayoutBlock extends StatelessWidget {
@@ -46,6 +47,20 @@ class LayoutBlock extends StatelessWidget {
       debugRenderXPos: debugRenderXPos ?? this.debugRenderXPos,
       debugRenderYPos: debugRenderYPos ?? this.debugRenderYPos,
     );
+  }
+
+  LayoutBlock copyWithMultiChildUpdates({
+    double ratioX,
+    double ratioY,
+  }) {
+    if (child is! MultiChildCanvasItem) {
+      return copyWith();
+    }
+    return copyWith(
+        child: (child as MultiChildCanvasItem).copyWithScaledChildren(
+      ratioX: ratioX ?? 1,
+      ratioY: ratioY ?? 1,
+    ));
   }
 
   LayoutBlock combinedWith({

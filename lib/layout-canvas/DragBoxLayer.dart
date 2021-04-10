@@ -3,6 +3,7 @@ import 'package:castboard_core/layout-canvas/DragBox.dart';
 import 'package:castboard_core/layout-canvas/DragHandles.dart';
 import 'package:castboard_core/layout-canvas/DragSelectionBox.dart';
 import 'package:castboard_core/layout-canvas/LayoutBlock.dart';
+import 'package:castboard_core/layout-canvas/MultiChildCanvasItem.dart';
 import 'package:castboard_core/layout-canvas/ResizeHandle.dart';
 import 'package:castboard_core/layout-canvas/RotateHandle.dart';
 import 'package:flutter/material.dart';
@@ -188,28 +189,27 @@ class DragBoxLayer extends StatelessWidget {
 
   List<Widget> _positionBlocks() {
     return blocks.values.map((block) {
-      return _positionBlock(block, block.child);
+      return _positionBlock(block);
     }).toList();
   }
 
-  Positioned _positionBlock(LayoutBlock block, Widget child, {Offset offset}) {
-    final top = (offset?.dy ?? 0) + block.yPos * renderScale;
-    final left = (offset?.dx ?? 0) + block.xPos * renderScale;
-
+  Positioned _positionBlock(LayoutBlock block) {
     return Positioned(
-      top: top,
-      left: left,
+      left: block.xPos * renderScale,
+      top: block.yPos * renderScale,
       width: block.width * renderScale,
       height: block.height * renderScale,
       child: Transform(
         alignment: Alignment.center,
         transform: Matrix4.rotationZ(block.rotation ?? 0),
-        child: child is GroupElement
+        // If Child is of type MultiChildCanvasItem, place it into it's own Stack (Thus converting the coordinate space to a local space)
+        child: block.child is MultiChildCanvasItem
             ? Stack(
-                children: child.children
-                    .map((item) => _positionBlock(item, item.child))
+                children: (block.child as MultiChildCanvasItem)
+                    .children
+                    .map((item) => _positionBlock(item))
                     .toList())
-            : child,
+            : block.child,
       ),
     );
   }

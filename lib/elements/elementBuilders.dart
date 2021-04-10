@@ -2,7 +2,7 @@ import 'package:castboard_core/classes/LayoutElementChild.dart';
 import 'package:castboard_core/elements/ActorElementModel.dart';
 import 'package:castboard_core/elements/ContainerElement.dart';
 import 'package:castboard_core/elements/ContainerElementModel.dart';
-import 'package:castboard_core/elements/GroupElement.dart';
+import 'package:castboard_core/layout-canvas/MultiChildCanvasItem.dart';
 import 'package:castboard_core/elements/GroupElementModel.dart';
 import 'package:castboard_core/elements/HeadshotElementModel.dart';
 import 'package:castboard_core/elements/NoActorFallback.dart';
@@ -72,7 +72,7 @@ Widget _buildChild({
   }
 
   if (element is GroupElementModel) {
-    return GroupElement(
+    return MultiChildCanvasItem(
       children: element.children
           .map(
             (child) {

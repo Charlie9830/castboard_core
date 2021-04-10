@@ -366,7 +366,8 @@ class _LayoutCanvasState extends State<LayoutCanvas> {
     final renderDeltaX = deltaX / widget.renderScale;
     final renderDeltaY = deltaY / widget.renderScale;
 
-    // Get the primaryElement. The PrimaryElement represents the actual element being interacted with, even when other elements are selected.
+    // Get the primaryElement. The PrimaryElement represents the actual element being interacted with,
+    // even when other elements are selected.
     final primaryElement = _activeElements[blockId] ?? widget.elements[blockId];
 
     // Determine if we are going to flip over an Axis on this move.

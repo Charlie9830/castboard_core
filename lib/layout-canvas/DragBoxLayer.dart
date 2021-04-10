@@ -1,3 +1,4 @@
+import 'package:castboard_core/elements/GroupElement.dart';
 import 'package:castboard_core/layout-canvas/DragBox.dart';
 import 'package:castboard_core/layout-canvas/DragHandles.dart';
 import 'package:castboard_core/layout-canvas/DragSelectionBox.dart';
@@ -187,20 +188,29 @@ class DragBoxLayer extends StatelessWidget {
 
   List<Widget> _positionBlocks() {
     return blocks.values.map((block) {
-      return _positionBlock(block, block);
+      return _positionBlock(block, block.child);
     }).toList();
   }
 
-  Positioned _positionBlock(LayoutBlock block, Widget child) {
+  Positioned _positionBlock(LayoutBlock block, Widget child, {Offset offset}) {
+    final top = (offset?.dy ?? 0) + block.yPos * renderScale;
+    final left = (offset?.dx ?? 0) + block.xPos * renderScale;
+
     return Positioned(
-        top: block.yPos * renderScale,
-        left: block.xPos * renderScale,
-        width: block.width * renderScale,
-        height: block.height * renderScale,
-        child: Transform(
-          alignment: Alignment.center,
-          transform: Matrix4.rotationZ(block.rotation),
-          child: child,
-        ));
+      top: top,
+      left: left,
+      width: block.width * renderScale,
+      height: block.height * renderScale,
+      child: Transform(
+        alignment: Alignment.center,
+        transform: Matrix4.rotationZ(block.rotation ?? 0),
+        child: child is GroupElement
+            ? Stack(
+                children: child.children
+                    .map((item) => _positionBlock(item, item.child))
+                    .toList())
+            : child,
+      ),
+    );
   }
 }

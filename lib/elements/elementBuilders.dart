@@ -75,18 +75,21 @@ Widget _buildChild({
     return GroupElement(
       children: element.children
           .map(
-            (child) => Positioned(
-              left: child.xPos,
-              top: child.yPos,
+            (child) {
+              return LayoutBlock(
+              id: child.uid,
+              xPos: child.xPos,
+              yPos: child.yPos,
               width: child.width,
               height: child.height,
-              // TODO Rotation
+              // TODO rotation.
               child: _buildChild(
                   element: child.child,
                   actors: actors,
                   tracks: tracks,
                   selectedPreset: selectedPreset),
-            ),
+            );
+            },
           )
           .toList(),
     );

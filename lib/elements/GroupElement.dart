@@ -1,7 +1,8 @@
+import 'package:castboard_core/layout-canvas/LayoutBlock.dart';
 import 'package:flutter/material.dart';
 
 class GroupElement extends StatelessWidget {
-  final List<Widget> children;
+  final List<LayoutBlock> children;
   const GroupElement({Key key, this.children}) : super(key: key);
 
   @override

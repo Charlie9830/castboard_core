@@ -1,3 +1,4 @@
+import 'package:castboard_core/classes/LayoutElementChild.dart';
 import 'package:castboard_core/enum-converters/textAlignConverters.dart';
 import 'package:castboard_core/models/ColorModel.dart';
 import 'package:flutter/material.dart';
@@ -19,15 +20,18 @@ class TrackElementModel extends TextElementModel {
     Color color = Colors.white,
   })  : this.trackId = trackId ?? '',
         super(
-          text: '',
-          fontFamily: fontFamily,
-          fontSize: fontSize,
-          italics: italics,
-          bold: bold,
-          underline: underline,
-          alignment: alignment,
-          color: color,
-        );
+            text: '',
+            fontFamily: fontFamily,
+            fontSize: fontSize,
+            italics: italics,
+            bold: bold,
+            underline: underline,
+            alignment: alignment,
+            color: color,
+            propertyUpdateContracts: <PropertyUpdateContracts>{
+              PropertyUpdateContracts.textStyle,
+              PropertyUpdateContracts.trackAssignment
+            });
 
   TrackElementModel copyWith({
     String trackId,

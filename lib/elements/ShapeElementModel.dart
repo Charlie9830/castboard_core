@@ -16,7 +16,8 @@ class ShapeElementModel extends LayoutElementChild {
       : this.type = type ?? ShapeElementType.square,
         this.fill = fill ?? Colors.blue,
         this.lineColor = lineColor ?? Colors.black,
-        this.lineWeight = lineWeight ?? 1;
+        this.lineWeight = lineWeight ?? 1,
+        super(<PropertyUpdateContracts>{});
 
   ShapeElementModel copyWith({
     ShapeElementType type,

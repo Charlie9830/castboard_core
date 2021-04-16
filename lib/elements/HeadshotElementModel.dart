@@ -6,7 +6,9 @@ class HeadshotElementModel extends LayoutElementChild {
 
   HeadshotElementModel({
     @required String trackId,
-  }) : this.trackId = trackId ?? '';
+  })  : this.trackId = trackId ?? '',
+        super(
+            <PropertyUpdateContracts>{PropertyUpdateContracts.trackAssignment});
 
   HeadshotElementModel copyWith({
     String trackId,

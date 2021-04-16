@@ -15,6 +15,7 @@ class TextElementModel extends LayoutElementChild {
   final Color color;
 
   TextElementModel({
+    Set<PropertyUpdateContracts> propertyUpdateContracts,
     String text,
     String fontFamily,
     double fontSize,
@@ -30,7 +31,12 @@ class TextElementModel extends LayoutElementChild {
         this.bold = bold ?? false,
         this.underline = underline ?? false,
         this.alignment = alignment ?? TextAlign.center,
-        this.color = color ?? Colors.black;
+        this.color = color ?? Colors.black,
+        super(propertyUpdateContracts ??
+            <PropertyUpdateContracts>{
+              PropertyUpdateContracts.textData,
+              PropertyUpdateContracts.textStyle,
+            });
 
   TextElementModel copyWith({
     String text,

@@ -34,7 +34,8 @@ class ContainerElementModel extends LayoutElementChild {
   })  : this.horizontalAlignment =
             horizontalAlignment ?? HorizontalAlignment.center,
         this.verticalAlignment = verticalAlignment ?? VerticalAlignment.middle,
-        this.children = children ?? <LayoutElementChild>[];
+        this.children = children ?? <LayoutElementChild>[],
+        super(<PropertyUpdateContracts>{PropertyUpdateContracts.container});
 
   @override
   Map<String, dynamic> toMap() {

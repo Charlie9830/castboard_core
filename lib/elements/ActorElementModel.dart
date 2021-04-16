@@ -1,3 +1,4 @@
+import 'package:castboard_core/classes/LayoutElementChild.dart';
 import 'package:castboard_core/enum-converters/textAlignConverters.dart';
 import 'package:castboard_core/models/ColorModel.dart';
 import 'package:flutter/material.dart';
@@ -27,6 +28,7 @@ class ActorElementModel extends TextElementModel {
           underline: underline,
           alignment: alignment,
           color: color,
+          propertyUpdateContracts: <PropertyUpdateContracts>{PropertyUpdateContracts.textStyle, PropertyUpdateContracts.trackAssignment}
         );
 
   ActorElementModel copyWith({

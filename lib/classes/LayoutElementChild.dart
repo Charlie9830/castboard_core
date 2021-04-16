@@ -10,8 +10,17 @@ import 'package:castboard_core/enum-converters/textAlignConverters.dart';
 import 'package:castboard_core/enum-converters/verticalAlignmentConverters.dart';
 import 'package:castboard_core/models/ColorModel.dart';
 
+enum PropertyUpdateContracts {
+  textData,
+  textStyle,
+  trackAssignment,
+  container,
+}
+
 abstract class LayoutElementChild {
-  LayoutElementChild();
+  LayoutElementChild(this.propertyUpdateContracts);
+
+  final Set<PropertyUpdateContracts> propertyUpdateContracts;
 
   Map<String, dynamic> toMap();
 

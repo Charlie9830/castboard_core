@@ -30,6 +30,7 @@ typedef void OnRotateDoneCallback(
 
 class DragBoxLayer extends StatelessWidget {
   final bool interactive;
+  final bool deferHitTestingToChildren;
   final Map<String, LayoutBlock> blocks;
   final Set<String> selectedElementIds;
   final double renderScale;
@@ -51,6 +52,7 @@ class DragBoxLayer extends StatelessWidget {
   const DragBoxLayer(
       {Key key,
       this.interactive = true,
+      this.deferHitTestingToChildren = false,
       this.blocks,
       @required this.renderScale,
       this.selectedElementIds,
@@ -76,9 +78,12 @@ class DragBoxLayer extends StatelessWidget {
       children: [
         ..._positionBlocks(),
         //..._drawDebugIndicators(),
-        ..._drawDragBoxes(),
-        ..._drawDragHandles(),
-        if (isDragSelecting) _drawDragSelectionBox(),
+        if (deferHitTestingToChildren == false) ..._drawDragBoxes(),
+
+        if (deferHitTestingToChildren == false) ..._drawDragHandles(),
+
+        if (isDragSelecting && deferHitTestingToChildren == false)
+          _drawDragSelectionBox(),
       ],
     );
   }

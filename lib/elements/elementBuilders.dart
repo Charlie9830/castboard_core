@@ -59,7 +59,6 @@ Widget _buildChild({
   Map<String, TrackModel> tracks = const {},
 }) {
   if (element is ContainerElementModel) {
-    print(element.crossAxisAlignment);
     return ContainerElement(
       mainAxisAlignment: element.mainAxisAlignment,
       axis: element.axis,

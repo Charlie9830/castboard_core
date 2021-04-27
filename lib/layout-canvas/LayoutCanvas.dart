@@ -22,6 +22,7 @@ typedef void OnPlaceCallback(double xPos, double yPos);
 
 class LayoutCanvas extends StatefulWidget {
   final bool interactive;
+  final bool deferHitTestingToChildren;
   final bool showGrid;
   final Map<String, LayoutBlock> elements;
   final Set<String> selectedElements;
@@ -34,6 +35,7 @@ class LayoutCanvas extends StatefulWidget {
   LayoutCanvas(
       {Key key,
       this.interactive = true,
+      this.deferHitTestingToChildren = false,
       this.showGrid = false,
       this.elements = const {},
       this.selectedElements = const {},
@@ -82,9 +84,11 @@ class _LayoutCanvasState extends State<LayoutCanvas> {
                   gridSize: _gridSize, renderScale: widget.renderScale)
               : null,
           child: Stack(
+            // TODO, This Stack may be Redundant Now.
             children: [
               DragBoxLayer(
                 interactive: widget.interactive,
+                deferHitTestingToChildren: widget.deferHitTestingToChildren,
                 selectedElementIds: Set<String>.from(widget.selectedElements)
                   ..addAll(_dragSelectionPreviews),
                 renderScale: widget.renderScale,
@@ -119,6 +123,10 @@ class _LayoutCanvasState extends State<LayoutCanvas> {
   }
 
   _handleRootPointerMove(pointerEvent) {
+    if (widget.deferHitTestingToChildren == true) {
+      return;
+    }
+
     if (_lastPointerId != null && pointerEvent.pointer > _lastPointerId) {
       final currentPos = pointerEvent.localPosition;
       final delta = pointerEvent.localDelta;
@@ -132,6 +140,10 @@ class _LayoutCanvasState extends State<LayoutCanvas> {
   }
 
   _handleRootPointerUp(pointerEvent) {
+    if (widget.deferHitTestingToChildren == true) {
+      return;
+    }
+
     if (_activeElements.isNotEmpty) {
       widget.onElementsChanged(_activeElements);
       setState(() {
@@ -147,6 +159,10 @@ class _LayoutCanvasState extends State<LayoutCanvas> {
   }
 
   _handleRootPointerDown(pointerEvent) {
+    if (widget.deferHitTestingToChildren == true) {
+      return;
+    }
+
     if (_lastPointerId != null && pointerEvent.pointer > _lastPointerId) {
       // Clear Selections.
       widget.onSelectedElementsChanged?.call(<String>{});

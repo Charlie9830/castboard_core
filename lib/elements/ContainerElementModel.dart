@@ -3,20 +3,21 @@ import 'package:castboard_core/enum-converters/axisConverters.dart';
 import 'package:castboard_core/classes/LayoutElementChild.dart';
 import 'package:castboard_core/enum-converters/crossAxisAlignmentConverters.dart';
 import 'package:castboard_core/enum-converters/mainAxisAlignmentConverters.dart';
+import 'package:castboard_core/models/LayoutElementModel.dart';
 import 'package:flutter/widgets.dart';
 
 class ContainerElementModel extends LayoutElementChild {
   final MainAxisAlignment mainAxisAlignment;
   final CrossAxisAlignment crossAxisAlignment;
   final Axis axis;
-  final List<LayoutElementChild> children;
+  final List<LayoutElementModel> children;
 
   ContainerElementModel({
     MainAxisAlignment mainAxisAlignment,
     CrossAxisAlignment crossAxisAlignment,
-    List<LayoutElementChild> children,
+    List<LayoutElementModel> children,
     Axis axis,
-  })  : this.children = children ?? <LayoutElementChild>[],
+  })  : this.children = children ?? <LayoutElementModel>[],
         this.mainAxisAlignment = mainAxisAlignment ?? MainAxisAlignment.center,
         this.crossAxisAlignment =
             crossAxisAlignment ?? CrossAxisAlignment.center,
@@ -38,7 +39,7 @@ class ContainerElementModel extends LayoutElementChild {
     Axis axis,
     MainAxisAlignment mainAxisAlignment,
     CrossAxisAlignment crossAxisAlignment,
-    List<LayoutElementChild> children,
+    List<LayoutElementModel> children,
   }) {
     return ContainerElementModel(
         mainAxisAlignment: mainAxisAlignment ?? this.mainAxisAlignment,

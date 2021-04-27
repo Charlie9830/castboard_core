@@ -2,6 +2,8 @@ import 'package:castboard_core/classes/LayoutElementChild.dart';
 import 'package:castboard_core/elements/ActorElementModel.dart';
 import 'package:castboard_core/elements/ContainerElement.dart';
 import 'package:castboard_core/elements/ContainerElementModel.dart';
+import 'package:castboard_core/elements/DragElement.dart';
+import 'package:castboard_core/elements/DraggingViewModel.dart';
 import 'package:castboard_core/layout-canvas/MultiChildCanvasItem.dart';
 import 'package:castboard_core/elements/GroupElementModel.dart';
 import 'package:castboard_core/elements/HeadshotElementModel.dart';
@@ -27,6 +29,7 @@ Map<String, LayoutBlock> buildElements({
   PresetModel preset,
   Map<String, ActorModel> actors,
   Map<String, TrackModel> tracks,
+  DraggingViewModel draggingVM,
 }) {
   final Map<String, LayoutElementModel> elements =
       slide?.elements ?? <String, LayoutElementModel>{};
@@ -46,6 +49,7 @@ Map<String, LayoutBlock> buildElements({
           selectedPreset: preset,
           actors: actors,
           tracks: tracks,
+          draggingVM: draggingVM,
         ),
       ),
     ),
@@ -57,18 +61,27 @@ Widget _buildChild({
   PresetModel selectedPreset,
   Map<String, ActorModel> actors = const {},
   Map<String, TrackModel> tracks = const {},
+  DraggingViewModel draggingVM,
 }) {
   if (element is ContainerElementModel) {
     return ContainerElement(
       mainAxisAlignment: element.mainAxisAlignment,
       axis: element.axis,
-      children: element.children
-          .map((child) => _buildChild(
-              element: child,
+      children: element.children.map((child) {
+        return DragElement(
+          id: child.uid,
+          dragIndex: child.dragIndex,
+          onHoverEnter: (hoveringId, oldIndex) =>
+              draggingVM.onHoverEnter(hoveringId, oldIndex, child.uid),
+          onHoverLeave: (hoveringId, oldInex) =>
+              draggingVM.onHoverLeave(hoveringId, child.uid),
+          child: _buildChild(
+              element: child.child,
               selectedPreset: selectedPreset,
               actors: actors,
-              tracks: tracks))
-          .toList(),
+              tracks: tracks),
+        );
+      }).toList(),
     );
   }
 

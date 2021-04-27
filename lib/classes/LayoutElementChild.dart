@@ -10,6 +10,7 @@ import 'package:castboard_core/enum-converters/shapeElementTypeConverters.dart';
 import 'package:castboard_core/enum-converters/textAlignConverters.dart';
 import 'package:castboard_core/enum-converters/crossAxisAlignmentConverters.dart';
 import 'package:castboard_core/models/ColorModel.dart';
+import 'package:castboard_core/models/LayoutElementModel.dart';
 
 enum PropertyUpdateContracts {
   textData,
@@ -29,11 +30,12 @@ abstract class LayoutElementChild {
     final String elementType = map['elementType'];
 
     if (elementType == 'container') {
+      int index = 0;
       return ContainerElementModel(
         axis: parseAxis(map['axis']),
         children: (map['children'] as List<Map<String, dynamic>>)
             .map((Map<String, dynamic> child) =>
-                LayoutElementChild.fromMap(child))
+                LayoutElementModel.fromMap(child).copyWith(dragIndex: index++))
             .toList(),
       );
     }

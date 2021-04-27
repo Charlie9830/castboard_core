@@ -59,8 +59,10 @@ Widget _buildChild({
   Map<String, TrackModel> tracks = const {},
 }) {
   if (element is ContainerElementModel) {
+    print(element.crossAxisAlignment);
     return ContainerElement(
-      alignment: HorizontalAlignment.spaceEvenly, //element.horizontalAlignment,
+      mainAxisAlignment: element.mainAxisAlignment,
+      axis: element.axis,
       children: element.children
           .map((child) => _buildChild(
               element: child,
@@ -73,25 +75,23 @@ Widget _buildChild({
 
   if (element is GroupElementModel) {
     return MultiChildCanvasItem(
-      children: element.children
-          .map(
-            (child) {
-              return LayoutBlock(
-              id: child.uid,
-              xPos: child.xPos,
-              yPos: child.yPos,
-              width: child.width,
-              height: child.height,
-              rotation: child.rotation,
-              child: _buildChild(
-                  element: child.child,
-                  actors: actors,
-                  tracks: tracks,
-                  selectedPreset: selectedPreset),
-            );
-            },
-          )
-          .toList(),
+      children: element.children.map(
+        (child) {
+          return LayoutBlock(
+            id: child.uid,
+            xPos: child.xPos,
+            yPos: child.yPos,
+            width: child.width,
+            height: child.height,
+            rotation: child.rotation,
+            child: _buildChild(
+                element: child.child,
+                actors: actors,
+                tracks: tracks,
+                selectedPreset: selectedPreset),
+          );
+        },
+      ).toList(),
     );
   }
 

@@ -4,10 +4,11 @@ import 'package:castboard_core/elements/HeadshotElementModel.dart';
 import 'package:castboard_core/elements/ShapeElementModel.dart';
 import 'package:castboard_core/elements/TextElementModel.dart';
 import 'package:castboard_core/elements/TrackElementModel.dart';
-import 'package:castboard_core/enum-converters/horizontalAlignmentConverters.dart';
+import 'package:castboard_core/enum-converters/axisConverters.dart';
+import 'package:castboard_core/enum-converters/mainAxisAlignmentConverters.dart';
 import 'package:castboard_core/enum-converters/shapeElementTypeConverters.dart';
 import 'package:castboard_core/enum-converters/textAlignConverters.dart';
-import 'package:castboard_core/enum-converters/verticalAlignmentConverters.dart';
+import 'package:castboard_core/enum-converters/crossAxisAlignmentConverters.dart';
 import 'package:castboard_core/models/ColorModel.dart';
 
 enum PropertyUpdateContracts {
@@ -29,9 +30,7 @@ abstract class LayoutElementChild {
 
     if (elementType == 'container') {
       return ContainerElementModel(
-        horizontalAlignment:
-            parseHorizontalAlignment(map['horiztonalAlignment']),
-        verticalAlignment: parseVerticalAlignment(map['verticalAlignment']),
+        axis: parseAxis(map['axis']),
         children: (map['children'] as List<Map<String, dynamic>>)
             .map((Map<String, dynamic> child) =>
                 LayoutElementChild.fromMap(child))

@@ -1,61 +1,49 @@
-import 'package:castboard_core/enum-converters/horizontalAlignmentConverters.dart';
-import 'package:castboard_core/enum-converters/verticalAlignmentConverters.dart';
-import 'package:flutter/foundation.dart';
+import 'package:castboard_core/enum-converters/axisConverters.dart';
 
 import 'package:castboard_core/classes/LayoutElementChild.dart';
-
-enum HorizontalAlignment {
-  left,
-  center,
-  right,
-  spaceAround,
-  spaceBetween,
-  spaceEvenly
-}
-
-enum VerticalAlignment {
-  top,
-  middle,
-  bottom,
-  spaceAround,
-  spaceBetween,
-  spaceEvenly
-}
+import 'package:castboard_core/enum-converters/crossAxisAlignmentConverters.dart';
+import 'package:castboard_core/enum-converters/mainAxisAlignmentConverters.dart';
+import 'package:flutter/widgets.dart';
 
 class ContainerElementModel extends LayoutElementChild {
-  final HorizontalAlignment horizontalAlignment;
-  final VerticalAlignment verticalAlignment;
+  final MainAxisAlignment mainAxisAlignment;
+  final CrossAxisAlignment crossAxisAlignment;
+  final Axis axis;
   final List<LayoutElementChild> children;
 
   ContainerElementModel({
-    HorizontalAlignment horizontalAlignment,
-    VerticalAlignment verticalAlignment,
+    MainAxisAlignment mainAxisAlignment,
+    CrossAxisAlignment crossAxisAlignment,
     List<LayoutElementChild> children,
-  })  : this.horizontalAlignment =
-            horizontalAlignment ?? HorizontalAlignment.center,
-        this.verticalAlignment = verticalAlignment ?? VerticalAlignment.middle,
-        this.children = children ?? <LayoutElementChild>[],
+    Axis axis,
+  })  : this.children = children ?? <LayoutElementChild>[],
+        this.mainAxisAlignment = mainAxisAlignment ?? MainAxisAlignment.center,
+        this.crossAxisAlignment =
+            crossAxisAlignment ?? CrossAxisAlignment.center,
+        this.axis = axis ?? Axis.horizontal,
         super(<PropertyUpdateContracts>{PropertyUpdateContracts.container});
 
   @override
   Map<String, dynamic> toMap() {
     return {
       'elementType': 'container',
-      'horizontalAlignment':
-          convertHorizontalAlignment(this.horizontalAlignment),
-      'verticalAlinment': convertVerticalAlignment(this.verticalAlignment),
+      'axis': convertAxis(this.axis),
+      'mainAxisAlignment': convertMainAxisAlignment(this.mainAxisAlignment),
+      'crossAxisAlignment': convertCrossAxisAlignment(this.crossAxisAlignment),
       'children': children.map((item) => item.toMap()).toList()
     };
   }
 
   ContainerElementModel copyWith({
-    HorizontalAlignment horizontalAlignment,
-    VerticalAlignment verticalAlignment,
+    Axis axis,
+    MainAxisAlignment mainAxisAlignment,
+    CrossAxisAlignment crossAxisAlignment,
     List<LayoutElementChild> children,
   }) {
     return ContainerElementModel(
-        horizontalAlignment: horizontalAlignment ?? this.horizontalAlignment,
-        verticalAlignment: verticalAlignment ?? this.verticalAlignment,
+        mainAxisAlignment: mainAxisAlignment ?? this.mainAxisAlignment,
+        crossAxisAlignment: crossAxisAlignment ?? this.crossAxisAlignment,
+        axis: axis ?? this.axis,
         children: children ?? this.children);
   }
 }

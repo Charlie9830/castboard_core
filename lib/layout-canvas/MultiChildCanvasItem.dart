@@ -1,3 +1,4 @@
+import 'package:castboard_core/inherited/RenderScaleProvider.dart';
 import 'package:castboard_core/layout-canvas/LayoutBlock.dart';
 import 'package:flutter/material.dart';
 
@@ -8,8 +9,21 @@ class MultiChildCanvasItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final renderScale = RenderScale.of(context).scale;
     return Stack(
-      children: children ?? const [],
+      children: children
+              .map((child) => Positioned(
+                    left: child.xPos * renderScale,
+                    top: child.yPos * renderScale,
+                    width: child.width * renderScale,
+                    height: child.height * renderScale,
+                    child: Transform.rotate(
+                      angle: child.rotation,
+                      child: child,
+                    ),
+                  ))
+              .toList() ??
+          const [],
     );
   }
 

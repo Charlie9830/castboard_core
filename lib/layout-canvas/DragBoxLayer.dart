@@ -207,14 +207,7 @@ class DragBoxLayer extends StatelessWidget {
       child: Transform(
         alignment: Alignment.center,
         transform: Matrix4.rotationZ(block.rotation ?? 0),
-        // If Child is of type MultiChildCanvasItem, place it into it's own Stack (Thus converting the coordinate space to a local space)
-        child: block.child is MultiChildCanvasItem
-            ? Stack(
-                children: (block.child as MultiChildCanvasItem)
-                    .children
-                    .map((item) => _positionBlock(item))
-                    .toList())
-            : block.child,
+        child: block.child,
       ),
     );
   }

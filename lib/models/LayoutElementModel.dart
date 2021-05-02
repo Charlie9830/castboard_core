@@ -10,7 +10,6 @@ class LayoutElementModel {
   final double height;
   final double rotation;
   final LayoutElementChild child;
-  final int dragIndex;
 
   LayoutElementModel({
     this.uid,
@@ -19,7 +18,6 @@ class LayoutElementModel {
     this.width,
     this.height,
     this.child,
-    this.dragIndex = 0,
     this.rotation = 0.0,
   });
 
@@ -31,7 +29,6 @@ class LayoutElementModel {
     double height,
     double rotation,
     LayoutElementChild child,
-    int dragIndex,
     Color color,
   }) {
     return LayoutElementModel(
@@ -41,7 +38,6 @@ class LayoutElementModel {
       width: width ?? this.width,
       height: height ?? this.height,
       rotation: rotation ?? this.rotation,
-      dragIndex: dragIndex ?? this.dragIndex,
       child: child ?? this.child,
     );
   }

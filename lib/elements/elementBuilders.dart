@@ -2,8 +2,7 @@ import 'package:castboard_core/classes/LayoutElementChild.dart';
 import 'package:castboard_core/elements/ActorElementModel.dart';
 import 'package:castboard_core/elements/ContainerElement.dart';
 import 'package:castboard_core/elements/ContainerElementModel.dart';
-import 'package:castboard_core/elements/DragElement.dart';
-import 'package:castboard_core/elements/DraggingViewModel.dart';
+import 'package:castboard_core/elements/ContainerItem.dart';
 import 'package:castboard_core/layout-canvas/MultiChildCanvasItem.dart';
 import 'package:castboard_core/elements/GroupElementModel.dart';
 import 'package:castboard_core/elements/HeadshotElementModel.dart';
@@ -24,12 +23,15 @@ import 'package:castboard_core/models/SlideModel.dart';
 import 'package:castboard_core/storage/Storage.dart';
 import 'package:flutter/material.dart';
 
+typedef void OnContainerItemsReorder(
+    String containerId, String itemId, int oldIndex, int newIndex);
+
 Map<String, LayoutBlock> buildElements({
   SlideModel slide,
   PresetModel preset,
   Map<String, ActorModel> actors,
   Map<String, TrackModel> tracks,
-  DraggingViewModel draggingVM,
+  OnContainerItemsReorder onContainerItemsReorder,
 }) {
   final Map<String, LayoutElementModel> elements =
       slide?.elements ?? <String, LayoutElementModel>{};
@@ -49,7 +51,8 @@ Map<String, LayoutBlock> buildElements({
           selectedPreset: preset,
           actors: actors,
           tracks: tracks,
-          draggingVM: draggingVM,
+          onContainerItemsReorder: (itemId, oldIndex, newIndex) =>
+              onContainerItemsReorder?.call(id, itemId, oldIndex, newIndex),
         ),
       ),
     ),
@@ -61,20 +64,21 @@ Widget _buildChild({
   PresetModel selectedPreset,
   Map<String, ActorModel> actors = const {},
   Map<String, TrackModel> tracks = const {},
-  DraggingViewModel draggingVM,
+  dynamic onContainerItemsReorder,
 }) {
   if (element is ContainerElementModel) {
+    int index = 0;
     return ContainerElement(
+      isEditing: true,
       mainAxisAlignment: element.mainAxisAlignment,
       axis: element.axis,
-      children: element.children.map((child) {
-        return DragElement(
-          id: child.uid,
-          dragIndex: child.dragIndex,
-          onHoverEnter: (hoveringId, oldIndex) =>
-              draggingVM.onHoverEnter(hoveringId, oldIndex, child.uid),
-          onHoverLeave: (hoveringId, oldInex) =>
-              draggingVM.onHoverLeave(hoveringId, child.uid),
+      onOrderChanged: (id, oldIndex, newIndex) =>
+          onContainerItemsReorder?.call(id, oldIndex, newIndex),
+      items: element.children.map((child) {
+        return ContainerItem(
+          dragId: child.uid,
+          index: index++,
+          size: Size(child.width, child.height),
           child: _buildChild(
               element: child.child,
               selectedPreset: selectedPreset,

@@ -30,12 +30,11 @@ abstract class LayoutElementChild {
     final String elementType = map['elementType'];
 
     if (elementType == 'container') {
-      int index = 0;
       return ContainerElementModel(
         axis: parseAxis(map['axis']),
         children: (map['children'] as List<Map<String, dynamic>>)
             .map((Map<String, dynamic> child) =>
-                LayoutElementModel.fromMap(child).copyWith(dragIndex: index++))
+                LayoutElementModel.fromMap(child))
             .toList(),
       );
     }

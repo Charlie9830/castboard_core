@@ -72,9 +72,18 @@ class _LayoutCanvasState extends State<LayoutCanvas> {
     final dragSelectRect =
         Rect.fromPoints(_dragSelectAnchorPoint, _dragSelectMousePoint);
     return Listener(
-      onPointerDown: widget.interactive ? _handleRootPointerDown : null,
-      onPointerUp: widget.interactive ? _handleRootPointerUp : null,
-      onPointerMove: widget.interactive ? _handleRootPointerMove : null,
+      onPointerDown:
+          (widget.interactive && widget.deferHitTestingToChildren == false)
+              ? _handleRootPointerDown
+              : null,
+      onPointerUp:
+          (widget.interactive && widget.deferHitTestingToChildren == false)
+              ? _handleRootPointerUp
+              : null,
+      onPointerMove:
+          (widget.interactive && widget.deferHitTestingToChildren == false)
+              ? _handleRootPointerMove
+              : null,
       child: Container(
         color: Colors
             .transparent, // If a color isn't set. Hit testing for the Parent Listener stops working.

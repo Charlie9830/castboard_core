@@ -32,6 +32,7 @@ Map<String, LayoutBlock> buildElements({
   Map<String, ActorModel> actors,
   Map<String, TrackModel> tracks,
   OnContainerItemsReorder onContainerItemsReorder,
+  String editingContainerId = '',
 }) {
   final Map<String, LayoutElementModel> elements =
       slide?.elements ?? <String, LayoutElementModel>{};
@@ -51,6 +52,7 @@ Map<String, LayoutBlock> buildElements({
           selectedPreset: preset,
           actors: actors,
           tracks: tracks,
+          isEditingContainer: editingContainerId != null && id == editingContainerId,
           onContainerItemsReorder: (itemId, oldIndex, newIndex) =>
               onContainerItemsReorder?.call(id, itemId, oldIndex, newIndex),
         ),
@@ -65,11 +67,12 @@ Widget _buildChild({
   Map<String, ActorModel> actors = const {},
   Map<String, TrackModel> tracks = const {},
   dynamic onContainerItemsReorder,
+  bool isEditingContainer = false,
 }) {
   if (element is ContainerElementModel) {
     int index = 0;
     return ContainerElement(
-      isEditing: true,
+      isEditing: isEditingContainer,
       mainAxisAlignment: element.mainAxisAlignment,
       axis: element.axis,
       onOrderChanged: (id, oldIndex, newIndex) =>

@@ -41,7 +41,9 @@ class _ContainerElementState extends State<ContainerElement> {
     return Container(
       child: widget.isEditing ? _getEditingChild(context) : _getDisplayChild(),
       foregroundDecoration: widget.isEditing
-          ? BoxDecoration(border: Border.all(color: Colors.grey))
+          ? BoxDecoration(
+              border:
+                  Border.all(color: Theme.of(context).indicatorColor, width: 2))
           : null,
     );
   }

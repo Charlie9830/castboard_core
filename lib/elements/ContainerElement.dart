@@ -2,7 +2,6 @@ import 'package:castboard_core/elements/ContainerItem.dart';
 import 'package:castboard_core/elements/Dragger.dart';
 import 'package:castboard_core/inherited/RenderScaleProvider.dart';
 import 'package:flutter/material.dart';
-import 'package:reorderables/reorderables.dart';
 
 const String _shadowId = 'shadow';
 

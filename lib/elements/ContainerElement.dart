@@ -1,6 +1,7 @@
 import 'package:castboard_core/elements/ContainerItem.dart';
 import 'package:castboard_core/elements/Dragger.dart';
 import 'package:castboard_core/inherited/RenderScaleProvider.dart';
+import 'package:castboard_core/layout-canvas/MultiChildCanvasItem.dart';
 import 'package:flutter/material.dart';
 
 const String _shadowId = 'shadow';
@@ -9,6 +10,7 @@ typedef void OnOrderChanged(String dragId, int oldIndex, int newIndex);
 
 class ContainerElement extends StatefulWidget {
   final bool isEditing;
+  final bool showBorder;
   final MainAxisAlignment mainAxisAlignment;
   final CrossAxisAlignment crossAxisAlignment;
   final Axis axis;
@@ -18,6 +20,7 @@ class ContainerElement extends StatefulWidget {
   const ContainerElement({
     Key key,
     this.isEditing,
+    this.showBorder = false,
     this.mainAxisAlignment,
     this.crossAxisAlignment,
     this.axis = Axis.horizontal,
@@ -39,40 +42,32 @@ class _ContainerElementState extends State<ContainerElement> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      child: widget.isEditing ? _getEditingChild(context) : _getDisplayChild(),
-      foregroundDecoration: widget.isEditing
-          ? BoxDecoration(
-              border:
-                  Border.all(color: Theme.of(context).indicatorColor, width: 2))
-          : null,
+      child: _getChild(context),
+      foregroundDecoration: _getForegroundDecoration(),
     );
   }
 
-  Widget _getDisplayChild() {
-    switch (widget.axis) {
-      case Axis.horizontal:
-        return _HorizontalContainer(
-          mainAxisAlignment: widget.mainAxisAlignment,
-          crossAxisAlignment: widget.crossAxisAlignment,
-          children: widget.items,
-        );
-        break;
-
-      case Axis.vertical:
-        return _VerticalContainer(
-          mainAxisAlignment: widget.mainAxisAlignment,
-          crossAxisAlignment: widget.crossAxisAlignment,
-          children: widget.items,
-        );
-        break;
-      default:
-        throw Exception('Unknown Axis value. Value is ${widget.axis}');
+  BoxDecoration _getForegroundDecoration() {
+    if (widget.isEditing == true) {
+      // Editing Highlight Border.
+      return BoxDecoration(
+        border: Border.all(color: Theme.of(context).indicatorColor, width: 2),
+      );
     }
+
+    if (widget.showBorder == true) {
+      // Editor Guide Border.
+      return BoxDecoration(
+        border: Border.all(color: Colors.grey.withAlpha(128), width: 2),
+      );
+    }
+
+    // Show nothing. (For running in Presentation).
+    return null;
   }
 
-  Widget _getEditingChild(BuildContext context) {
+  Widget _getChild(BuildContext context) {
     final items = _isDragging ? _activeItems : widget.items;
-
     final renderScale = RenderScale.of(context).scale;
 
     switch (widget.axis) {
@@ -82,24 +77,18 @@ class _ContainerElementState extends State<ContainerElement> {
           crossAxisAlignment: widget.crossAxisAlignment,
           children: items.map((item) {
             final scaledItemSize = item.size * renderScale;
-            return Visibility(
-              key: Key(item.dragId),
-              maintainState: true,
+            return _wrapVisibility(
+              widget.isEditing,
+              item: item,
               visible: item.dragId != _candidateId,
               child: Container(
                 alignment: Alignment.center,
                 width: scaledItemSize.width,
-                child: Dragger(
-                  targetOnly: item.dragId == _shadowId,
-                  feedbackBuilder: (_) =>
-                      _buildFeedback(renderScale, scaledItemSize, item.child),
-                  onDragStart: () =>
-                      _handleDragStart(item.dragId, item.index, item.size),
-                  onDragEnd: (candidateDetails) =>
-                      _handleDragEnd(candidateDetails),
-                  onHover: (side, candidateDetails) => _handleHover(
-                      side, item.dragId, item.index, candidateDetails),
-                  dragData: DraggerDetails(item.dragId, item.index),
+                child: _wrapDragger(
+                  widget.isEditing,
+                  item: item,
+                  axis: Axis.horizontal,
+                  renderScale: renderScale,
                   child: item.child,
                 ),
               ),
@@ -113,26 +102,19 @@ class _ContainerElementState extends State<ContainerElement> {
           crossAxisAlignment: widget.crossAxisAlignment,
           children: items.map((item) {
             final scaledItemSize = item.size * renderScale;
-            return Visibility(
-              // Visibility with mainState: true is used to hide the actual item when dragging,
-              // otherwise the Draggable Widget gets removed from the tree and thus never calles onDragEnd.
-              key: Key(item.dragId),
-              maintainState: true,
+            return _wrapVisibility(
+              widget.isEditing,
+              item: item,
               visible: item.dragId != _candidateId,
               child: Container(
                 alignment: Alignment.center,
+                width: scaledItemSize.width,
                 height: scaledItemSize.height,
-                child: Dragger(
-                  targetOnly: item.dragId == _shadowId,
-                  feedbackBuilder: (_) =>
-                      _buildFeedback(renderScale, scaledItemSize, item.child),
-                  onDragStart: () =>
-                      _handleDragStart(item.dragId, item.index, item.size),
-                  onDragEnd: (candidateDetails) =>
-                      _handleDragEnd(candidateDetails),
-                  onHover: (side, candidateDetails) => _handleHover(
-                      side, item.dragId, item.index, candidateDetails),
-                  dragData: DraggerDetails(item.dragId, item.index),
+                child: _wrapDragger(
+                  widget.isEditing,
+                  item: item,
+                  axis: Axis.vertical,
+                  renderScale: renderScale,
                   child: item.child,
                 ),
               ),
@@ -145,12 +127,74 @@ class _ContainerElementState extends State<ContainerElement> {
     }
   }
 
+  ///
+  /// Conditionally wraps a Dragger Element around child based on the value of isEditing.
+  ///
+  Widget _wrapDragger(bool isEditing,
+      {ContainerItem item, double renderScale, Widget child, Axis axis}) {
+    if (isEditing) {
+      return Dragger(
+        axis: axis,
+        targetOnly: item.dragId == _shadowId,
+        feedbackBuilder: (_) =>
+            _buildFeedback(renderScale, item.size * renderScale, item.child),
+        onDragStart: () => _handleDragStart(item.dragId, item.index, item.size),
+        onDragEnd: (candidateDetails) => _handleDragEnd(candidateDetails),
+        onHover: (side, candidateDetails) =>
+            _handleHover(side, item.dragId, item.index, candidateDetails),
+        dragData: DraggerDetails(item.dragId, item.index),
+        child: child,
+      );
+    } else {
+      return child;
+    }
+  }
+
+  ///
+  /// Conditionally wraps a Visibility Widget around child based on the value of isEditing.
+  ///
+  Widget _wrapVisibility(
+    bool isEditing, {
+    ContainerItem item,
+    bool visible = true,
+    Widget child,
+  }) {
+    if (isEditing) {
+      return Visibility(
+        key: Key(item.dragId),
+        visible: visible,
+        maintainState: true,
+        child: child,
+      );
+    } else {
+      return child;
+    }
+  }
+
+  ///
+  /// Conditionally wraps an ItemOverlay Widget around child based on the value of isEditing.
+  ///
+  Widget _wrapItemOverlay(bool isEditing, {Widget child}) {
+    if (isEditing) {
+      return _ItemOverlay(
+        child: child,
+      );
+    } else {
+      return child;
+    }
+  }
+
   Widget _buildFeedback(double renderScale, Size itemSize, Widget child) {
-    return RenderScale(
-      scale: renderScale,
-      child: Transform.translate(
-          offset: Offset((itemSize.width / 2) * -1, (itemSize.height / 2) * -1),
-          child: child),
+    return Container(
+      width: itemSize.width,
+      height: itemSize.height,
+      child: RenderScale(
+        scale: renderScale,
+        child: Transform.translate(
+            offset:
+                Offset((itemSize.width / 2) * -1, (itemSize.height / 2) * -1),
+            child: Opacity(opacity: 0.5, child: child)),
+      ),
     );
   }
 
@@ -394,6 +438,27 @@ class _ContainerElementState extends State<ContainerElement> {
     int index = 0;
     return items.map((item) => item.copyWith(index: index++)).toList()
       ..sort((a, b) => a.index - b.index);
+  }
+}
+
+class _ItemOverlay extends StatelessWidget {
+  final Widget child;
+
+  const _ItemOverlay({
+    Key key,
+    this.child,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      foregroundDecoration: BoxDecoration(
+        border: Border.all(
+          color: Colors.blueGrey,
+        ),
+      ),
+      child: child,
+    );
   }
 }
 

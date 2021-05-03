@@ -33,34 +33,38 @@ Map<String, LayoutBlock> buildElements({
   Map<String, TrackModel> tracks,
   OnContainerItemsReorder onContainerItemsReorder,
   String editingContainerId = '',
+  String highlightedContainerId = '',
   bool isInSlideEditor = false,
 }) {
   final Map<String, LayoutElementModel> elements =
       slide?.elements ?? <String, LayoutElementModel>{};
-
   return elements.map(
-    (id, element) => MapEntry(
-      id,
-      LayoutBlock(
-        id: id,
-        width: element.width,
-        height: element.height,
-        xPos: element.xPos,
-        yPos: element.yPos,
-        rotation: element.rotation,
-        child: _buildChild(
-          element: element.child,
-          selectedPreset: preset,
-          actors: actors,
-          tracks: tracks,
-          isInSlideEditor: isInSlideEditor,
-          isEditingContainer:
-              editingContainerId != null && id == editingContainerId,
-          onContainerItemsReorder: (itemId, oldIndex, newIndex) =>
-              onContainerItemsReorder?.call(id, itemId, oldIndex, newIndex),
+    (id, element) {
+      final isEditingContainer =
+          editingContainerId != null && id == editingContainerId;
+      return MapEntry(
+        id,
+        LayoutBlock(
+          id: id,
+          width: element.width,
+          height: element.height,
+          xPos: element.xPos,
+          yPos: element.yPos,
+          rotation: element.rotation,
+          child: _buildChild(
+            element: element.child,
+            selectedPreset: preset,
+            actors: actors,
+            tracks: tracks,
+            isInSlideEditor: isInSlideEditor,
+            isEditingContainer: isEditingContainer,
+            isHighlighted: isEditingContainer || highlightedContainerId == id,
+            onContainerItemsReorder: (itemId, oldIndex, newIndex) =>
+                onContainerItemsReorder?.call(id, itemId, oldIndex, newIndex),
+          ),
         ),
-      ),
-    ),
+      );
+    },
   );
 }
 
@@ -72,6 +76,7 @@ Widget _buildChild({
   dynamic onContainerItemsReorder,
   bool isEditingContainer = false,
   bool isInSlideEditor = false,
+  bool isHighlighted = false,
 }) {
   if (element is ContainerElementModel) {
     int index = 0;
@@ -79,6 +84,7 @@ Widget _buildChild({
     return ContainerElement(
       isEditing: isEditingContainer,
       showBorder: isInSlideEditor,
+      showHighlight: isHighlighted,
       mainAxisAlignment: element.mainAxisAlignment,
       axis: element.axis,
       onOrderChanged: (id, oldIndex, newIndex) =>

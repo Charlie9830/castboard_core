@@ -10,6 +10,7 @@ typedef void OnOrderChanged(String dragId, int oldIndex, int newIndex);
 
 class ContainerElement extends StatefulWidget {
   final bool isEditing;
+  final bool showHighlight;
   final bool showBorder;
   final MainAxisAlignment mainAxisAlignment;
   final CrossAxisAlignment crossAxisAlignment;
@@ -20,6 +21,7 @@ class ContainerElement extends StatefulWidget {
   const ContainerElement({
     Key key,
     this.isEditing,
+    this.showHighlight = false,
     this.showBorder = false,
     this.mainAxisAlignment,
     this.crossAxisAlignment,
@@ -48,8 +50,8 @@ class _ContainerElementState extends State<ContainerElement> {
   }
 
   BoxDecoration _getForegroundDecoration() {
-    if (widget.isEditing == true) {
-      // Editing Highlight Border.
+    if (widget.showHighlight == true) {
+      //Highlight Border.
       return BoxDecoration(
         border: Border.all(color: Theme.of(context).indicatorColor, width: 2),
       );

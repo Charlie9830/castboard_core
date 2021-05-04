@@ -93,6 +93,8 @@ Widget _buildChild({
       showHighlight: isHighlighted,
       mainAxisAlignment: element.mainAxisAlignment,
       crossAxisAlignment: element.crossAxisAlignment,
+      runAlignment: element.runAlignment,
+      allowWrap: element.wrapEnabled,
       axis: element.axis,
       onOrderChanged: (id, oldIndex, newIndex) =>
           onContainerItemsReorder?.call(id, oldIndex, newIndex),
@@ -162,10 +164,13 @@ Widget _buildChild({
       );
     }
 
-    return Image.file(
-      Storage.instance.getHeadshotFile(actor.headshotRef),
-      color: Color.fromARGB(255, 255, 255, 255),
-      colorBlendMode: BlendMode.darken,
+    return Padding(
+      padding: const EdgeInsets.all(8),
+      child: Image.file(
+        Storage.instance.getHeadshotFile(actor.headshotRef),
+        color: Color.fromARGB(255, 255, 255, 255),
+        colorBlendMode: BlendMode.darken,
+      ),
     );
   }
 

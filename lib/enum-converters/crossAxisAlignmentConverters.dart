@@ -33,6 +33,6 @@ String convertCrossAxisAlignment(CrossAxisAlignment alignment) {
       return 'stretch';
     default:
       throw EnumConversionError(
-          'Unknown value when trying to convert MainAxisAlignment into String. Unknown value is $alignment');
+          'Unknown value when trying to convert CrossAxisAlignment into String. Unknown value is $alignment');
   }
 }

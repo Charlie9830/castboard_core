@@ -6,14 +6,25 @@ import 'package:flutter/material.dart';
 
 const String _shadowId = 'shadow';
 
+const Map<MainAxisAlignment, WrapAlignment> _alignmentMapping = {
+  MainAxisAlignment.start: WrapAlignment.start,
+  MainAxisAlignment.center: WrapAlignment.center,
+  MainAxisAlignment.end: WrapAlignment.end,
+  MainAxisAlignment.spaceEvenly: WrapAlignment.spaceEvenly,
+  MainAxisAlignment.spaceBetween: WrapAlignment.spaceBetween,
+  MainAxisAlignment.spaceAround: WrapAlignment.spaceAround,
+};
+
 typedef void OnOrderChanged(String dragId, int oldIndex, int newIndex);
 
 class ContainerElement extends StatefulWidget {
   final bool isEditing;
   final bool showHighlight;
   final bool showBorder;
+  final bool allowWrap;
   final MainAxisAlignment mainAxisAlignment;
   final CrossAxisAlignment crossAxisAlignment;
+  final WrapAlignment runAlignment;
   final Axis axis;
   final List<ContainerItem> items;
   final OnOrderChanged onOrderChanged;
@@ -26,6 +37,8 @@ class ContainerElement extends StatefulWidget {
     this.showBorder = false,
     this.mainAxisAlignment,
     this.crossAxisAlignment,
+    this.runAlignment,
+    this.allowWrap = false,
     this.axis = Axis.horizontal,
     this.items,
     this.onOrderChanged,
@@ -79,6 +92,8 @@ class _ContainerElementState extends State<ContainerElement> {
         return _HorizontalContainer(
           mainAxisAlignment: widget.mainAxisAlignment,
           crossAxisAlignment: widget.crossAxisAlignment,
+          allowWrap: widget.allowWrap,
+          runAlignment: widget.runAlignment,
           children: items.map((item) {
             final scaledItemSize = item.size * renderScale;
             return _wrapVisibility(
@@ -105,6 +120,8 @@ class _ContainerElementState extends State<ContainerElement> {
         return _VerticalContainer(
           mainAxisAlignment: widget.mainAxisAlignment,
           crossAxisAlignment: widget.crossAxisAlignment,
+          allowWrap: widget.allowWrap,
+          runAlignment: widget.runAlignment,
           children: items.map((item) {
             final scaledItemSize = item.size * renderScale;
             return _wrapVisibility(
@@ -463,14 +480,31 @@ class _ItemShadow extends StatelessWidget {
 class _HorizontalContainer extends StatelessWidget {
   final MainAxisAlignment mainAxisAlignment;
   final CrossAxisAlignment crossAxisAlignment;
+  final WrapAlignment runAlignment;
+  final bool allowWrap;
+
   final List<Widget> children;
 
   const _HorizontalContainer(
-      {Key key, this.mainAxisAlignment, this.crossAxisAlignment, this.children})
+      {Key key,
+      this.mainAxisAlignment,
+      this.crossAxisAlignment,
+      this.runAlignment,
+      this.allowWrap = false,
+      this.children})
       : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+    if (allowWrap) {
+      return Wrap(
+        alignment: _alignmentMapping[mainAxisAlignment],
+        runAlignment: runAlignment ?? WrapAlignment.start,
+        direction: Axis.horizontal,
+        children: children ?? const [],
+      );
+    }
+
     return Row(
       mainAxisAlignment: mainAxisAlignment ?? MainAxisAlignment.center,
       crossAxisAlignment: crossAxisAlignment ?? CrossAxisAlignment.center,
@@ -483,13 +517,29 @@ class _VerticalContainer extends StatelessWidget {
   final MainAxisAlignment mainAxisAlignment;
   final CrossAxisAlignment crossAxisAlignment;
   final List<Widget> children;
+  final WrapAlignment runAlignment;
+  final bool allowWrap;
 
   const _VerticalContainer(
-      {Key key, this.mainAxisAlignment, this.crossAxisAlignment, this.children})
+      {Key key,
+      this.mainAxisAlignment,
+      this.crossAxisAlignment,
+      this.runAlignment,
+      this.allowWrap = false,
+      this.children})
       : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+    if (allowWrap) {
+      return Wrap(
+        alignment: _alignmentMapping[mainAxisAlignment],
+        runAlignment: runAlignment ?? WrapAlignment.start,
+        direction: Axis.vertical,
+        children: children ?? const [],
+      );
+    }
+
     return Column(
       mainAxisAlignment: mainAxisAlignment ?? MainAxisAlignment.center,
       crossAxisAlignment: crossAxisAlignment ?? CrossAxisAlignment.center,

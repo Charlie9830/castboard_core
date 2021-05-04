@@ -88,6 +88,7 @@ class _ContainerElementState extends State<ContainerElement> {
               child: Container(
                 alignment: Alignment.center,
                 width: scaledItemSize.width,
+                height: scaledItemSize.height,
                 child: _wrapDragger(
                   widget.isEditing,
                   item: item,
@@ -142,9 +143,12 @@ class _ContainerElementState extends State<ContainerElement> {
         child: Container(
           color: item.selected ? Colors.grey.withAlpha(64) : null,
           foregroundDecoration: BoxDecoration(
-              border: item.selected
-                  ? Border.all(color: Theme.of(context).accentColor)
-                  : null),
+            border: item.selected
+                ? Border.all(color: Theme.of(context).accentColor)
+                : Border.all(
+                    color: Colors.grey.withAlpha(50),
+                  ),
+          ),
           child: Dragger(
             axis: axis,
             targetOnly: item.dragId == _shadowId,
@@ -179,19 +183,6 @@ class _ContainerElementState extends State<ContainerElement> {
         key: Key(item.dragId),
         visible: visible,
         maintainState: true,
-        child: child,
-      );
-    } else {
-      return child;
-    }
-  }
-
-  ///
-  /// Conditionally wraps an ItemOverlay Widget around child based on the value of isEditing.
-  ///
-  Widget _wrapItemOverlay(bool isEditing, {Widget child}) {
-    if (isEditing) {
-      return _ItemOverlay(
         child: child,
       );
     } else {
@@ -457,27 +448,6 @@ class _ContainerElementState extends State<ContainerElement> {
     int index = 0;
     return items.map((item) => item.copyWith(index: index++)).toList()
       ..sort((a, b) => a.index - b.index);
-  }
-}
-
-class _ItemOverlay extends StatelessWidget {
-  final Widget child;
-
-  const _ItemOverlay({
-    Key key,
-    this.child,
-  }) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      foregroundDecoration: BoxDecoration(
-        border: Border.all(
-          color: Colors.blueGrey,
-        ),
-      ),
-      child: child,
-    );
   }
 }
 

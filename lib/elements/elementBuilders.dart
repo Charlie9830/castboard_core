@@ -92,6 +92,7 @@ Widget _buildChild({
       showBorder: isInSlideEditor,
       showHighlight: isHighlighted,
       mainAxisAlignment: element.mainAxisAlignment,
+      crossAxisAlignment: element.crossAxisAlignment,
       axis: element.axis,
       onOrderChanged: (id, oldIndex, newIndex) =>
           onContainerItemsReorder?.call(id, oldIndex, newIndex),

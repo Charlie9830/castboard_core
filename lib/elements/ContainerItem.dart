@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 class ContainerItem extends StatelessWidget {
   final Widget child;
   final String dragId;
+  final bool selected;
   final Size size;
   final int index;
 
@@ -12,6 +13,7 @@ class ContainerItem extends StatelessWidget {
     @required this.dragId,
     @required this.index,
     @required this.size,
+    this.selected = false,
   }) : super(key: key);
 
   @override
@@ -24,12 +26,14 @@ class ContainerItem extends StatelessWidget {
     String dragId,
     int index,
     Size size,
+    bool selected,
   }) {
     return ContainerItem(
       child: child ?? this.child,
       dragId: dragId ?? this.dragId,
       index: index ?? this.index,
       size: size ?? this.size,
+      selected: selected ?? this.selected,
     );
   }
 }

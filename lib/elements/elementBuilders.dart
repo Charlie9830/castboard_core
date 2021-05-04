@@ -35,6 +35,8 @@ Map<String, LayoutBlock> buildElements({
   String editingContainerId = '',
   String highlightedContainerId = '',
   bool isInSlideEditor = false,
+  dynamic onContainerItemClick,
+  Set<String> selectedContainerItemIds,
 }) {
   final Map<String, LayoutElementModel> elements =
       slide?.elements ?? <String, LayoutElementModel>{};
@@ -61,6 +63,8 @@ Map<String, LayoutBlock> buildElements({
             isHighlighted: isEditingContainer || highlightedContainerId == id,
             onContainerItemsReorder: (itemId, oldIndex, newIndex) =>
                 onContainerItemsReorder?.call(id, itemId, oldIndex, newIndex),
+            onItemClick: onContainerItemClick,
+            selectedContainerIds: selectedContainerItemIds,
           ),
         ),
       );
@@ -77,6 +81,8 @@ Widget _buildChild({
   bool isEditingContainer = false,
   bool isInSlideEditor = false,
   bool isHighlighted = false,
+  dynamic onItemClick,
+  Set<String> selectedContainerIds = const <String>{},
 }) {
   if (element is ContainerElementModel) {
     int index = 0;
@@ -89,16 +95,20 @@ Widget _buildChild({
       axis: element.axis,
       onOrderChanged: (id, oldIndex, newIndex) =>
           onContainerItemsReorder?.call(id, oldIndex, newIndex),
+      onItemClick: onItemClick,
       items: element.children.map((child) {
         return ContainerItem(
           dragId: child.uid,
           index: index++,
+          selected: selectedContainerIds != null &&
+              selectedContainerIds.contains(child.uid),
           size: Size(child.width, child.height),
           child: _buildChild(
-              element: child.child,
-              selectedPreset: selectedPreset,
-              actors: actors,
-              tracks: tracks),
+            element: child.child,
+            selectedPreset: selectedPreset,
+            actors: actors,
+            tracks: tracks,
+          ),
         );
       }).toList(),
     );

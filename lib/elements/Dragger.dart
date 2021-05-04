@@ -70,7 +70,9 @@ class Dragger extends StatelessWidget {
 
         // Draggable.
         if (targetOnly == false)
-          Draggable<DraggerDetails>(
+          LongPressDraggable<DraggerDetails>(
+            delay: Duration(milliseconds: 25),
+            
             dragAnchorStrategy: pointerDragAnchorStrategy,
             feedback: feedbackBuilder != null
                 ? Builder(builder: feedbackBuilder)

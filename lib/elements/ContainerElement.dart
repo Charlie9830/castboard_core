@@ -17,6 +17,7 @@ class ContainerElement extends StatefulWidget {
   final Axis axis;
   final List<ContainerItem> items;
   final OnOrderChanged onOrderChanged;
+  final dynamic onItemClick;
 
   const ContainerElement({
     Key key,
@@ -28,6 +29,7 @@ class ContainerElement extends StatefulWidget {
     this.axis = Axis.horizontal,
     this.items,
     this.onOrderChanged,
+    this.onItemClick,
   }) : super(key: key);
 
   @override
@@ -135,17 +137,28 @@ class _ContainerElementState extends State<ContainerElement> {
   Widget _wrapDragger(bool isEditing,
       {ContainerItem item, double renderScale, Widget child, Axis axis}) {
     if (isEditing) {
-      return Dragger(
-        axis: axis,
-        targetOnly: item.dragId == _shadowId,
-        feedbackBuilder: (_) =>
-            _buildFeedback(renderScale, item.size * renderScale, item.child),
-        onDragStart: () => _handleDragStart(item.dragId, item.index, item.size),
-        onDragEnd: (candidateDetails) => _handleDragEnd(candidateDetails),
-        onHover: (side, candidateDetails) =>
-            _handleHover(side, item.dragId, item.index, candidateDetails),
-        dragData: DraggerDetails(item.dragId, item.index),
-        child: child,
+      return Listener(
+        onPointerDown: (event) => _handleDraggerPointerDown(item.dragId),
+        child: Container(
+          color: item.selected ? Colors.grey.withAlpha(64) : null,
+          foregroundDecoration: BoxDecoration(
+              border: item.selected
+                  ? Border.all(color: Theme.of(context).accentColor)
+                  : null),
+          child: Dragger(
+            axis: axis,
+            targetOnly: item.dragId == _shadowId,
+            feedbackBuilder: (_) => _buildFeedback(
+                renderScale, item.size * renderScale, item.child),
+            onDragStart: () =>
+                _handleDragStart(item.dragId, item.index, item.size),
+            onDragEnd: (candidateDetails) => _handleDragEnd(candidateDetails),
+            onHover: (side, candidateDetails) =>
+                _handleHover(side, item.dragId, item.index, candidateDetails),
+            dragData: DraggerDetails(item.dragId, item.index),
+            child: child,
+          ),
+        ),
       );
     } else {
       return child;
@@ -184,6 +197,10 @@ class _ContainerElementState extends State<ContainerElement> {
     } else {
       return child;
     }
+  }
+
+  void _handleDraggerPointerDown(String itemId) {
+    widget.onItemClick?.call(itemId);
   }
 
   Widget _buildFeedback(double renderScale, Size itemSize, Widget child) {

@@ -52,6 +52,18 @@ class LayoutElementModel {
     );
   }
 
+  LayoutElementModel copyWithScale({
+    double xScale,
+    double yScale,
+  }) {
+    return copyWith(
+      width: width * xScale,
+      xPos: xPos * xScale,
+      height: height * yScale,
+      yPos: yPos * yScale,
+    );
+  }
+
   Map<String, dynamic> toMap() {
     return {
       'uid': uid,

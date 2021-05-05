@@ -3,6 +3,7 @@ import 'package:castboard_core/elements/ActorElementModel.dart';
 import 'package:castboard_core/elements/ContainerElement.dart';
 import 'package:castboard_core/elements/ContainerElementModel.dart';
 import 'package:castboard_core/elements/ContainerItem.dart';
+import 'package:castboard_core/elements/ImageElement.dart';
 import 'package:castboard_core/layout-canvas/MultiChildCanvasItem.dart';
 import 'package:castboard_core/elements/GroupElementModel.dart';
 import 'package:castboard_core/elements/HeadshotElementModel.dart';
@@ -164,13 +165,8 @@ Widget _buildChild({
       );
     }
 
-    return Padding(
-      padding: const EdgeInsets.all(8),
-      child: Image.file(
-        Storage.instance.getHeadshotFile(actor.headshotRef),
-        color: Color.fromARGB(255, 255, 255, 255),
-        colorBlendMode: BlendMode.darken,
-      ),
+    return ImageElement(
+      file: Storage.instance.getHeadshotFile(actor.headshotRef),
     );
   }
 

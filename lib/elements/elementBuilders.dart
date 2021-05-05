@@ -59,6 +59,11 @@ Map<String, LayoutBlock> buildElements({
             selectedPreset: preset,
             actors: actors,
             tracks: tracks,
+            elementPadding: EdgeInsets.fromLTRB(
+                element.leftPadding?.toDouble() ?? 0,
+                element.topPadding?.toDouble() ?? 0,
+                element.rightPadding?.toDouble() ?? 0,
+                element.bottomPadding?.toDouble() ?? 0),
             isInSlideEditor: isInSlideEditor,
             isEditingContainer: isEditingContainer,
             isHighlighted: isEditingContainer || highlightedContainerId == id,
@@ -84,11 +89,17 @@ Widget _buildChild({
   bool isHighlighted = false,
   dynamic onItemClick,
   Set<String> selectedContainerIds = const <String>{},
+  EdgeInsets elementPadding = EdgeInsets.zero,
 }) {
+  final withPadding = (Widget child) => Padding(
+        padding: elementPadding,
+        child: child,
+      );
+
   if (element is ContainerElementModel) {
     int index = 0;
 
-    return ContainerElement(
+    return withPadding(ContainerElement(
       isEditing: isEditingContainer,
       showBorder: isInSlideEditor,
       showHighlight: isHighlighted,
@@ -112,14 +123,20 @@ Widget _buildChild({
             selectedPreset: selectedPreset,
             actors: actors,
             tracks: tracks,
+            elementPadding: EdgeInsets.fromLTRB(
+                child.leftPadding?.toDouble() ?? 0,
+                child.topPadding?.toDouble() ?? 0,
+                child.rightPadding?.toDouble() ?? 0,
+                child.bottomPadding?.toDouble() ?? 0),
           ),
         );
       }).toList(),
-    );
+    ));
   }
 
   if (element is GroupElementModel) {
     return MultiChildCanvasItem(
+      padding: elementPadding,
       children: element.children.map(
         (child) {
           return LayoutBlock(
@@ -144,55 +161,56 @@ Widget _buildChild({
     final actor = _getAssignedActor(element, selectedPreset, actors);
 
     if (tracks == null) {
-      return NoTrackFallback();
+      return withPadding(NoTrackFallback());
     }
 
     final track = tracks[element.trackId];
 
     if (track == null) {
-      return NoTrackFallback();
+      return withPadding(NoTrackFallback());
     }
 
     if (actor == null) {
-      return NoActorFallback(
+      return withPadding(NoActorFallback(
         trackTitle: track.title,
-      );
+      ));
     }
 
     if (actor.headshotRef == null || actor.headshotRef.uid.isEmpty) {
-      return NoHeadshotFallback(
+      return withPadding(NoHeadshotFallback(
         trackTitle: track.title,
-      );
+      ));
     }
 
-    return ImageElement(
+    return withPadding(ImageElement(
       file: Storage.instance.getHeadshotFile(actor.headshotRef),
-    );
+    ));
   }
 
   if (element is TextElementModel) {
     String text = _lookupText(element, selectedPreset, actors, tracks);
-
-    return TextElement(
-      text: text,
-      style: TextElementStyle(
-          alignment: element.alignment,
-          color: element.color,
-          fontFamily: element.fontFamily,
-          fontSize: element.fontSize,
-          bold: element.bold,
-          italics: element.italics,
-          underline: element.underline),
+    return withPadding(
+      TextElement(
+        text: text,
+        style: TextElementStyle(
+            alignment: element.alignment,
+            color: element.color,
+            fontFamily: element.fontFamily,
+            fontSize: element.fontSize,
+            bold: element.bold,
+            italics: element.italics,
+            underline: element.underline),
+      ),
     );
   }
 
   if (element is ShapeElementModel) {
-    return ShapeElement(
+    return withPadding(ShapeElement(
       type: element.type,
       fill: element.fill,
       lineColor: element.lineColor,
       lineWeight: element.lineWeight,
-    );
+    ));
   }
 
   return SizedBox.fromSize(size: Size.zero);

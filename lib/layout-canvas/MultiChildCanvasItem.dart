@@ -4,36 +4,46 @@ import 'package:flutter/material.dart';
 
 class MultiChildCanvasItem extends StatelessWidget {
   final List<LayoutBlock> children;
-  const MultiChildCanvasItem({Key key, this.children = const []})
+  final EdgeInsets padding;
+  const MultiChildCanvasItem(
+      {Key key, this.children = const [], this.padding = EdgeInsets.zero})
       : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     final renderScale = RenderScale.of(context).scale;
-    return Stack(
-      children: children
-              .map((child) => Positioned(
-                    left: child.xPos * renderScale,
-                    top: child.yPos * renderScale,
-                    width: child.width * renderScale,
-                    height: child.height * renderScale,
-                    child: Transform.rotate(
-                      angle: child.rotation,
-                      child: child,
-                    ),
-                  ))
-              .toList() ??
-          const [],
+
+    return Padding(
+      padding: padding,
+      child: Stack(
+        children: children
+                .map((child) => Positioned(
+                      left: child.xPos * renderScale + padding.left,
+                      top: child.yPos * renderScale + padding.top,
+                      width: (child.width - (padding.horizontal * 2)) *
+                          renderScale,
+                      height:
+                          (child.height - (padding.vertical * 2)) * renderScale,
+                      child: Transform.rotate(
+                        angle: child.rotation,
+                        child: child,
+                      ),
+                    ))
+                .toList() ??
+            const [],
+      ),
     );
   }
 
   MultiChildCanvasItem copyWith({
     Key key,
     List<LayoutBlock> children,
+    EdgeInsets padding,
   }) {
     return MultiChildCanvasItem(
       key: key ?? this.key,
       children: children ?? this.children,
+      padding: padding ?? this.padding,
     );
   }
 

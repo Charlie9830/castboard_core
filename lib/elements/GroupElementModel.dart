@@ -7,7 +7,9 @@ class GroupElementModel extends LayoutElementChild {
   GroupElementModel({
     List<LayoutElementModel> children,
   })  : this.children = children ?? <LayoutElementModel>[],
-        super(<PropertyUpdateContracts>{});
+        super(
+            updateContracts: <PropertyUpdateContracts>{},
+            canConditionallyRender: true);
 
   @override
   Map<String, dynamic> toMap() {

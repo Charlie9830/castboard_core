@@ -20,9 +20,11 @@ enum PropertyUpdateContracts {
 }
 
 abstract class LayoutElementChild {
-  LayoutElementChild(this.propertyUpdateContracts);
+  LayoutElementChild(
+      {this.updateContracts, this.canConditionallyRender});
 
-  final Set<PropertyUpdateContracts> propertyUpdateContracts;
+  final Set<PropertyUpdateContracts> updateContracts;
+  final bool canConditionallyRender;
 
   Map<String, dynamic> toMap();
 

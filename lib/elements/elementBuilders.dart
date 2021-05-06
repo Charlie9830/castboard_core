@@ -41,40 +41,44 @@ Map<String, LayoutBlock> buildElements({
 }) {
   final Map<String, LayoutElementModel> elements =
       slide?.elements ?? <String, LayoutElementModel>{};
-  return elements.map(
-    (id, element) {
-      final isEditingContainer =
-          editingContainerId != null && id == editingContainerId;
-      return MapEntry(
-        id,
-        LayoutBlock(
-          id: id,
-          width: element.width,
-          height: element.height,
-          xPos: element.xPos,
-          yPos: element.yPos,
-          rotation: element.rotation,
-          child: _buildChild(
-            element: element.child,
-            selectedPreset: preset,
-            actors: actors,
-            tracks: tracks,
-            elementPadding: EdgeInsets.fromLTRB(
-                element.leftPadding?.toDouble() ?? 0,
-                element.topPadding?.toDouble() ?? 0,
-                element.rightPadding?.toDouble() ?? 0,
-                element.bottomPadding?.toDouble() ?? 0),
-            isInSlideEditor: isInSlideEditor,
-            isEditingContainer: isEditingContainer,
-            isHighlighted: isEditingContainer || highlightedContainerId == id,
-            onContainerItemsReorder: (itemId, oldIndex, newIndex) =>
-                onContainerItemsReorder?.call(id, itemId, oldIndex, newIndex),
-            onItemClick: onContainerItemClick,
-            selectedContainerIds: selectedContainerItemIds,
+
+  return Map<String, LayoutBlock>.fromEntries(
+    elements.values.where((element) => _shouldBuild(element, preset)).map(
+      (element) {
+        final id = element.uid;
+        final isEditingContainer =
+            editingContainerId != null && id == editingContainerId;
+        return MapEntry(
+          id,
+          LayoutBlock(
+            id: id,
+            width: element.width,
+            height: element.height,
+            xPos: element.xPos,
+            yPos: element.yPos,
+            rotation: element.rotation,
+            child: _buildChild(
+              element: element.child,
+              selectedPreset: preset,
+              actors: actors,
+              tracks: tracks,
+              elementPadding: EdgeInsets.fromLTRB(
+                  element.leftPadding?.toDouble() ?? 0,
+                  element.topPadding?.toDouble() ?? 0,
+                  element.rightPadding?.toDouble() ?? 0,
+                  element.bottomPadding?.toDouble() ?? 0),
+              isInSlideEditor: isInSlideEditor,
+              isEditingContainer: isEditingContainer,
+              isHighlighted: isEditingContainer || highlightedContainerId == id,
+              onContainerItemsReorder: (itemId, oldIndex, newIndex) =>
+                  onContainerItemsReorder?.call(id, itemId, oldIndex, newIndex),
+              onItemClick: onContainerItemClick,
+              selectedContainerIds: selectedContainerItemIds,
+            ),
           ),
-        ),
-      );
-    },
+        );
+      },
+    ),
   );
 }
 
@@ -111,7 +115,9 @@ Widget _buildChild({
       onOrderChanged: (id, oldIndex, newIndex) =>
           onContainerItemsReorder?.call(id, oldIndex, newIndex),
       onItemClick: onItemClick,
-      items: element.children.map((child) {
+      items: element.children
+          .where((child) => _shouldBuild(child, selectedPreset))
+          .map((child) {
         return ContainerItem(
           dragId: child.uid,
           index: index++,
@@ -214,6 +220,46 @@ Widget _buildChild({
   }
 
   return SizedBox.fromSize(size: Size.zero);
+}
+
+bool _shouldBuild(LayoutElementModel element, PresetModel selectedPreset) {
+  if (selectedPreset == null) {
+    return true;
+  }
+
+  final child = element.child;
+  if (child.canConditionallyRender == false) {
+    return true;
+  }
+
+  if (child is GroupElementModel) {
+    final canAllChildrenConditionallyRender = child.children
+        .every((item) => item.child.canConditionallyRender == true);
+
+    if (canAllChildrenConditionallyRender == false) {
+      return true;
+    }
+
+    final shouldBuild =
+        child.children.every((item) => _shouldBuild(item, selectedPreset));
+
+    return shouldBuild;
+  }
+
+  if (child is HeadshotElementModel) {
+    return selectedPreset?.assignments[child.trackId] != ActorModel.cutTrackId;
+  }
+
+  if (child is TrackElementModel) {
+    return selectedPreset?.assignments[child.trackId] != ActorModel.cutTrackId;
+  }
+
+  if (child is ActorElementModel) {
+    return selectedPreset?.assignments[child.trackId] != ActorModel.cutTrackId;
+  }
+
+
+  return true;
 }
 
 String _lookupText(TextElementModel element, PresetModel selectedPreset,

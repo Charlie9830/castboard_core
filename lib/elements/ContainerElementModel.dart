@@ -29,7 +29,9 @@ class ContainerElementModel extends LayoutElementChild {
         this.axis = axis ?? Axis.horizontal,
         this.runAlignment = runAlignment ?? WrapAlignment.start,
         this.wrapEnabled = wrapEnabled ?? false,
-        super(<PropertyUpdateContracts>{PropertyUpdateContracts.container});
+        super(updateContracts: <PropertyUpdateContracts>{
+          PropertyUpdateContracts.container
+        }, canConditionallyRender: false);
 
   @override
   Map<String, dynamic> toMap() {

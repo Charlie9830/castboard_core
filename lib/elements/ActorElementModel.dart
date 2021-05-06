@@ -20,16 +20,19 @@ class ActorElementModel extends TextElementModel {
     Color color = Colors.white,
   })  : this.trackId = trackId ?? '',
         super(
-          text: '',
-          fontFamily: fontFamily,
-          fontSize: fontSize,
-          italics: italics,
-          bold: bold,
-          underline: underline,
-          alignment: alignment,
-          color: color,
-          propertyUpdateContracts: <PropertyUpdateContracts>{PropertyUpdateContracts.textStyle, PropertyUpdateContracts.trackAssignment}
-        );
+            text: '',
+            fontFamily: fontFamily,
+            fontSize: fontSize,
+            italics: italics,
+            bold: bold,
+            underline: underline,
+            alignment: alignment,
+            color: color,
+            propertyUpdateContracts: <PropertyUpdateContracts>{
+              PropertyUpdateContracts.textStyle,
+              PropertyUpdateContracts.trackAssignment,
+            },
+            canConditionallyRender: true);
 
   ActorElementModel copyWith({
     String trackId,

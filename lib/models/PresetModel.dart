@@ -1,23 +1,27 @@
+import 'package:castboard_core/models/ActorModel.dart';
+
 const _defaultBuiltInPresetId = 'DEFAULT-BUILT-IN-PRESET';
 
 class PresetModel {
   final String uid;
   final String name;
   final String details;
-  final Map<String, String> assignments;
+  final Map<String, String> assignments; // { key: Track, value: Actor }
+  final Set<String> _cutTracksSet;
 
   PresetModel({
     this.uid,
     this.name = '',
     this.details = '',
     this.assignments = const {},
-  });
+  }) : _cutTracksSet = _buildCutTrackSet(assignments);
 
   const PresetModel.builtIn()
       : uid = _defaultBuiltInPresetId,
         name = 'Default',
         details = '',
-        assignments = const {};
+        assignments = const {},
+        _cutTracksSet = const <String>{};
 
   PresetModel copyWith({
     String uid,
@@ -53,5 +57,16 @@ class PresetModel {
     );
   }
 
+  static Set<String> _buildCutTrackSet(Map<String, String> assignments) {
+    if (assignments == null || assignments.values.isEmpty) {
+      return <String>{};
+    }
+
+    return assignments.values
+        .where((id) => id == ActorModel.cutTrackId)
+        .toSet();
+  }
+
   bool get isBuiltIn => uid == _defaultBuiltInPresetId;
+  Set<String> get cutTrackIds => _cutTracksSet;
 }

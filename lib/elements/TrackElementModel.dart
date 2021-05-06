@@ -31,7 +31,8 @@ class TrackElementModel extends TextElementModel {
             propertyUpdateContracts: <PropertyUpdateContracts>{
               PropertyUpdateContracts.textStyle,
               PropertyUpdateContracts.trackAssignment
-            });
+            },
+            canConditionallyRender: true);
 
   TrackElementModel copyWith({
     String trackId,

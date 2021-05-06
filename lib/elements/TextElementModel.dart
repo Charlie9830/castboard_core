@@ -16,6 +16,7 @@ class TextElementModel extends LayoutElementChild {
 
   TextElementModel({
     Set<PropertyUpdateContracts> propertyUpdateContracts,
+    bool canConditionallyRender,
     String text,
     String fontFamily,
     double fontSize,
@@ -32,11 +33,13 @@ class TextElementModel extends LayoutElementChild {
         this.underline = underline ?? false,
         this.alignment = alignment ?? TextAlign.center,
         this.color = color ?? Colors.black,
-        super(propertyUpdateContracts ??
-            <PropertyUpdateContracts>{
-              PropertyUpdateContracts.textData,
-              PropertyUpdateContracts.textStyle,
-            });
+        super(
+            updateContracts: propertyUpdateContracts ??
+                <PropertyUpdateContracts>{
+                  PropertyUpdateContracts.textData,
+                  PropertyUpdateContracts.textStyle,
+                },
+            canConditionallyRender: canConditionallyRender ?? false);
 
   TextElementModel copyWith({
     String text,

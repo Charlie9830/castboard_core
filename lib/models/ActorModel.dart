@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:flutter/foundation.dart';
 
 import 'package:castboard_core/classes/PhotoRef.dart';
@@ -8,6 +6,9 @@ class ActorModel {
   final String uid;
   final String name;
   final PhotoRef headshotRef;
+
+  // Static
+  static const String cutTrackId = 'ACTOR-TRACK-CUT';
 
   ActorModel({
     @required this.uid,
@@ -37,7 +38,7 @@ class ActorModel {
 
   factory ActorModel.fromMap(Map<String, dynamic> map) {
     if (map == null) return null;
-  
+
     return ActorModel(
       uid: map['uid'],
       name: map['name'],

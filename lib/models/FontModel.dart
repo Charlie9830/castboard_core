@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:castboard_core/classes/FontRef.dart';
 import 'package:castboard_core/enum-converters/fontEncodingConverters.dart';
 import 'package:flutter/foundation.dart';
 
@@ -8,13 +9,14 @@ enum FontEncoding { ttf, otf }
 class FontModel {
   final String uid;
   final String familyName;
-  final String path;
+
+  final FontRef ref;
   final FontEncoding encoding;
 
   FontModel({
     this.uid = '',
     this.familyName = '',
-    this.path = '',
+    this.ref = const FontRef.none(),
     @required this.encoding,
   });
 
@@ -27,7 +29,7 @@ class FontModel {
     return FontModel(
       uid: uid ?? this.uid,
       familyName: familyName ?? this.familyName,
-      path: path ?? this.path,
+      ref: path ?? this.ref,
       encoding: encoding ?? this.encoding,
     );
   }
@@ -36,7 +38,7 @@ class FontModel {
     return {
       'uid': uid,
       'familyName': familyName,
-      'path': path,
+      'ref': ref.toMap(),
       'encoding': convertFontEncoding(encoding),
     };
   }
@@ -45,7 +47,7 @@ class FontModel {
     return FontModel(
       uid: map['uid'],
       familyName: map['familyName'],
-      path: map['path'],
+      ref: FontRef.fromMap(map['ref']),
       encoding: parseFontEncoding(map['encoding']),
     );
   }

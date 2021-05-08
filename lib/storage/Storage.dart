@@ -2,7 +2,9 @@ import 'dart:io';
 import 'dart:convert';
 import 'dart:typed_data';
 
+import 'package:castboard_core/classes/FontRef.dart';
 import 'package:castboard_core/models/ActorModel.dart';
+import 'package:castboard_core/models/FontModel.dart';
 import 'package:castboard_core/models/ManifestModel.dart';
 import 'package:castboard_core/models/PresetModel.dart';
 import 'package:castboard_core/models/TrackModel.dart';
@@ -25,6 +27,7 @@ import 'package:archive/archive_io.dart';
 const _headshotsTempDirName = 'headshots';
 const _backgroundsTempDirName = 'backgrounds';
 const _slideThumbnails = 'slidethumbnails';
+const _fontsTempDirName = 'fonts';
 
 // Player Directory Names
 const _playerDirName = 'playerfiles';
@@ -35,6 +38,7 @@ const _playerCurrentShowFileName = 'currentshow.castboard';
 // Save File Names.
 const _headshotsSaveDirName = 'headshots';
 const _backgroundsSaveDirName = 'backgrounds';
+const _fontsSaveDirName = 'fonts';
 const _manifestSaveName = 'manifest.json';
 const _slideDataSaveName = 'slidedata.json';
 const _showDataSaveName = 'showdata.json';
@@ -52,6 +56,7 @@ class Storage {
   final Directory _headshotsDir;
   final Directory _backgroundsDir;
   final Directory _playerDir;
+  final Directory _fontsDir;
 
   static Storage get instance {
     if (_initalized == false) {
@@ -66,11 +71,13 @@ class Storage {
       {Directory appStorageRoot,
       Directory headshots,
       Directory backgrounds,
-      Directory playerDir})
+      Directory playerDir,
+      Directory fontsDir})
       : _appStorageRoot = appStorageRoot,
         _headshotsDir = headshots,
         _backgroundsDir = backgrounds,
-        _playerDir = playerDir;
+        _playerDir = playerDir,
+        _fontsDir = fontsDir;
 
   static Future<void> initalize(StorageMode mode) async {
     if (_initalized) {
@@ -99,6 +106,7 @@ class Storage {
     Directory headshots;
     Directory backgrounds;
     Directory playerDir;
+    Directory fontsDir;
     await Future.wait([
       () async {
         headshots =
@@ -117,15 +125,35 @@ class Storage {
           playerDir =
               await Directory(p.join(appStorageRoot.path, _playerDirName))
                   .create();
-        }()
+        }(),
+      () async {
+        fontsDir =
+            await Directory(p.join(appStorageRoot.path, _fontsTempDirName))
+                .create();
+      }()
     ]);
 
     _instance = Storage(
         appStorageRoot: appStorageRoot,
         headshots: headshots,
         backgrounds: backgrounds,
-        playerDir: playerDir);
+        playerDir: playerDir,
+        fontsDir: fontsDir);
     _initalized = true;
+  }
+
+  Future<File> addFont(String uid, String path) async {
+    final Directory fonts = _fontsDir;
+
+    final font = File(path);
+    if (await font.exists()) {
+      final ext = p.extension(path);
+      final targetFile = await font.copy(p.join(fonts.path, '$uid$ext'));
+
+      return targetFile;
+    } else {
+      throw StorageException('Source Font file does not exist');
+    }
   }
 
   Future<File> addHeadshot(String uid, String path) async {
@@ -133,9 +161,8 @@ class Storage {
 
     final photo = File(path);
     if (await photo.exists()) {
-      final extension = p.extension(path);
-      final targetFile =
-          await photo.copy(p.join(headshots.path, '$uid$extension'));
+      final ext = p.extension(path);
+      final targetFile = await photo.copy(p.join(headshots.path, '$uid$ext'));
 
       return targetFile;
     } else {
@@ -163,14 +190,25 @@ class Storage {
     return;
   }
 
+  Future<void> deleteFont(FontRef ref) async {
+    final Directory fonts = _fontsDir;
+    final File file = File(p.join(fonts.path, ref.basename));
+
+    if (await file.exists()) {
+      await file.delete();
+      return;
+    }
+
+    return;
+  }
+
   Future<File> addBackground(String uid, String path) async {
     final Directory backgrounds = _backgroundsDir;
 
     final photo = File(path);
     if (await photo.exists()) {
-      final extension = p.extension(path);
-      final targetFile =
-          await photo.copy(p.join(backgrounds.path, '$uid$extension'));
+      final ext = p.extension(path);
+      final targetFile = await photo.copy(p.join(backgrounds.path, '$uid$ext'));
 
       return targetFile;
     } else {
@@ -222,6 +260,20 @@ class Storage {
 
     return File(
         p.join(_appStorageRoot.path, _backgroundsTempDirName, ref.basename));
+  }
+
+  File getFontFile(FontRef ref) {
+    if (ref == null) {
+      return null;
+    }
+
+    if (ref.uid == null || ref.uid.isEmpty) {
+      return null;
+    }
+
+    return File(
+      p.join(_appStorageRoot.path, _fontsTempDirName, ref.basename),
+    );
   }
 
   Future<void> copyShowFileIntoPlayerStorage(List<int> bytes) async {
@@ -278,18 +330,31 @@ class Storage {
       final parentDirectoryName =
           p.split(name).isNotEmpty ? p.split(name).first : '';
 
+      // TODO. To extract the files from the directory you compare the parentDirectoryName to the tempDirNames.
+      // is this correct? If this is a Save file being unzipped wouldn't it be the saveDirNames?
+      // Does this actually get used to decompress saved files or is it intended for the player to read from it's Temp Storage.
+      // Should it be made aware of that?
+
       if (entity.isFile) {
         final bytedata = entity.content as List<int>;
+        // Headshots
         if (parentDirectoryName == _headshotsTempDirName) {
           fileWriteRequests.add(
               File(p.join(_headshotsDir.path, p.basename(name)))
                   .writeAsBytes(bytedata));
         }
 
+        // Backgrounds
         if (parentDirectoryName == _backgroundsTempDirName) {
           fileWriteRequests.add(
               File(p.join(_backgroundsDir.path, p.basename(name)))
                   .writeAsBytes(bytedata));
+        }
+
+        // Fonts
+        if (parentDirectoryName == _fontsTempDirName) {
+          fileWriteRequests.add(File(p.join(_fontsDir.path, p.basename(name)))
+              .writeAsBytes(bytedata));
         }
 
         if (name == _manifestSaveName) {
@@ -329,6 +394,7 @@ class Storage {
   Future<void> clearStorage() async {
     final headshots = <FileSystemEntity>[];
     final backgrounds = <FileSystemEntity>[];
+    final fonts = <FileSystemEntity>[];
 
     await Future.wait([
       // Headshots
@@ -343,15 +409,29 @@ class Storage {
           backgrounds.add(entity);
         }
       }).asFuture(),
+      // Fonts
+      _fontsDir.list().listen((entity) {
+        if (entity is File) {
+          fonts.add(entity);
+        }
+      }).asFuture()
     ]);
 
     final headshotDeleteRequests = headshots.map((file) => file.delete());
     final backgroundDeleteRequests = backgrounds.map((file) => file.delete());
+    final fontDeleteRequests = fonts.map((file) => file.delete());
 
-    await Future.wait([...headshotDeleteRequests, ...backgroundDeleteRequests]);
+    await Future.wait([
+      ...headshotDeleteRequests,
+      ...backgroundDeleteRequests,
+      ...fontDeleteRequests
+    ]);
     return;
   }
 
+  ///
+  /// Stages all required show data, compresses (Zips) it and saves it to the file referenced by the targetFile parameter.
+  ///
   Future<void> writeToPermanentStorage(
       {@required Map<String, ActorModel> actors,
       @required Map<String, SlideModel> slides,
@@ -369,12 +449,14 @@ class Storage {
       _stageBackgrounds(mfs, slides),
       _stageSlideData(mfs, slides),
       _stageShowData(mfs, tracks, actors, presets),
+      _stageFonts(mfs, manifest.requiredFonts),
     ]);
 
     final zipper = ZipFileEncoder();
     zipper.create(targetFile.path);
     zipper.addDirectory(mfs.directory(_headshotsSaveDirName));
     zipper.addDirectory(mfs.directory(_backgroundsSaveDirName));
+    zipper.addDirectory(mfs.directory(_fontsSaveDirName));
     zipper.addFile(mfs.file(_manifestSaveName));
     zipper.addFile(mfs.file(_showDataSaveName));
     zipper.addFile(mfs.file(_slideDataSaveName));
@@ -443,6 +525,22 @@ class Storage {
     return Future.wait(requests);
   }
 
+  Future<void> _stageFonts(
+      memoryFs.MemoryFileSystem mfs, List<FontModel> fonts) async {
+    final relativePaths =
+        fonts.map((font) => font.ref).where((ref) => ref != FontRef.none());
+
+    final requests = relativePaths.map((path) {
+      final sourceFile = getFontFile(path);
+      return _copyToMemoryFileSystem(
+          sourceFile,
+          mfs.file(
+              mfs.path.join(_fontsSaveDirName, p.basename(sourceFile.path))));
+    });
+
+    return Future.wait(requests);
+  }
+
   Future<void> _stageHeadshots(
       memoryFs.MemoryFileSystem mfs, Map<String, ActorModel> actors) async {
     final refs = actors.values
@@ -463,6 +561,7 @@ class Storage {
     final requests = [
       mfs.directory(_headshotsSaveDirName).create(),
       mfs.directory(_backgroundsSaveDirName).create(),
+      mfs.directory(_fontsSaveDirName).create(),
     ];
     return Future.wait(requests);
   }

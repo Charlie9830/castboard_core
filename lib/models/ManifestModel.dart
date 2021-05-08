@@ -1,25 +1,30 @@
+import 'package:castboard_core/models/FontModel.dart';
+
 class ManifestModel {
   final String fileName;
   final String created;
-  final String modifed;
+  final String modified;
   final String createByVersion;
   final String fileVersion;
+  final List<FontModel> requiredFonts;
 
   ManifestModel({
     this.fileName = '',
     this.created = '',
-    this.modifed = '',
+    this.modified = '',
     this.createByVersion = '',
     this.fileVersion = '',
+    this.requiredFonts = const <FontModel>[],
   });
 
   Map<String, dynamic> toMap() {
     return {
       'fileName': fileName,
       'created': created,
-      'modifed': modifed,
+      'modified': modified,
       'createByVersion': createByVersion,
       'fileVersion': fileVersion,
+      'requiredFonts': requiredFonts.map((item) => item.toMap()).toList(),
     };
   }
 
@@ -29,25 +34,29 @@ class ManifestModel {
     return ManifestModel(
       fileName: map['fileName'],
       created: map['created'],
-      modifed: map['modifed'],
+      modified: map['modified'],
       createByVersion: map['createByVersion'],
       fileVersion: map['fileVersion'],
+      requiredFonts: (map['requiredFonts'] as List<dynamic>)
+          .map((font) => FontModel.fromMap(font)).toList(),
     );
   }
 
   ManifestModel copyWith({
     String fileName,
     String created,
-    String modifed,
+    String modified,
     String createByVersion,
     String fileVersion,
+    List<FontModel> requiredFonts,
   }) {
     return ManifestModel(
       fileName: fileName ?? this.fileName,
       created: created ?? this.created,
-      modifed: modifed ?? this.modifed,
+      modified: modified ?? this.modified,
       createByVersion: createByVersion ?? this.createByVersion,
       fileVersion: fileVersion ?? this.fileVersion,
+      requiredFonts: requiredFonts ?? this.requiredFonts,
     );
   }
 }

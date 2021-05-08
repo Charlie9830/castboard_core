@@ -1,11 +1,13 @@
 import 'package:castboard_core/elements/ActorElementModel.dart';
 import 'package:castboard_core/elements/ContainerElementModel.dart';
+import 'package:castboard_core/elements/GroupElementModel.dart';
 import 'package:castboard_core/elements/HeadshotElementModel.dart';
 import 'package:castboard_core/elements/ShapeElementModel.dart';
 import 'package:castboard_core/elements/TextElementModel.dart';
 import 'package:castboard_core/elements/TrackElementModel.dart';
 import 'package:castboard_core/enum-converters/axisConverters.dart';
 import 'package:castboard_core/enum-converters/mainAxisAlignmentConverters.dart';
+import 'package:castboard_core/enum-converters/runAlignmentConverters.dart';
 import 'package:castboard_core/enum-converters/shapeElementTypeConverters.dart';
 import 'package:castboard_core/enum-converters/textAlignConverters.dart';
 import 'package:castboard_core/enum-converters/crossAxisAlignmentConverters.dart';
@@ -20,8 +22,7 @@ enum PropertyUpdateContracts {
 }
 
 abstract class LayoutElementChild {
-  LayoutElementChild(
-      {this.updateContracts, this.canConditionallyRender});
+  LayoutElementChild({this.updateContracts, this.canConditionallyRender});
 
   final Set<PropertyUpdateContracts> updateContracts;
   final bool canConditionallyRender;
@@ -33,10 +34,21 @@ abstract class LayoutElementChild {
 
     if (elementType == 'container') {
       return ContainerElementModel(
+        mainAxisAlignment: parseMainAxisAlignment(map['mainAxisAlignment']),
+        crossAxisAlignment: parseCrossAxisAlignment(map['crossAxisAlignment']),
+        runAlignment: parseRunAlignment(map['runAlignment']),
+        wrapEnabled: map['wrapEnabled'],
         axis: parseAxis(map['axis']),
-        children: (map['children'] as List<Map<String, dynamic>>)
-            .map((Map<String, dynamic> child) =>
-                LayoutElementModel.fromMap(child))
+        children: (map['children'] as List<dynamic>)
+            .map((child) => LayoutElementModel.fromMap(child))
+            .toList(),
+      );
+    }
+
+    if (elementType == 'group') {
+      return GroupElementModel(
+        children: (map['children'] as List<dynamic>)
+            .map((child) => LayoutElementModel.fromMap(child))
             .toList(),
       );
     }

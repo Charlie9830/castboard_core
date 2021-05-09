@@ -9,6 +9,7 @@ class ActorModel {
 
   // Static
   static const String cutTrackId = 'ACTOR-TRACK-CUT';
+  static const String unassignedTrackId = 'UNASSIGNED';
 
   ActorModel({
     @required this.uid,

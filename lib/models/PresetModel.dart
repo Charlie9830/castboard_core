@@ -6,6 +6,7 @@ class PresetModel {
   final String uid;
   final String name;
   final String details;
+  final bool isNestable;
   final Map<String, String> assignments; // { key: Track, value: Actor }
   final Set<String> _cutTracksSet;
 
@@ -14,6 +15,7 @@ class PresetModel {
     this.name = '',
     this.details = '',
     this.assignments = const {},
+    this.isNestable = false,
   }) : _cutTracksSet = _buildCutTrackSet(assignments);
 
   const PresetModel.builtIn()
@@ -21,6 +23,7 @@ class PresetModel {
         name = 'Default',
         details = '',
         assignments = const {},
+        isNestable = false,
         _cutTracksSet = const <String>{};
 
   PresetModel copyWith({
@@ -28,12 +31,14 @@ class PresetModel {
     String name,
     String details,
     Map<String, String> assignments,
+    bool isNestable,
   }) {
     return PresetModel(
       uid: uid ?? this.uid,
       name: name ?? this.name,
       details: details ?? this.details,
       assignments: assignments ?? this.assignments,
+      isNestable: isNestable ?? this.isNestable,
     );
   }
 
@@ -43,6 +48,7 @@ class PresetModel {
       'name': name,
       'details': details,
       'assignments': assignments,
+      'isNestable': isNestable,
     };
   }
 
@@ -54,6 +60,7 @@ class PresetModel {
       name: map['name'],
       details: map['details'],
       assignments: Map<String, String>.from(map['assignments']),
+      isNestable: map['isNestable'],
     );
   }
 

@@ -249,15 +249,15 @@ bool _shouldBuild(LayoutElementModel element, PresetModel selectedPreset) {
   }
 
   if (child is HeadshotElementModel) {
-    return selectedPreset?.castChange.isCut(child.trackRef);
+    return !selectedPreset.castChange.isCut(child.trackRef);
   }
 
   if (child is TrackElementModel) {
-    return selectedPreset?.castChange.isCut(child.trackRef);
+    return !selectedPreset.castChange.isCut(child.trackRef);
   }
 
   if (child is ActorElementModel) {
-    return selectedPreset?.castChange.isCut(child.trackRef);
+    return !selectedPreset.castChange.isCut(child.trackRef);
   }
 
   return true;

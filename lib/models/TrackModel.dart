@@ -1,23 +1,24 @@
+import 'package:castboard_core/models/TrackRef.dart';
 import 'package:flutter/foundation.dart';
 
 class TrackModel {
-  final String uid;
+  final TrackRef ref;
   final String title;
   final String internalTitle;
 
   TrackModel({
-    @required this.uid,
+    @required this.ref,
     this.title = '',
     this.internalTitle = '',
   });
 
   TrackModel copyWith({
-    String uid,
+    TrackRef ref,
     String title,
     String internalTitle,
   }) {
     return TrackModel(
-      uid: uid ?? this.uid,
+      ref: ref ?? this.ref,
       title: title ?? this.title,
       internalTitle: internalTitle ?? this.internalTitle,
     );
@@ -25,7 +26,7 @@ class TrackModel {
 
   Map<String, dynamic> toMap() {
     return {
-      'uid': uid,
+      'ref': ref.toMap(),
       'title': title,
       'internalTitle': internalTitle,
     };
@@ -35,7 +36,7 @@ class TrackModel {
     if (map == null) return null;
 
     return TrackModel(
-      uid: map['uid'],
+      ref: TrackRef.fromMap(map['uid']),
       title: map['title'],
       internalTitle: map['internalTitle'],
     );

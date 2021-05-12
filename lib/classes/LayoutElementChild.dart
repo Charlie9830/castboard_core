@@ -13,6 +13,7 @@ import 'package:castboard_core/enum-converters/textAlignConverters.dart';
 import 'package:castboard_core/enum-converters/crossAxisAlignmentConverters.dart';
 import 'package:castboard_core/models/ColorModel.dart';
 import 'package:castboard_core/models/LayoutElementModel.dart';
+import 'package:castboard_core/models/TrackRef.dart';
 
 enum PropertyUpdateContracts {
   textData,
@@ -68,7 +69,7 @@ abstract class LayoutElementChild {
 
     if (elementType == 'actor') {
       return ActorElementModel(
-        trackId: map['trackId'],
+        trackRef: TrackRef.fromMap(map['trackRef']),
         fontFamily: map['fontFamily'],
         fontSize: map['fontSize'],
         italics: map['italics'],
@@ -81,7 +82,7 @@ abstract class LayoutElementChild {
 
     if (elementType == 'track') {
       return TrackElementModel(
-        trackId: map['trackId'],
+        trackRef: TrackRef.fromMap(map['trackRef']),
         fontFamily: map['fontFamily'],
         fontSize: map['fontSize'],
         italics: map['italics'],
@@ -103,7 +104,7 @@ abstract class LayoutElementChild {
 
     if (elementType == 'headshot') {
       return HeadshotElementModel(
-        trackId: map['trackId'],
+        trackRef: TrackRef.fromMap(map['trackRef']),
       );
     }
 

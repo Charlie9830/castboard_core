@@ -1,28 +1,29 @@
 import 'package:castboard_core/classes/LayoutElementChild.dart';
+import 'package:castboard_core/models/TrackRef.dart';
 import 'package:flutter/foundation.dart';
 
 class HeadshotElementModel extends LayoutElementChild {
-  final String trackId;
+  final TrackRef trackRef;
 
   HeadshotElementModel({
-    @required String trackId,
-  })  : this.trackId = trackId ?? '',
+    @required TrackRef trackRef,
+  })  : this.trackRef = trackRef ?? TrackRef.blank(),
         super(updateContracts: <PropertyUpdateContracts>{
           PropertyUpdateContracts.trackAssignment
         }, canConditionallyRender: true);
 
   HeadshotElementModel copyWith({
-    String trackId,
+    TrackRef trackRef,
   }) {
     return HeadshotElementModel(
-      trackId: trackId ?? this.trackId,
+      trackRef: trackRef ?? this.trackRef,
     );
   }
 
   Map<String, dynamic> toMap() {
     return {
       'elementType': 'headshot',
-      'trackId': trackId,
+      'trackRef': trackRef.toMap(),
     };
   }
 }

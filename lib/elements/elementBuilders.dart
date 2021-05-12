@@ -17,10 +17,12 @@ import 'package:castboard_core/elements/TextElementModel.dart';
 import 'package:castboard_core/elements/TrackElementModel.dart';
 import 'package:castboard_core/layout-canvas/LayoutBlock.dart';
 import 'package:castboard_core/models/ActorModel.dart';
+import 'package:castboard_core/models/ActorRef.dart';
 import 'package:castboard_core/models/LayoutElementModel.dart';
 import 'package:castboard_core/models/PresetModel.dart';
 import 'package:castboard_core/models/TrackModel.dart';
 import 'package:castboard_core/models/SlideModel.dart';
+import 'package:castboard_core/models/TrackRef.dart';
 import 'package:castboard_core/storage/Storage.dart';
 import 'package:flutter/material.dart';
 
@@ -30,8 +32,8 @@ typedef void OnContainerItemsReorder(
 Map<String, LayoutBlock> buildElements({
   SlideModel slide,
   PresetModel preset,
-  Map<String, ActorModel> actors,
-  Map<String, TrackModel> tracks,
+  Map<ActorRef, ActorModel> actors,
+  Map<TrackRef, TrackModel> tracks,
   OnContainerItemsReorder onContainerItemsReorder,
   String editingContainerId = '',
   String highlightedContainerId = '',
@@ -85,8 +87,8 @@ Map<String, LayoutBlock> buildElements({
 Widget _buildChild({
   LayoutElementChild element,
   PresetModel selectedPreset,
-  Map<String, ActorModel> actors = const {},
-  Map<String, TrackModel> tracks = const {},
+  Map<ActorRef, ActorModel> actors = const {},
+  Map<TrackRef, TrackModel> tracks = const {},
   dynamic onContainerItemsReorder,
   bool isEditingContainer = false,
   bool isInSlideEditor = false,
@@ -170,7 +172,7 @@ Widget _buildChild({
       return withPadding(NoTrackFallback());
     }
 
-    final track = tracks[element.trackId];
+    final track = tracks[element.trackRef];
 
     if (track == null) {
       return withPadding(NoTrackFallback());
@@ -247,56 +249,55 @@ bool _shouldBuild(LayoutElementModel element, PresetModel selectedPreset) {
   }
 
   if (child is HeadshotElementModel) {
-    return selectedPreset?.assignments[child.trackId] != ActorModel.cutTrackId;
+    return selectedPreset?.castChange.isCut(child.trackRef);
   }
 
   if (child is TrackElementModel) {
-    return selectedPreset?.assignments[child.trackId] != ActorModel.cutTrackId;
+    return selectedPreset?.castChange.isCut(child.trackRef);
   }
 
   if (child is ActorElementModel) {
-    return selectedPreset?.assignments[child.trackId] != ActorModel.cutTrackId;
+    return selectedPreset?.castChange.isCut(child.trackRef);
   }
-
 
   return true;
 }
 
 String _lookupText(TextElementModel element, PresetModel selectedPreset,
-    Map<String, ActorModel> actors, Map<String, TrackModel> tracks) {
+    Map<ActorRef, ActorModel> actors, Map<TrackRef, TrackModel> tracks) {
   if (element is ActorElementModel) {
-    return _lookupActorName(element.trackId, selectedPreset, actors, tracks);
+    return _lookupActorName(element.trackRef, selectedPreset, actors, tracks);
   }
 
   if (element is TrackElementModel) {
-    return _lookupTrackName(element.trackId, selectedPreset, actors, tracks);
+    return _lookupTrackName(element.trackRef, selectedPreset, actors, tracks);
   }
 
   return element.text;
 }
 
-String _lookupTrackName(String trackId, PresetModel preset,
-    Map<String, ActorModel> actors, Map<String, TrackModel> tracks) {
-  if (trackId == null ||
-      trackId.isEmpty ||
+String _lookupTrackName(TrackRef trackRef, PresetModel preset,
+    Map<ActorRef, ActorModel> actors, Map<TrackRef, TrackModel> tracks) {
+  if (trackRef == null ||
+      trackRef == TrackRef.blank() ||
       tracks == null ||
-      tracks.containsKey(trackId) == false) {
+      tracks.containsKey(trackRef) == false) {
     return 'Unassigned';
   }
 
-  return tracks[trackId]?.title ?? 'No Name Track';
+  return tracks[trackRef]?.title ?? 'No Name Track';
 }
 
-String _lookupActorName(String trackId, PresetModel preset,
-    Map<String, ActorModel> actors, Map<String, TrackModel> tracks) {
-  if (trackId == null ||
-      trackId.isEmpty ||
+String _lookupActorName(TrackRef trackRef, PresetModel preset,
+    Map<ActorRef, ActorModel> actors, Map<TrackRef, TrackModel> tracks) {
+  if (trackRef == null ||
+      trackRef == TrackRef.blank() ||
       tracks == null ||
-      tracks.containsKey(trackId) == false) {
+      tracks.containsKey(trackRef) == false) {
     return 'Unassigned';
   }
 
-  final track = tracks[trackId];
+  final track = tracks[trackRef];
   final trackTitle = track.title == null || track.title.isEmpty
       ? 'No Name Track'
       : track.title;
@@ -305,12 +306,12 @@ String _lookupActorName(String trackId, PresetModel preset,
     return trackTitle;
   }
 
-  if (preset.assignments == null ||
-      preset.assignments.containsKey(trackId) == false) {
+  if (preset.castChange == null ||
+      preset.castChange.hasAssignment(trackRef) == false) {
     return trackTitle;
   }
 
-  final actor = actors[preset.assignments[trackId]];
+  final actor = actors[preset.castChange.actorAt(trackRef)];
   if (actor == null) {
     return "No Actor Found";
   }
@@ -319,18 +320,18 @@ String _lookupActorName(String trackId, PresetModel preset,
 }
 
 ActorModel _getAssignedActor(HeadshotElementModel element,
-    PresetModel selectedPreset, Map<String, ActorModel> actors) {
-  if (element == null || selectedPreset?.assignments == null) {
+    PresetModel selectedPreset, Map<ActorRef, ActorModel> actors) {
+  if (element == null || selectedPreset?.castChange == null) {
     return null;
   }
 
-  final actorId = selectedPreset.assignments[element.trackId];
+  final actorRef = selectedPreset.castChange.actorAt(element.trackRef);
 
-  if (actorId == null ||
-      actorId == '' ||
-      actors.containsKey(actorId) == false) {
+  if (actorRef == null ||
+      actorRef == ActorRef.blank() ||
+      actors.containsKey(actorRef) == false) {
     return null;
   }
 
-  return actors[actorId];
+  return actors[actorRef];
 }

@@ -1,15 +1,16 @@
 import 'package:castboard_core/classes/LayoutElementChild.dart';
 import 'package:castboard_core/enum-converters/textAlignConverters.dart';
 import 'package:castboard_core/models/ColorModel.dart';
+import 'package:castboard_core/models/TrackRef.dart';
 import 'package:flutter/material.dart';
 
 import 'package:castboard_core/elements/TextElementModel.dart';
 
 class TrackElementModel extends TextElementModel {
-  final String trackId;
+  final TrackRef trackRef;
 
   TrackElementModel({
-    @required String trackId,
+    @required TrackRef trackRef,
     String text,
     String fontFamily = "Arial",
     double fontSize = 24,
@@ -18,7 +19,7 @@ class TrackElementModel extends TextElementModel {
     bool underline = false,
     TextAlign alignment = TextAlign.center,
     Color color = Colors.white,
-  })  : this.trackId = trackId ?? '',
+  })  : this.trackRef = trackRef ?? TrackRef.blank(),
         super(
             text: '',
             fontFamily: fontFamily,
@@ -35,7 +36,7 @@ class TrackElementModel extends TextElementModel {
             canConditionallyRender: true);
 
   TrackElementModel copyWith({
-    String trackId,
+    TrackRef trackRef,
     String text,
     String fontFamily,
     double fontSize,
@@ -46,7 +47,7 @@ class TrackElementModel extends TextElementModel {
     Color color,
   }) {
     return TrackElementModel(
-      trackId: trackId ?? this.trackId,
+      trackRef: trackRef ?? this.trackRef,
       text: text ?? this.text,
       fontFamily: fontFamily ?? this.fontFamily,
       fontSize: fontSize ?? this.fontSize,
@@ -61,7 +62,7 @@ class TrackElementModel extends TextElementModel {
   Map<String, dynamic> toMap() {
     return {
       'elementType': 'track',
-      'trackId': trackId,
+      'trackRef': trackRef.toMap(),
       'text': text,
       'fontFamily': fontFamily,
       'fontSize': fontSize,

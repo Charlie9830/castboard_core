@@ -1,9 +1,10 @@
+import 'package:castboard_core/models/ActorRef.dart';
 import 'package:flutter/foundation.dart';
 
 import 'package:castboard_core/classes/PhotoRef.dart';
 
 class ActorModel {
-  final String uid;
+  final ActorRef ref;
   final String name;
   final PhotoRef headshotRef;
 
@@ -12,18 +13,18 @@ class ActorModel {
   static const String unassignedTrackId = 'UNASSIGNED';
 
   ActorModel({
-    @required this.uid,
+    @required this.ref,
     this.name = '',
     this.headshotRef = const PhotoRef.none(),
   });
 
   ActorModel copyWith({
-    String uid,
+    ActorRef ref,
     String name,
     PhotoRef headshotRef,
   }) {
     return ActorModel(
-      uid: uid ?? this.uid,
+      ref: ref ?? this.ref,
       name: name ?? this.name,
       headshotRef: headshotRef ?? this.headshotRef,
     );
@@ -31,7 +32,7 @@ class ActorModel {
 
   Map<String, dynamic> toMap() {
     return {
-      'uid': uid,
+      'ref': ref.toMap(),
       'name': name,
       'headshotRef': headshotRef?.toMap(),
     };
@@ -41,7 +42,7 @@ class ActorModel {
     if (map == null) return null;
 
     return ActorModel(
-      uid: map['uid'],
+      ref: ActorRef.fromMap(map['ref']),
       name: map['name'],
       headshotRef: PhotoRef.fromMap(map['headshotRef']),
     );

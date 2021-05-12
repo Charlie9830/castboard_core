@@ -35,7 +35,7 @@ class CastChangeModel {
           ..addAll({track: actor}));
   }
 
-  CastChangeModel mergedWith(CastChangeModel other) {
+  CastChangeModel combinedWith(CastChangeModel other) {
     if (other == null) {
       throw ('CastChangeModel other cannot be null');
     }

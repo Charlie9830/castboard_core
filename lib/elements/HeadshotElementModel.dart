@@ -1,8 +1,11 @@
 import 'package:castboard_core/classes/LayoutElementChild.dart';
+import 'package:castboard_core/elements/TrackAssignmentInterface.dart';
 import 'package:castboard_core/models/TrackRef.dart';
 import 'package:flutter/foundation.dart';
 
-class HeadshotElementModel extends LayoutElementChild {
+class HeadshotElementModel extends LayoutElementChild
+    implements TrackAssignmentInterface {
+  @override
   final TrackRef trackRef;
 
   HeadshotElementModel({

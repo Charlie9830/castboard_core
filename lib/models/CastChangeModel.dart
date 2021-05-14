@@ -44,7 +44,7 @@ class CastChangeModel {
       assignments: Map<TrackRef, ActorRef>.from(assignments)
         ..addAll(
           Map<TrackRef, ActorRef>.from(other.assignments)
-            ..removeWhere((track, actor) => actor == ActorRef.unassigned()),
+            ..removeWhere((track, actor) => actor.isUnassigned),
         ),
     );
   }
@@ -62,11 +62,11 @@ class CastChangeModel {
   }
 
   bool isUnassigned(TrackRef track) {
-    return assignments[track] == ActorRef.unassigned();
+    return assignments[track]?.isUnassigned ?? false;
   }
 
   bool isCut(TrackRef track) {
-    return assignments[track] == ActorRef.cut();
+    return assignments[track]?.isCut ?? false;
   }
 
   factory CastChangeModel.fromMap(Map<String, dynamic> map) {

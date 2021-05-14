@@ -328,7 +328,7 @@ ActorModel _getAssignedActor(HeadshotElementModel element,
   final actorRef = selectedPreset.castChange.actorAt(element.trackRef);
 
   if (actorRef == null ||
-      actorRef == ActorRef.blank() ||
+      actorRef.isBlank ||
       actors.containsKey(actorRef) == false) {
     return null;
   }

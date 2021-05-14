@@ -1,12 +1,15 @@
+const _blankUid = '';
+const _cutUid = 'CUT';
+const _unassignedUid = 'UNASSIGNED';
+
 class ActorRef {
   final String uid;
 
   ActorRef(this.uid);
 
-  const ActorRef.blank() : uid = '';
-
-  const ActorRef.cut() : uid = 'CUT';
-  const ActorRef.unassigned() : uid = 'UNASSIGNED';
+  const ActorRef.blank() : uid = _blankUid;
+  const ActorRef.cut() : uid = _cutUid;
+  const ActorRef.unassigned() : uid = _unassignedUid;
 
   Map<String, dynamic> toMap() {
     return {
@@ -17,11 +20,11 @@ class ActorRef {
   factory ActorRef.fromMap(Map<String, dynamic> map) {
     final String uid = map['uid'];
 
-    if (uid == ActorRef.cut().uid) {
+    if (uid == const ActorRef.cut().uid) {
       return const ActorRef.cut();
     }
 
-    if (uid == ActorRef.unassigned().uid) {
+    if (uid == const ActorRef.unassigned().uid) {
       return const ActorRef.unassigned();
     }
 
@@ -29,6 +32,10 @@ class ActorRef {
       uid,
     );
   }
+
+  bool get isBlank => uid == _blankUid;
+  bool get isCut => uid == _cutUid;
+  bool get isUnassigned => uid == _unassignedUid;
 
   @override
   int get hashCode => uid.hashCode;

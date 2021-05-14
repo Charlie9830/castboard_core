@@ -18,6 +18,7 @@ import 'package:castboard_core/elements/TrackElementModel.dart';
 import 'package:castboard_core/layout-canvas/LayoutBlock.dart';
 import 'package:castboard_core/models/ActorModel.dart';
 import 'package:castboard_core/models/ActorRef.dart';
+import 'package:castboard_core/models/CastChangeModel.dart';
 import 'package:castboard_core/models/LayoutElementModel.dart';
 import 'package:castboard_core/models/PresetModel.dart';
 import 'package:castboard_core/models/TrackModel.dart';
@@ -31,7 +32,7 @@ typedef void OnContainerItemsReorder(
 
 Map<String, LayoutBlock> buildElements({
   SlideModel slide,
-  PresetModel preset,
+  CastChangeModel castChange,
   Map<ActorRef, ActorModel> actors,
   Map<TrackRef, TrackModel> tracks,
   OnContainerItemsReorder onContainerItemsReorder,
@@ -45,7 +46,7 @@ Map<String, LayoutBlock> buildElements({
       slide?.elements ?? <String, LayoutElementModel>{};
 
   return Map<String, LayoutBlock>.fromEntries(
-    elements.values.where((element) => _shouldBuild(element, preset)).map(
+    elements.values.where((element) => _shouldBuild(element, castChange)).map(
       (element) {
         final id = element.uid;
         final isEditingContainer =
@@ -61,7 +62,7 @@ Map<String, LayoutBlock> buildElements({
             rotation: element.rotation,
             child: _buildChild(
               element: element.child,
-              selectedPreset: preset,
+              castChange: castChange,
               actors: actors,
               tracks: tracks,
               elementPadding: EdgeInsets.fromLTRB(
@@ -86,7 +87,7 @@ Map<String, LayoutBlock> buildElements({
 
 Widget _buildChild({
   LayoutElementChild element,
-  PresetModel selectedPreset,
+  CastChangeModel castChange,
   Map<ActorRef, ActorModel> actors = const {},
   Map<TrackRef, TrackModel> tracks = const {},
   dynamic onContainerItemsReorder,
@@ -118,7 +119,7 @@ Widget _buildChild({
           onContainerItemsReorder?.call(id, oldIndex, newIndex),
       onItemClick: onItemClick,
       items: element.children
-          .where((child) => _shouldBuild(child, selectedPreset))
+          .where((child) => _shouldBuild(child, castChange))
           .map((child) {
         return ContainerItem(
           dragId: child.uid,
@@ -128,7 +129,7 @@ Widget _buildChild({
           size: Size(child.width, child.height),
           child: _buildChild(
             element: child.child,
-            selectedPreset: selectedPreset,
+            castChange: castChange,
             actors: actors,
             tracks: tracks,
             elementPadding: EdgeInsets.fromLTRB(
@@ -158,7 +159,7 @@ Widget _buildChild({
                 element: child.child,
                 actors: actors,
                 tracks: tracks,
-                selectedPreset: selectedPreset),
+                castChange: castChange),
           );
         },
       ).toList(),
@@ -166,7 +167,7 @@ Widget _buildChild({
   }
 
   if (element is HeadshotElementModel) {
-    final actor = _getAssignedActor(element, selectedPreset, actors);
+    final actor = _getAssignedActor(element, castChange, actors);
 
     if (tracks == null) {
       return withPadding(NoTrackFallback());
@@ -196,7 +197,7 @@ Widget _buildChild({
   }
 
   if (element is TextElementModel) {
-    String text = _lookupText(element, selectedPreset, actors, tracks);
+    String text = _lookupText(element, castChange, actors, tracks);
     return withPadding(
       TextElement(
         text: text,
@@ -224,8 +225,8 @@ Widget _buildChild({
   return SizedBox.fromSize(size: Size.zero);
 }
 
-bool _shouldBuild(LayoutElementModel element, PresetModel selectedPreset) {
-  if (selectedPreset == null) {
+bool _shouldBuild(LayoutElementModel element, CastChangeModel castChange) {
+  if (castChange == null) {
     return true;
   }
 
@@ -243,40 +244,40 @@ bool _shouldBuild(LayoutElementModel element, PresetModel selectedPreset) {
     }
 
     final shouldBuild =
-        child.children.every((item) => _shouldBuild(item, selectedPreset));
+        child.children.every((item) => _shouldBuild(item, castChange));
 
     return shouldBuild;
   }
 
   if (child is HeadshotElementModel) {
-    return !selectedPreset.castChange.isCut(child.trackRef);
+    return !castChange.isCut(child.trackRef);
   }
 
   if (child is TrackElementModel) {
-    return !selectedPreset.castChange.isCut(child.trackRef);
+    return !castChange.isCut(child.trackRef);
   }
 
   if (child is ActorElementModel) {
-    return !selectedPreset.castChange.isCut(child.trackRef);
+    return !castChange.isCut(child.trackRef);
   }
 
   return true;
 }
 
-String _lookupText(TextElementModel element, PresetModel selectedPreset,
+String _lookupText(TextElementModel element, CastChangeModel castChange,
     Map<ActorRef, ActorModel> actors, Map<TrackRef, TrackModel> tracks) {
   if (element is ActorElementModel) {
-    return _lookupActorName(element.trackRef, selectedPreset, actors, tracks);
+    return _lookupActorName(element.trackRef, castChange, actors, tracks);
   }
 
   if (element is TrackElementModel) {
-    return _lookupTrackName(element.trackRef, selectedPreset, actors, tracks);
+    return _lookupTrackName(element.trackRef, castChange, actors, tracks);
   }
 
   return element.text;
 }
 
-String _lookupTrackName(TrackRef trackRef, PresetModel preset,
+String _lookupTrackName(TrackRef trackRef, CastChangeModel castChange,
     Map<ActorRef, ActorModel> actors, Map<TrackRef, TrackModel> tracks) {
   if (trackRef == null ||
       trackRef == TrackRef.blank() ||
@@ -288,7 +289,7 @@ String _lookupTrackName(TrackRef trackRef, PresetModel preset,
   return tracks[trackRef]?.title ?? 'No Name Track';
 }
 
-String _lookupActorName(TrackRef trackRef, PresetModel preset,
+String _lookupActorName(TrackRef trackRef, CastChangeModel castChange,
     Map<ActorRef, ActorModel> actors, Map<TrackRef, TrackModel> tracks) {
   if (trackRef == null ||
       trackRef == TrackRef.blank() ||
@@ -302,16 +303,15 @@ String _lookupActorName(TrackRef trackRef, PresetModel preset,
       ? 'No Name Track'
       : track.title;
 
-  if (preset == null) {
+  if (castChange == null) {
     return trackTitle;
   }
 
-  if (preset.castChange == null ||
-      preset.castChange.hasAssignment(trackRef) == false) {
+  if (castChange == null || castChange.hasAssignment(trackRef) == false) {
     return trackTitle;
   }
 
-  final actor = actors[preset.castChange.actorAt(trackRef)];
+  final actor = actors[castChange.actorAt(trackRef)];
   if (actor == null) {
     return "No Actor Found";
   }
@@ -320,12 +320,12 @@ String _lookupActorName(TrackRef trackRef, PresetModel preset,
 }
 
 ActorModel _getAssignedActor(HeadshotElementModel element,
-    PresetModel selectedPreset, Map<ActorRef, ActorModel> actors) {
-  if (element == null || selectedPreset?.castChange == null) {
+    CastChangeModel castChange, Map<ActorRef, ActorModel> actors) {
+  if (element == null || castChange == null) {
     return null;
   }
 
-  final actorRef = selectedPreset.castChange.actorAt(element.trackRef);
+  final actorRef = castChange.actorAt(element.trackRef);
 
   if (actorRef == null ||
       actorRef.isBlank ||

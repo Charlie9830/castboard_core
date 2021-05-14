@@ -35,7 +35,7 @@ class CastChangeModel {
           ..addAll({track: actor}));
   }
 
-  CastChangeModel combinedWith(CastChangeModel other) {
+  CastChangeModel combinedWithOther(CastChangeModel other) {
     if (other == null) {
       throw ('CastChangeModel other cannot be null');
     }
@@ -47,6 +47,14 @@ class CastChangeModel {
             ..removeWhere((track, actor) => actor.isUnassigned),
         ),
     );
+  }
+
+  CastChangeModel combinedWithOthers(Iterable<CastChangeModel> others) {
+    if (others == null || others.isEmpty) {
+      return _copyWith();
+    }
+
+    return others.reduce((accum, other) => accum.combinedWithOther(other));
   }
 
   Map<K2, V2> map<K2, V2>(

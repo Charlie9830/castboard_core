@@ -3,3 +3,9 @@ enum ShapeElementType {
   square,
   circle,
 }
+
+enum PresentationOrientation {
+  landscape,
+  portrait,
+  portraitInverted,
+}

@@ -4,8 +4,8 @@ import 'package:flutter/material.dart';
 
 class SlideViewport extends StatelessWidget {
   final Widget child;
-  final double width;
-  final double height;
+  final int width;
+  final int height;
   final double renderScale;
   final bool enableScrolling;
   final BoxDecoration background;
@@ -32,8 +32,8 @@ class SlideViewport extends StatelessWidget {
           child: Container(
             decoration: background,
             alignment: Alignment.center,
-            width: width * renderScale,
-            height: height * renderScale,
+            width: (width * renderScale).toDouble(),
+            height: (height * renderScale).toDouble(),
             child: child,
           ),
         ),

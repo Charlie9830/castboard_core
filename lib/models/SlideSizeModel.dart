@@ -46,9 +46,9 @@ class SlideSizeModel {
         height = 2160;
 
   // Returns a new instance of SlideSize with the provided Orientation applied to the width and height dimensions.
-  SlideSizeModel orientated(PresentationOrientation orientation) {
-    if (orientation == PresentationOrientation.portrait ||
-        orientation == PresentationOrientation.portraitInverted) {
+  SlideSizeModel orientated(SlideOrientation orientation) {
+    if (orientation == SlideOrientation.portrait ||
+        orientation == SlideOrientation.portraitInverted) {
       return copyWith(
         height: width,
         width: height,

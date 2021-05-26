@@ -4,7 +4,7 @@ enum ShapeElementType {
   circle,
 }
 
-enum PresentationOrientation {
+enum SlideOrientation {
   landscape,
   portrait,
   portraitInverted,

@@ -1,27 +1,27 @@
 import 'package:castboard_core/enum-converters/EnumConversionError.dart';
 import 'package:castboard_core/enums.dart';
 
-PresentationOrientation parsePresentationOrientation(String value) {
+SlideOrientation parseSlideOrientation(String value) {
   switch (value) {
     case 'landscape':
-      return PresentationOrientation.landscape;
+      return SlideOrientation.landscape;
     case 'portrait':
-      return PresentationOrientation.portrait;
+      return SlideOrientation.portrait;
     case 'portraitInverted':
-      return PresentationOrientation.portraitInverted;
+      return SlideOrientation.portraitInverted;
     default:
       throw EnumConversionError(
           'Unknown value when trying to parse String into PresentationOrientation. Unknown value is $value');
   }
 }
 
-String convertPresentationOrientation(PresentationOrientation value) {
+String convertSlideOrientation(SlideOrientation value) {
   switch (value) {
-    case PresentationOrientation.landscape:
+    case SlideOrientation.landscape:
       return 'landscape';
-    case PresentationOrientation.portrait:
+    case SlideOrientation.portrait:
       return 'portrait';
-    case PresentationOrientation.portraitInverted:
+    case SlideOrientation.portraitInverted:
       return 'portraitInverted';
     default:
       return 'landscape';

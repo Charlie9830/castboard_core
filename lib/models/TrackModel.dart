@@ -36,7 +36,7 @@ class TrackModel {
     if (map == null) return null;
 
     return TrackModel(
-      ref: TrackRef.fromMap(map['uid']),
+      ref: TrackRef.fromMap(map['ref']),
       title: map['title'],
       internalTitle: map['internalTitle'],
     );

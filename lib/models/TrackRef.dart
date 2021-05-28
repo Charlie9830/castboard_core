@@ -11,7 +11,18 @@ class TrackRef {
     };
   }
 
+  String toJsonKey() {
+    return uid;
+  }
+
+  factory TrackRef.fromJsonKey(String key) {
+    return TrackRef(key);
+  }
+
   factory TrackRef.fromMap(Map<String, dynamic> map) {
+    if (map == null) {
+
+    }
     return TrackRef(
       map['uid'],
     );

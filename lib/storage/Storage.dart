@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:castboard_core/classes/FontRef.dart';
+import 'package:castboard_core/enums.dart';
 import 'package:castboard_core/models/ActorModel.dart';
 import 'package:castboard_core/models/ActorRef.dart';
 import 'package:castboard_core/models/FontModel.dart';
@@ -13,6 +14,8 @@ import 'package:castboard_core/models/SlideModel.dart';
 import 'package:castboard_core/models/TrackRef.dart';
 import 'package:castboard_core/storage/Exceptions.dart';
 import 'package:castboard_core/storage/ImportedShowData.dart';
+import 'package:castboard_core/storage/ShowDataModel.dart';
+import 'package:castboard_core/storage/SlideDataModel.dart';
 import 'package:file/memory.dart' as memoryFs;
 
 import 'package:castboard_core/classes/PhotoRef.dart';
@@ -359,46 +362,39 @@ class Storage {
               .writeAsBytes(bytedata));
         }
 
+        // Manifest
         if (name == _manifestSaveName) {
           rawManifest = json.decode(utf8.decode(bytedata));
         }
 
+        // Show Data (Actors, Tracks, Presets)
         if (name == _showDataSaveName) {
           rawShowData = json.decode(utf8.decode(bytedata));
         }
 
+        // Slide Data (Slides, SlideSize, SlideOrientation)
         if (name == _slideDataSaveName) {
           rawSlideData = json.decode(utf8.decode(bytedata));
         }
       }
     }
 
-    final Map<String, dynamic> rawPresets = rawShowData['presets'] ?? const {};
-    final Map<dynamic, dynamic> rawActors = rawShowData['actors'] ?? const {};
-    final Map<dynamic, dynamic> rawTracks = rawShowData['tracks'] ?? const {};
-
     await Future.wait(fileWriteRequests);
 
-    // TODO: Verification and Coercion.
+    final showData = ShowDataModel.fromMap(rawShowData);
+    final slideData = SlideDataModel.fromMap(rawSlideData);
+
+    // TODO: Verification and Coercion. Values or behaviour for ImportedShowData if properties are Null.
     // -> Coerce a default Preset into existence if not already existing.
     return ImportedShowData(
-        manifest: ManifestModel.fromMap(rawManifest),
-        slides: Map<String, SlideModel>.fromEntries(
-          rawSlideData.entries.map(
-            (entry) => MapEntry(
-              entry.key,
-              SlideModel.fromMap(entry.value),
-            ),
-          ),
-        ),
-        actors: Map<ActorRef, ActorModel>.fromEntries(rawActors.entries.map(
-            (entry) => MapEntry(
-                ActorRef.fromMap(entry.key), ActorModel.fromMap(entry.value)))),
-        tracks: Map<TrackRef, TrackModel>.fromEntries(rawTracks.entries.map(
-            (entry) => MapEntry(
-                TrackRef.fromMap(entry.key), TrackModel.fromMap(entry.value)))),
-        presets: Map<String, PresetModel>.fromEntries(rawPresets.entries.map(
-            (entry) => MapEntry(entry.key, PresetModel.fromMap(entry.value)))));
+      manifest: ManifestModel.fromMap(rawManifest),
+      actors: showData.actors,
+      tracks: showData.tracks,
+      presets: showData.presets,
+      slides: slideData.slides,
+      slideSizeId: slideData.slideSizeId,
+      slideOrientation: slideData.slideOrientation,
+    );
   }
 
   Future<void> clearStorage() async {
@@ -444,9 +440,11 @@ class Storage {
   ///
   Future<void> writeToPermanentStorage(
       {@required Map<ActorRef, ActorModel> actors,
-      @required Map<String, SlideModel> slides,
       @required Map<TrackRef, TrackModel> tracks,
       @required Map<String, PresetModel> presets,
+      @required Map<String, SlideModel> slides,
+      @required String slideSizeId,
+      @required SlideOrientation slideOrientation,
       @required ManifestModel manifest,
       @required File targetFile}) async {
     final mfs = memoryFs.MemoryFileSystem();
@@ -457,7 +455,13 @@ class Storage {
       _stageManifest(mfs, manifest),
       _stageHeadshots(mfs, actors),
       _stageBackgrounds(mfs, slides),
-      _stageSlideData(mfs, slides),
+      _stageSlideData(
+          mfs,
+          SlideDataModel(
+            slides: slides,
+            slideSizeId: slideSizeId,
+            slideOrientation: slideOrientation,
+          )),
       _stageShowData(mfs, tracks, actors, presets),
       _stageFonts(mfs, manifest.requiredFonts),
     ]);
@@ -492,14 +496,13 @@ class Storage {
       Map<TrackRef, TrackModel> tracks,
       Map<ActorRef, ActorModel> actors,
       Map<String, PresetModel> presets) async {
-    final data = <String, dynamic>{
-      'tracks': Map<dynamic, dynamic>.fromEntries(tracks.values
-          .map((track) => MapEntry(track.ref.toMap(), track.toMap()))),
-      'actors': Map<dynamic, dynamic>.fromEntries(actors.values
-          .map((actor) => MapEntry(actor.ref.toMap(), actor.toMap()))),
-      'presets': Map<String, dynamic>.fromEntries(
-          presets.values.map((preset) => MapEntry(preset.uid, preset.toMap())))
-    };
+    final data = ShowDataModel(
+      actors: actors,
+      tracks: tracks,
+      presets: presets,
+    ).toMap();
+
+    print(data.runtimeType);
 
     final jsonData = json.encoder.convert(data);
     final targetFile = await mfs.file(_showDataSaveName).create();
@@ -508,9 +511,8 @@ class Storage {
   }
 
   Future<void> _stageSlideData(
-      memoryFs.MemoryFileSystem mfs, Map<String, SlideModel> slides) async {
-    final data = Map<String, dynamic>.fromEntries(
-        slides.values.map((slide) => MapEntry(slide.uid, slide.toMap())));
+      memoryFs.MemoryFileSystem mfs, SlideDataModel slideData) async {
+    final data = slideData?.toMap() ?? SlideDataModel().toMap();
 
     final jsonData = json.encoder.convert(data);
 

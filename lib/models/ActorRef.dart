@@ -17,6 +17,26 @@ class ActorRef {
     };
   }
 
+  String toJsonKey() {
+    return uid;
+  }
+
+  factory ActorRef.fromJsonKey(String key) {
+    final String uid = key;
+
+    if (uid == const ActorRef.cut().uid) {
+      return const ActorRef.cut();
+    }
+
+    if (uid == const ActorRef.unassigned().uid) {
+      return const ActorRef.unassigned();
+    }
+
+    return ActorRef(
+      uid,
+    );
+  }
+
   factory ActorRef.fromMap(Map<String, dynamic> map) {
     final String uid = map['uid'];
 

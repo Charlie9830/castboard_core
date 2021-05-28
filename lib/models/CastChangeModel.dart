@@ -64,8 +64,8 @@ class CastChangeModel {
 
   Map<String, dynamic> toMap() {
     return {
-      'assignments':
-          assignments.map((key, value) => MapEntry(key.toMap(), value.toMap())),
+      'assignments': assignments
+          .map((key, value) => MapEntry(key.toJsonKey(), value.toJsonKey())),
     };
   }
 
@@ -80,10 +80,10 @@ class CastChangeModel {
   factory CastChangeModel.fromMap(Map<String, dynamic> map) {
     return CastChangeModel(
       Map<TrackRef, ActorRef>.from(
-        (map['assignments'] as Map<dynamic, dynamic>).map(
-          (key, value) => MapEntry(
-            TrackRef.fromMap(key),
-            ActorRef.fromMap(value),
+        (map['assignments'] as Map<String, dynamic>).map(
+          (trackKey, actorKey) => MapEntry(
+            TrackRef.fromJsonKey(trackKey),
+            ActorRef.fromJsonKey(actorKey),
           ),
         ),
       ),

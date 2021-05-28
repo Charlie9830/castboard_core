@@ -9,4 +9,6 @@ class StandardSlideSizes {
     const SlideSizeModel.twoK().uid: const SlideSizeModel.twoK(),
     const SlideSizeModel.fourK().uid: const SlideSizeModel.fourK(),
   };
+
+  static SlideSizeModel get defaultSize => all[defaultSizeId];
 }

@@ -31,8 +31,8 @@ typedef void OnRotateDoneCallback(
 class DragBoxLayer extends StatelessWidget {
   final bool interactive;
   final bool deferHitTestingToChildren;
-  final Map<String, LayoutBlock> blocks;
-  final Set<String> selectedElementIds;
+  final Map<String, LayoutBlock>? blocks;
+  final Set<String?>? selectedElementIds;
   final double renderScale;
   final bool isDragSelecting;
   final double dragSelectXPos;
@@ -41,20 +41,20 @@ class DragBoxLayer extends StatelessWidget {
   final double dragSelectHeight;
   final dynamic onPositionChange;
   final dynamic onDragHandleDragged;
-  final OnResizeDoneCallback onResizeDone;
-  final OnDragBoxClickCallback onDragBoxClick;
-  final OnResizeStartCallback onResizeStart;
-  final OnRotateStartCallback onRotateStart;
-  final OnRotateCallback onRotate;
-  final OnRotateDoneCallback onRotateDone;
-  final OnDragBoxMouseUpCallback onDragBoxMouseUp;
+  final OnResizeDoneCallback? onResizeDone;
+  final OnDragBoxClickCallback? onDragBoxClick;
+  final OnResizeStartCallback? onResizeStart;
+  final OnRotateStartCallback? onRotateStart;
+  final OnRotateCallback? onRotate;
+  final OnRotateDoneCallback? onRotateDone;
+  final OnDragBoxMouseUpCallback? onDragBoxMouseUp;
 
   const DragBoxLayer(
-      {Key key,
+      {Key? key,
       this.interactive = true,
       this.deferHitTestingToChildren = false,
       this.blocks,
-      @required this.renderScale,
+      required this.renderScale,
       this.selectedElementIds,
       this.isDragSelecting = true,
       this.dragSelectHeight = 100,
@@ -99,7 +99,7 @@ class DragBoxLayer extends StatelessWidget {
   }
 
   List<Widget> _drawDragHandles() {
-    return blocks.values.map((block) {
+    return blocks!.values.map((block) {
       final blockId = block.id;
       return Positioned(
         left: (block.xPos * renderScale) - dragHandleWidth / 2,
@@ -115,7 +115,7 @@ class DragBoxLayer extends StatelessWidget {
           alignment: Alignment.center,
           child: DragHandles(
             interactive: interactive,
-            selected: selectedElementIds.contains(blockId),
+            selected: selectedElementIds!.contains(blockId),
             height: (block.height * renderScale) + dragHandleHeight,
             width: (block.width * renderScale) + dragHandleWidth,
             onDrag: (deltaX, deltaY, position, pointerId) =>
@@ -136,7 +136,7 @@ class DragBoxLayer extends StatelessWidget {
   }
 
   List<Widget> _drawDebugIndicators() {
-    return blocks.values.map((block) {
+    return blocks!.values.map((block) {
       // return Positioned(
       //     left: block.debugRenderXPos,
       //     top: block.debugRenderYPos,
@@ -160,7 +160,7 @@ class DragBoxLayer extends StatelessWidget {
   }
 
   List<Widget> _drawDragBoxes() {
-    return blocks.values.map((block) {
+    return blocks!.values.map((block) {
       final blockId = block.id;
       return Positioned(
         left: (block.xPos * renderScale) - dragHandleWidth / 2,
@@ -171,7 +171,7 @@ class DragBoxLayer extends StatelessWidget {
           transform: Matrix4.rotationZ(block.rotation),
           alignment: Alignment.center,
           child: DragBox(
-            selected: selectedElementIds.contains(blockId),
+            selected: selectedElementIds!.contains(blockId),
             xPos: block.xPos * renderScale,
             yPos: block.yPos * renderScale,
             height: (block.height * renderScale) + dragHandleHeight,
@@ -188,12 +188,12 @@ class DragBoxLayer extends StatelessWidget {
   }
 
   void _handlePositionChange(
-      double xPosDelta, double yPosDelta, String blockId) {
+      double xPosDelta, double yPosDelta, String? blockId) {
     onPositionChange(xPosDelta, yPosDelta, blockId);
   }
 
   List<Widget> _positionBlocks() {
-    return blocks.values.map((block) {
+    return blocks!.values.map((block) {
       return _positionBlock(block);
     }).toList();
   }
@@ -206,7 +206,7 @@ class DragBoxLayer extends StatelessWidget {
       height: block.height * renderScale,
       child: Transform(
         alignment: Alignment.center,
-        transform: Matrix4.rotationZ(block.rotation ?? 0),
+        transform: Matrix4.rotationZ(block.rotation),
         child: block.child,
       ),
     );

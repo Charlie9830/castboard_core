@@ -7,15 +7,15 @@ class TrackModel {
   final String internalTitle;
 
   TrackModel({
-    @required this.ref,
+    required this.ref,
     this.title = '',
     this.internalTitle = '',
   });
 
   TrackModel copyWith({
-    TrackRef ref,
-    String title,
-    String internalTitle,
+    TrackRef? ref,
+    String? title,
+    String? internalTitle,
   }) {
     return TrackModel(
       ref: ref ?? this.ref,
@@ -33,8 +33,6 @@ class TrackModel {
   }
 
   factory TrackModel.fromMap(Map<String, dynamic> map) {
-    if (map == null) return null;
-
     return TrackModel(
       ref: TrackRef.fromMap(map['ref']),
       title: map['title'],

@@ -1,3 +1,5 @@
+
+
 import 'package:castboard_core/enums.dart';
 import 'package:castboard_core/inherited/RenderScaleProvider.dart';
 import 'package:flutter/material.dart';
@@ -9,7 +11,7 @@ class ShapeElement extends StatelessWidget {
   final double lineWeight;
 
   const ShapeElement({
-    Key key,
+    Key? key,
     this.type = ShapeElementType.square,
     this.fill = Colors.lightBlueAccent,
     this.lineColor = Colors.black,
@@ -26,7 +28,7 @@ class ShapeElement extends StatelessWidget {
           color: fill,
           border: Border.all(
             color: lineColor,
-            width: lineWeight * RenderScale.of(context).scale,
+            width: lineWeight * RenderScale.of(context)!.scale!,
           )),
     );
   }

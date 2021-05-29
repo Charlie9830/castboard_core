@@ -24,30 +24,27 @@ typedef void OnRotateHandleDragStartCallback(
 );
 
 typedef void OnRotateHandleDraggedCallback(
-  double deltaX, double deltaY, int pointerId
-);
+    double deltaX, double deltaY, int pointerId);
 
-typedef void OnRotateDoneCallback(
-  int pointerId
-);
+typedef void OnRotateDoneCallback(int pointerId);
 
 class DragHandles extends StatelessWidget {
   final bool interactive;
   final bool selected;
   final double width;
   final double height;
-  final OnResizeHandleDragStartCallback onDragStart;
-  final OnDragDoneCallback onDragDone;
-  final OnResizeHandleDragged onDrag;
-  final OnRotateHandleDragStartCallback onRotateStart;
-  final OnRotateHandleDraggedCallback onRotate;
-  final OnRotateDoneCallback onRotateDone;
+  final OnResizeHandleDragStartCallback? onDragStart;
+  final OnDragDoneCallback? onDragDone;
+  final OnResizeHandleDragged? onDrag;
+  final OnRotateHandleDragStartCallback? onRotateStart;
+  final OnRotateHandleDraggedCallback? onRotate;
+  final OnRotateDoneCallback? onRotateDone;
 
   const DragHandles({
-    Key key,
-    this.interactive,
-    this.width,
-    this.height,
+    Key? key,
+    this.interactive = true,
+    required this.width,
+    required this.height,
     this.onDrag,
     this.onDragDone,
     this.onDragStart,
@@ -60,16 +57,16 @@ class DragHandles extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final rotator = Positioned(
-      top: 0,
-      left: width / 2 - rotateHandleWidth / 2,
-      child: RotateHandle(
-        interactive: interactive,
-        selected: selected,
-        onDragStart: (pointerId) => onRotateStart?.call(pointerId),
-        onDrag: (deltaX, deltaY, pointerId) => onRotate?.call(deltaX, deltaY, pointerId),
-        onDragDone: (pointerId) => onRotateDone?.call(pointerId),
-      )
-    );
+        top: 0,
+        left: width / 2 - rotateHandleWidth / 2,
+        child: RotateHandle(
+          interactive: interactive,
+          selected: selected,
+          onDragStart: (pointerId) => onRotateStart?.call(pointerId),
+          onDrag: (deltaX, deltaY, pointerId) =>
+              onRotate?.call(deltaX, deltaY, pointerId),
+          onDragDone: (pointerId) => onRotateDone?.call(pointerId),
+        ));
 
     final topLeft = Positioned(
       top: rotateHandleTotalHeight,

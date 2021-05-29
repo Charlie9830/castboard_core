@@ -9,14 +9,13 @@ class HeadshotElementModel extends LayoutElementChild
   final TrackRef trackRef;
 
   HeadshotElementModel({
-    @required TrackRef trackRef,
-  })  : this.trackRef = trackRef ?? TrackRef.blank(),
-        super(updateContracts: <PropertyUpdateContracts>{
+    required this.trackRef,
+  }) : super(updateContracts: <PropertyUpdateContracts>{
           PropertyUpdateContracts.trackAssignment
         }, canConditionallyRender: true);
 
   HeadshotElementModel copyWith({
-    TrackRef trackRef,
+    TrackRef? trackRef,
   }) {
     return HeadshotElementModel(
       trackRef: trackRef ?? this.trackRef,

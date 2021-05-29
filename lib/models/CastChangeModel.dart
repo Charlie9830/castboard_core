@@ -6,12 +6,11 @@ import 'package:castboard_core/models/TrackRef.dart';
 class CastChangeModel {
   final Map<TrackRef, ActorRef> assignments;
 
-  CastChangeModel(Map<TrackRef, ActorRef> assignments)
-      : this.assignments = assignments ?? const <TrackRef, ActorRef>{};
+  CastChangeModel(this.assignments);
 
   const CastChangeModel.initial() : assignments = const <TrackRef, ActorRef>{};
 
-  CastChangeModel _copyWith({Map<TrackRef, ActorRef> assignments}) {
+  CastChangeModel _copyWith({Map<TrackRef, ActorRef>? assignments}) {
     return CastChangeModel(
       assignments ?? this.assignments,
     );
@@ -21,25 +20,17 @@ class CastChangeModel {
     return assignments.containsKey(track);
   }
 
-  ActorRef actorAt(TrackRef track) {
+  ActorRef? actorAt(TrackRef track) {
     return assignments[track];
   }
 
   CastChangeModel withUpdatedAssignment(TrackRef track, ActorRef actor) {
-    if (track == null || actor == null) {
-      throw ('track and actor must not be null. Value provided for track is $track and value provided for actor is $actor');
-    }
-
     return _copyWith(
         assignments: Map<TrackRef, ActorRef>.from(assignments)
           ..addAll({track: actor}));
   }
 
   CastChangeModel combinedWithOther(CastChangeModel other) {
-    if (other == null) {
-      throw ('CastChangeModel other cannot be null');
-    }
-
     return _copyWith(
       assignments: Map<TrackRef, ActorRef>.from(assignments)
         ..addAll(
@@ -50,7 +41,7 @@ class CastChangeModel {
   }
 
   CastChangeModel combinedWithOthers(Iterable<CastChangeModel> others) {
-    if (others == null || others.isEmpty) {
+    if (others.isEmpty) {
       return _copyWith();
     }
 
@@ -77,7 +68,11 @@ class CastChangeModel {
     return assignments[track]?.isCut ?? false;
   }
 
-  factory CastChangeModel.fromMap(Map<String, dynamic> map) {
+  factory CastChangeModel.fromMap(Map<String, dynamic>? map) {
+    if (map == null) {
+      return CastChangeModel.initial();
+    }
+
     return CastChangeModel(
       Map<TrackRef, ActorRef>.from(
         (map['assignments'] as Map<String, dynamic>).map(

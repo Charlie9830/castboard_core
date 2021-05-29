@@ -15,23 +15,23 @@ const Map<MainAxisAlignment, WrapAlignment> _alignmentMapping = {
   MainAxisAlignment.spaceAround: WrapAlignment.spaceAround,
 };
 
-typedef void OnOrderChanged(String dragId, int oldIndex, int newIndex);
+typedef void OnOrderChanged(String? dragId, int oldIndex, int newIndex);
 
 class ContainerElement extends StatefulWidget {
-  final bool isEditing;
+  final bool? isEditing;
   final bool showHighlight;
   final bool showBorder;
   final bool allowWrap;
-  final MainAxisAlignment mainAxisAlignment;
-  final CrossAxisAlignment crossAxisAlignment;
-  final WrapAlignment runAlignment;
+  final MainAxisAlignment? mainAxisAlignment;
+  final CrossAxisAlignment? crossAxisAlignment;
+  final WrapAlignment? runAlignment;
   final Axis axis;
-  final List<ContainerItem> items;
-  final OnOrderChanged onOrderChanged;
+  final List<ContainerItem>? items;
+  final OnOrderChanged? onOrderChanged;
   final dynamic onItemClick;
 
   const ContainerElement({
-    Key key,
+    Key? key,
     this.isEditing,
     this.showHighlight = false,
     this.showBorder = false,
@@ -51,7 +51,7 @@ class ContainerElement extends StatefulWidget {
 
 class _ContainerElementState extends State<ContainerElement> {
   bool _isDragging = false;
-  String _candidateId = '';
+  String? _candidateId = '';
   int _candidateHomeIndex = -1;
   int _shadowIndex = -1;
   List<ContainerItem> _activeItems = const [];
@@ -64,7 +64,7 @@ class _ContainerElementState extends State<ContainerElement> {
     );
   }
 
-  BoxDecoration _getForegroundDecoration() {
+  BoxDecoration? _getForegroundDecoration() {
     if (widget.showHighlight == true) {
       //Highlight Border.
       return BoxDecoration(
@@ -85,7 +85,7 @@ class _ContainerElementState extends State<ContainerElement> {
 
   Widget _getChild(BuildContext context) {
     final items = _isDragging ? _activeItems : widget.items;
-    final renderScale = RenderScale.of(context).scale;
+    final renderScale = RenderScale.of(context)!.scale;
 
     switch (widget.axis) {
       case Axis.horizontal:
@@ -94,10 +94,10 @@ class _ContainerElementState extends State<ContainerElement> {
           crossAxisAlignment: widget.crossAxisAlignment,
           allowWrap: widget.allowWrap,
           runAlignment: widget.runAlignment,
-          children: items.map((item) {
-            final scaledItemSize = item.size * renderScale;
+          children: items!.map((item) {
+            final scaledItemSize = item.size * renderScale!;
             return _wrapVisibility(
-              widget.isEditing,
+              widget.isEditing!,
               item: item,
               visible: item.dragId != _candidateId,
               child: Container(
@@ -105,7 +105,7 @@ class _ContainerElementState extends State<ContainerElement> {
                 width: scaledItemSize.width,
                 height: scaledItemSize.height,
                 child: _wrapDragger(
-                  widget.isEditing,
+                  widget.isEditing!,
                   item: item,
                   axis: Axis.horizontal,
                   renderScale: renderScale,
@@ -122,10 +122,10 @@ class _ContainerElementState extends State<ContainerElement> {
           crossAxisAlignment: widget.crossAxisAlignment,
           allowWrap: widget.allowWrap,
           runAlignment: widget.runAlignment,
-          children: items.map((item) {
-            final scaledItemSize = item.size * renderScale;
+          children: items!.map((item) {
+            final scaledItemSize = item.size * renderScale!;
             return _wrapVisibility(
-              widget.isEditing,
+              widget.isEditing!,
               item: item,
               visible: item.dragId != _candidateId,
               child: Container(
@@ -133,7 +133,7 @@ class _ContainerElementState extends State<ContainerElement> {
                 width: scaledItemSize.width,
                 height: scaledItemSize.height,
                 child: _wrapDragger(
-                  widget.isEditing,
+                  widget.isEditing!,
                   item: item,
                   axis: Axis.vertical,
                   renderScale: renderScale,
@@ -152,8 +152,13 @@ class _ContainerElementState extends State<ContainerElement> {
   ///
   /// Conditionally wraps a Dragger Element around child based on the value of isEditing.
   ///
-  Widget _wrapDragger(bool isEditing,
-      {ContainerItem item, double renderScale, Widget child, Axis axis}) {
+  Widget _wrapDragger(
+    bool isEditing, {
+    required ContainerItem item,
+    required double renderScale,
+    required Widget child,
+    required Axis axis,
+  }) {
     if (isEditing) {
       return Listener(
         onPointerDown: (event) => _handleDraggerPointerDown(item.dragId),
@@ -173,7 +178,7 @@ class _ContainerElementState extends State<ContainerElement> {
                 renderScale, item.size * renderScale, item.child),
             onDragStart: () =>
                 _handleDragStart(item.dragId, item.index, item.size),
-            onDragEnd: (candidateDetails) => _handleDragEnd(candidateDetails),
+            onDragEnd: (_) => _handleDragEnd(),
             onHover: (side, candidateDetails) =>
                 _handleHover(side, item.dragId, item.index, candidateDetails),
             dragData: DraggerDetails(item.dragId, item.index),
@@ -191,13 +196,13 @@ class _ContainerElementState extends State<ContainerElement> {
   ///
   Widget _wrapVisibility(
     bool isEditing, {
-    ContainerItem item,
+    ContainerItem? item,
     bool visible = true,
-    Widget child,
+    required Widget child,
   }) {
     if (isEditing) {
       return Visibility(
-        key: Key(item.dragId),
+        key: Key(item!.dragId!),
         visible: visible,
         maintainState: true,
         child: child,
@@ -207,11 +212,11 @@ class _ContainerElementState extends State<ContainerElement> {
     }
   }
 
-  void _handleDraggerPointerDown(String itemId) {
+  void _handleDraggerPointerDown(String? itemId) {
     widget.onItemClick?.call(itemId);
   }
 
-  Widget _buildFeedback(double renderScale, Size itemSize, Widget child) {
+  Widget _buildFeedback(double? renderScale, Size itemSize, Widget child) {
     return Container(
       width: itemSize.width,
       height: itemSize.height,
@@ -225,8 +230,12 @@ class _ContainerElementState extends State<ContainerElement> {
     );
   }
 
-  void _handleHover(HoverSide side, String underItemId, int underItemIndex,
-      DraggerDetails candidateDetails) {
+  void _handleHover(HoverSide side, String? underItemId, int underItemIndex,
+      DraggerDetails? candidateDetails) {
+    if (candidateDetails == null) {
+      return;
+    }
+
     if (candidateDetails.index == underItemIndex) {
       // Candidate is hovering over it's Home Position.
       return;
@@ -406,18 +415,18 @@ class _ContainerElementState extends State<ContainerElement> {
 
   bool _isShadowAlreadyInPlace(List<ContainerItem> items, int targetIndex) {
     if (targetIndex >= 0 && targetIndex < items.length) {
-      return items[targetIndex]?.dragId == _shadowId;
+      return items[targetIndex].dragId == _shadowId;
     } else {
       return false;
     }
   }
 
   void _handleDragStart(
-      String candidateId, int candidateHomeIndex, Size candidateSize) {
+      String? candidateId, int candidateHomeIndex, Size candidateSize) {
     setState(() {
       _isDragging = true;
       _activeItems = _withRebuiltIndices(
-        widget.items.toList()
+        widget.items!.toList()
           ..insert(candidateHomeIndex,
               _buildShadow(candidateHomeIndex, candidateSize)),
       );
@@ -427,7 +436,7 @@ class _ContainerElementState extends State<ContainerElement> {
     });
   }
 
-  void _handleDragEnd(DraggerDetails candidateDetails) {
+  void _handleDragEnd() {
     final oldIndex = _candidateHomeIndex;
     final newIndex =
         _candidateHomeIndex < _shadowIndex ? _shadowIndex - 1 : _shadowIndex;
@@ -435,7 +444,7 @@ class _ContainerElementState extends State<ContainerElement> {
       final newIndexOffset = newIndex > oldIndex
           ? 1
           : 0; // Huh? because List.insert() inserts items Before the existing items,
-      // we need to conditionally offset our newIndex. We do this hear so that the behaviour is consitent with
+      // we need to conditionally offset our newIndex. We do this here so that the behaviour is consitent with
       // ReorderableListView.
 
       // Notify.
@@ -469,7 +478,7 @@ class _ContainerElementState extends State<ContainerElement> {
 }
 
 class _ItemShadow extends StatelessWidget {
-  const _ItemShadow({Key key}) : super(key: key);
+  const _ItemShadow({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -478,50 +487,50 @@ class _ItemShadow extends StatelessWidget {
 }
 
 class _HorizontalContainer extends StatelessWidget {
-  final MainAxisAlignment mainAxisAlignment;
-  final CrossAxisAlignment crossAxisAlignment;
-  final WrapAlignment runAlignment;
+  final MainAxisAlignment? mainAxisAlignment;
+  final CrossAxisAlignment? crossAxisAlignment;
+  final WrapAlignment? runAlignment;
   final bool allowWrap;
 
   final List<Widget> children;
 
-  const _HorizontalContainer(
-      {Key key,
-      this.mainAxisAlignment,
-      this.crossAxisAlignment,
-      this.runAlignment,
-      this.allowWrap = false,
-      this.children})
-      : super(key: key);
+  const _HorizontalContainer({
+    Key? key,
+    this.mainAxisAlignment,
+    this.crossAxisAlignment,
+    this.runAlignment,
+    this.allowWrap = false,
+    this.children = const <Widget>[],
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     if (allowWrap) {
       return Wrap(
-        alignment: _alignmentMapping[mainAxisAlignment],
+        alignment: _alignmentMapping[mainAxisAlignment!]!,
         runAlignment: runAlignment ?? WrapAlignment.start,
         direction: Axis.horizontal,
-        children: children ?? const [],
+        children: children,
       );
     }
 
     return Row(
       mainAxisAlignment: mainAxisAlignment ?? MainAxisAlignment.center,
       crossAxisAlignment: crossAxisAlignment ?? CrossAxisAlignment.center,
-      children: children ?? const [],
+      children: children,
     );
   }
 }
 
 class _VerticalContainer extends StatelessWidget {
-  final MainAxisAlignment mainAxisAlignment;
-  final CrossAxisAlignment crossAxisAlignment;
-  final List<Widget> children;
-  final WrapAlignment runAlignment;
+  final MainAxisAlignment? mainAxisAlignment;
+  final CrossAxisAlignment? crossAxisAlignment;
+  final List<Widget?>? children;
+  final WrapAlignment? runAlignment;
   final bool allowWrap;
 
   const _VerticalContainer(
-      {Key key,
+      {Key? key,
       this.mainAxisAlignment,
       this.crossAxisAlignment,
       this.runAlignment,
@@ -533,17 +542,17 @@ class _VerticalContainer extends StatelessWidget {
   Widget build(BuildContext context) {
     if (allowWrap) {
       return Wrap(
-        alignment: _alignmentMapping[mainAxisAlignment],
+        alignment: _alignmentMapping[mainAxisAlignment!]!,
         runAlignment: runAlignment ?? WrapAlignment.start,
         direction: Axis.vertical,
-        children: children ?? const [],
+        children: children as List<Widget>? ?? const [],
       );
     }
 
     return Column(
       mainAxisAlignment: mainAxisAlignment ?? MainAxisAlignment.center,
       crossAxisAlignment: crossAxisAlignment ?? CrossAxisAlignment.center,
-      children: children ?? const [],
+      children: children as List<Widget>? ?? const [],
     );
   }
 }

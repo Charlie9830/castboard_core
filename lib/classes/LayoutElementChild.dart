@@ -1,4 +1,5 @@
 import 'package:castboard_core/elements/ActorElementModel.dart';
+import 'package:castboard_core/elements/BlankElementModel.dart';
 import 'package:castboard_core/elements/ContainerElementModel.dart';
 import 'package:castboard_core/elements/GroupElementModel.dart';
 import 'package:castboard_core/elements/HeadshotElementModel.dart';
@@ -25,13 +26,23 @@ enum PropertyUpdateContracts {
 abstract class LayoutElementChild {
   LayoutElementChild({this.updateContracts, this.canConditionallyRender});
 
-  final Set<PropertyUpdateContracts> updateContracts;
-  final bool canConditionallyRender;
+  final Set<PropertyUpdateContracts>? updateContracts;
+  final bool? canConditionallyRender;
 
   Map<String, dynamic> toMap();
 
-  factory LayoutElementChild.fromMap(Map<String, dynamic> map) {
-    final String elementType = map['elementType'];
+  factory LayoutElementChild.fromMap(Map<String, dynamic>? map) {
+    if (map == null) {
+      print('\n Uh Oh, I just created a BlankElementModel \n');
+      return BlankElementModel();
+    }
+
+    final String? elementType = map['elementType'];
+
+    if (elementType == 'blank') {
+      print('\n Uh Oh, I just created a BlankElementModel \n');
+      return BlankElementModel();
+    }
 
     if (elementType == 'container') {
       return ContainerElementModel(
@@ -63,7 +74,7 @@ abstract class LayoutElementChild {
         bold: map['bold'],
         underline: map['underline'],
         alignment: parseTextAlign(map['alignment']),
-        color: ColorModel.fromMap(map['color'])?.toColor(),
+        color: ColorModel.fromMap(map['color']).toColor(),
       );
     }
 
@@ -76,7 +87,7 @@ abstract class LayoutElementChild {
         bold: map['bold'],
         underline: map['underline'],
         alignment: parseTextAlign(map['alignment']),
-        color: ColorModel.fromMap(map['color'])?.toColor(),
+        color: ColorModel.fromMap(map['color']).toColor(),
       );
     }
 
@@ -89,15 +100,15 @@ abstract class LayoutElementChild {
         bold: map['bold'],
         underline: map['underline'],
         alignment: parseTextAlign(map['alignment']),
-        color: ColorModel.fromMap(map['color'])?.toColor(),
+        color: ColorModel.fromMap(map['color']).toColor(),
       );
     }
 
     if (elementType == 'shape') {
       return ShapeElementModel(
         type: parseShapeElementType(map['type']),
-        fill: ColorModel.fromMap(map['fill'])?.toColor(),
-        lineColor: ColorModel.fromMap(map['lineColor'])?.toColor(),
+        fill: ColorModel.fromMap(map['fill']).toColor(),
+        lineColor: ColorModel.fromMap(map['lineColor']).toColor(),
         lineWeight: map['lineWeight'],
       );
     }

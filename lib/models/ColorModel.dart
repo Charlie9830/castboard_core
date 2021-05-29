@@ -6,11 +6,7 @@ class ColorModel {
   final int g;
   final int b;
 
-  ColorModel(int a, int r, int g, int b)
-      : this.a = a ?? 0,
-        this.r = r ?? 0,
-        this.g = g ?? 0,
-        this.b = b ?? 0;
+  ColorModel(this.a, this.r, this.g, this.b);
 
   Map<String, dynamic> toMap() {
     return {
@@ -26,19 +22,17 @@ class ColorModel {
   }
 
   factory ColorModel.fromColor(Color color) {
-    if (color == null) return null;
-
     return ColorModel(color.alpha, color.red, color.green, color.blue);
   }
 
-  factory ColorModel.fromMap(Map<String, dynamic> map) {
-    if (map == null) return null;
+  factory ColorModel.fromMap(Map<String, dynamic>? map) {
+    if (map == null) return ColorModel(255, 0, 0, 0);
 
     return ColorModel(
-      map['a'],
-      map['r'],
-      map['g'],
-      map['b'],
+      map['a'] ?? 255,
+      map['r'] ?? 0,
+      map['g'] ?? 0,
+      map['b'] ?? 0,
     );
   }
 }

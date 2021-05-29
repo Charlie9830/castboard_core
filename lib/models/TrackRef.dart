@@ -1,3 +1,5 @@
+
+
 class TrackRef {
   final String uid;
 
@@ -11,7 +13,7 @@ class TrackRef {
     };
   }
 
-  String toJsonKey() {
+  String? toJsonKey() {
     return uid;
   }
 

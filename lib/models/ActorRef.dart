@@ -21,7 +21,11 @@ class ActorRef {
     return uid;
   }
 
-  factory ActorRef.fromJsonKey(String key) {
+  factory ActorRef.fromJsonKey(String? key) {
+    if (key == null) {
+      return ActorRef.blank();
+    }
+
     final String uid = key;
 
     if (uid == const ActorRef.cut().uid) {
@@ -37,8 +41,12 @@ class ActorRef {
     );
   }
 
-  factory ActorRef.fromMap(Map<String, dynamic> map) {
-    final String uid = map['uid'];
+  factory ActorRef.fromMap(Map<String, dynamic>? map) {
+    if (map == null) {
+      return ActorRef.blank();
+    }
+    
+    final String uid = map['uid'] ?? _blankUid;
 
     if (uid == const ActorRef.cut().uid) {
       return const ActorRef.cut();

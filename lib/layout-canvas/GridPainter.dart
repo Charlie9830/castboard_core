@@ -1,3 +1,5 @@
+
+
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
@@ -6,7 +8,7 @@ class GridPainter extends CustomPainter {
   final double gridSize;
   final double renderScale;
 
-  GridPainter({@required this.gridSize, @required this.renderScale});
+  GridPainter({required this.gridSize, required this.renderScale});
 
   @override
   void paint(Canvas canvas, Size size) {

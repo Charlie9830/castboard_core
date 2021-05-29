@@ -13,8 +13,8 @@ class ActorElementModel extends TextElementModel
   final TrackRef trackRef;
 
   ActorElementModel({
-    @required TrackRef trackRef,
-    String text,
+    required this.trackRef,
+    String? text,
     String fontFamily = "Arial",
     double fontSize = 24,
     bool italics = false,
@@ -22,8 +22,7 @@ class ActorElementModel extends TextElementModel
     bool underline = false,
     TextAlign alignment = TextAlign.center,
     Color color = Colors.white,
-  })  : this.trackRef = trackRef ?? TrackRef.blank(),
-        super(
+  }) : super(
             text: '',
             fontFamily: fontFamily,
             fontSize: fontSize,
@@ -39,15 +38,15 @@ class ActorElementModel extends TextElementModel
             canConditionallyRender: true);
 
   ActorElementModel copyWith({
-    TrackRef trackRef,
-    String text,
-    String fontFamily,
-    double fontSize,
-    bool italics,
-    bool bold,
-    bool underline,
-    TextAlign alignment,
-    Color color,
+    TrackRef? trackRef,
+    String? text,
+    String? fontFamily,
+    double? fontSize,
+    bool? italics,
+    bool? bold,
+    bool? underline,
+    TextAlign? alignment,
+    Color? color,
   }) {
     return ActorElementModel(
       trackRef: trackRef ?? this.trackRef,

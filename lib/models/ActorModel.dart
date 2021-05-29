@@ -13,15 +13,15 @@ class ActorModel {
   static const String unassignedTrackId = 'UNASSIGNED';
 
   ActorModel({
-    @required this.ref,
+    required this.ref,
     this.name = '',
     this.headshotRef = const PhotoRef.none(),
   });
 
   ActorModel copyWith({
-    ActorRef ref,
-    String name,
-    PhotoRef headshotRef,
+    ActorRef? ref,
+    String? name,
+    PhotoRef? headshotRef,
   }) {
     return ActorModel(
       ref: ref ?? this.ref,
@@ -34,16 +34,14 @@ class ActorModel {
     return {
       'ref': ref.toMap(),
       'name': name,
-      'headshotRef': headshotRef?.toMap(),
+      'headshotRef': headshotRef.toMap(),
     };
   }
 
   factory ActorModel.fromMap(Map<String, dynamic> map) {
-    if (map == null) return null;
-
     return ActorModel(
       ref: ActorRef.fromMap(map['ref']),
-      name: map['name'],
+      name: map['name'] ?? '',
       headshotRef: PhotoRef.fromMap(map['headshotRef']),
     );
   }

@@ -18,7 +18,7 @@ const double _gridSize = 80;
 typedef void OnSelectedElementsChangedCallback(Set<String> selectedElements);
 typedef void OnElementsChangedCallback(
     Map<String, LayoutBlock> changedElements);
-typedef void OnPlaceCallback(double xPos, double yPos);
+typedef void OnPlaceCallback(double? xPos, double? yPos);
 
 class LayoutCanvas extends StatefulWidget {
   final bool interactive;
@@ -28,12 +28,12 @@ class LayoutCanvas extends StatefulWidget {
   final Set<String> selectedElements;
   final double renderScale;
   final bool placing;
-  final OnSelectedElementsChangedCallback onSelectedElementsChanged;
-  final OnElementsChangedCallback onElementsChanged;
-  final OnPlaceCallback onPlace;
+  final OnSelectedElementsChangedCallback? onSelectedElementsChanged;
+  final OnElementsChangedCallback? onElementsChanged;
+  final OnPlaceCallback? onPlace;
 
   LayoutCanvas(
-      {Key key,
+      {Key? key,
       this.interactive = true,
       this.deferHitTestingToChildren = false,
       this.showGrid = false,
@@ -54,23 +54,22 @@ class _LayoutCanvasState extends State<LayoutCanvas> {
   Map<String, LayoutBlock> _activeElements = const {};
 
   // State
-  int _lastPointerId;
-  ResizeHandleLocation _logicalResizeHandle;
-  Point _pointerPosition;
+  int? _lastPointerId;
+  ResizeHandleLocation? _logicalResizeHandle;
+  Point? _pointerPosition;
   bool _isDragSelecting = false;
-  Offset _dragSelectAnchorPoint = Offset(0, 0);
-  Offset _dragSelectMousePoint = Offset(0, 0);
+  Offset? _dragSelectAnchorPoint = Offset(0, 0);
+  Offset? _dragSelectMousePoint = Offset(0, 0);
   Set<String> _dragSelectionPreviews = <String>{};
   double _deltaXSnapAccumulator =
       0.0; // Accumulates Delta Values up until the object or handle is snapped to a grid. In which case Accumulation will start again.
   double _deltaYSnapAccumulator =
       0.0; // Accumulates Delta Values up until the object or handle is snapped to a grid. In which case Accumulation will start again.
 
-  double _currentBlockWidth = 0.0;
   @override
   Widget build(BuildContext context) {
     final dragSelectRect =
-        Rect.fromPoints(_dragSelectAnchorPoint, _dragSelectMousePoint);
+        Rect.fromPoints(_dragSelectAnchorPoint!, _dragSelectMousePoint!);
     return Listener(
       onPointerDown:
           (widget.interactive && widget.deferHitTestingToChildren == false)
@@ -98,7 +97,7 @@ class _LayoutCanvasState extends State<LayoutCanvas> {
               DragBoxLayer(
                 interactive: widget.interactive,
                 deferHitTestingToChildren: widget.deferHitTestingToChildren,
-                selectedElementIds: Set<String>.from(widget.selectedElements)
+                selectedElementIds: Set<String?>.from(widget.selectedElements)
                   ..addAll(_dragSelectionPreviews),
                 renderScale: widget.renderScale,
                 blocks: _buildBlocks(),
@@ -154,7 +153,7 @@ class _LayoutCanvasState extends State<LayoutCanvas> {
     }
 
     if (_activeElements.isNotEmpty) {
-      widget.onElementsChanged(_activeElements);
+      widget.onElementsChanged!(_activeElements);
       setState(() {
         _activeElements = const {};
         _deltaXSnapAccumulator = 0.0;
@@ -186,7 +185,7 @@ class _LayoutCanvasState extends State<LayoutCanvas> {
   }
 
   void _finishDragSelection() {
-    widget.onSelectedElementsChanged(_dragSelectionPreviews);
+    widget.onSelectedElementsChanged!(_dragSelectionPreviews);
 
     setState(() {
       _isDragSelecting = false;
@@ -196,12 +195,12 @@ class _LayoutCanvasState extends State<LayoutCanvas> {
     });
   }
 
-  void _updateDragSelection(Offset currentPos) {
+  void _updateDragSelection(Offset? currentPos) {
     setState(() {
       _dragSelectMousePoint = currentPos;
       _dragSelectionPreviews = _hitTestSelectionBox(
-        Rect.fromPoints(_dragSelectAnchorPoint / widget.renderScale,
-            currentPos / widget.renderScale),
+        Rect.fromPoints(_dragSelectAnchorPoint! / widget.renderScale,
+            currentPos! / widget.renderScale),
       );
     });
   }
@@ -251,18 +250,18 @@ class _LayoutCanvasState extends State<LayoutCanvas> {
     return hits.toSet();
   }
 
-  void _startDragSelection(Offset currentPos, Offset delta) {
+  void _startDragSelection(Offset? currentPos, Offset? delta) {
     // Initiate Drag Selection.
     setState(() {
       _isDragSelecting = true;
       _dragSelectionPreviews = <String>{};
       _dragSelectAnchorPoint = currentPos;
-      _dragSelectMousePoint = currentPos.translate(delta.dx, delta.dy);
+      _dragSelectMousePoint = currentPos!.translate(delta!.dx, delta.dy);
     });
   }
 
   void _handleRotateStart(int pointerId, String elementId) {
-    final existing = widget.elements[elementId];
+    final existing = widget.elements[elementId]!;
 
     final rectangle = existing.rectangle;
     final nakedPoint = Point(0, existing.height / 2 + rotateHandleTotalHeight);
@@ -290,15 +289,16 @@ class _LayoutCanvasState extends State<LayoutCanvas> {
     final primaryElement =
         _activeElements[primaryElementId] ?? widget.elements[primaryElementId];
 
-    final pointerPos = Point(_pointerPosition.x + (deltaX / widget.renderScale),
-        _pointerPosition.y + (deltaY / widget.renderScale));
+    final pointerPos = Point(
+        _pointerPosition!.x + (deltaX / widget.renderScale),
+        _pointerPosition!.y + (deltaY / widget.renderScale));
 
     final updatedActiveElements =
         Map<String, LayoutBlock>.fromEntries(widget.selectedElements.map((id) {
-      final existing = _activeElements[id] ?? widget.elements[id];
+      final existing = _activeElements[id] ?? widget.elements[id]!;
       final center = existing.rectangle.center;
 
-      final xOffset = center.dx - primaryElement.rectangle.center.dx;
+      final xOffset = center.dx - primaryElement!.rectangle.center.dx;
       final yOffset = center.dy - primaryElement.rectangle.center.dy;
 
       final rotation = atan2((pointerPos.y - center.dy + yOffset),
@@ -318,47 +318,7 @@ class _LayoutCanvasState extends State<LayoutCanvas> {
     });
   }
 
-  List<Widget> _buildDebugDisplay() {
-    return <Widget>[
-      Positioned(
-          left: _pointerPosition?.x ?? 0,
-          top: _pointerPosition?.y ?? 0,
-          child: Container(
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: Colors.purpleAccent,
-            ),
-            width: 8,
-            height: 8,
-          )),
-      Positioned(
-        top: 20,
-        left: 20,
-        child: Column(
-          children: [
-            Text(_logicalResizeHandle
-                    .toString()
-                    ?.replaceAll('DragHandlePosition.', '') ??
-                'Null'),
-            Text(_currentBlockWidth.round().toString() ?? ''),
-            Text(
-                'Pointer Pos: (${_pointerPosition?.x?.round() ?? null}, ${_pointerPosition?.y?.round() ?? null})')
-          ],
-        ),
-      ),
-      Positioned(
-        top: 200,
-        left: 600,
-        child: Container(
-          height: 700,
-          width: 2,
-          color: Colors.blueAccent,
-        ),
-      ),
-    ];
-  }
-
-  ResizeHandleLocation _getOpposingResizeHandle(
+  ResizeHandleLocation? _getOpposingResizeHandle(
     ResizeHandleLocation currentHandle,
     bool isXAxisFlipping,
     bool isYAxisFlipping,
@@ -393,17 +353,18 @@ class _LayoutCanvasState extends State<LayoutCanvas> {
 
     // Get the primaryElement. The PrimaryElement represents the actual element being interacted with,
     // even when other elements are selected.
-    final primaryElement = _activeElements[blockId] ?? widget.elements[blockId];
+    final primaryElement =
+        _activeElements[blockId] ?? widget.elements[blockId]!;
 
     // Determine if we are going to flip over an Axis on this move.
     final isFlippingLeftToRight =
-        primaryElement.leftEdge + renderDeltaX > primaryElement.rightEdge;
+        primaryElement.leftEdge! + renderDeltaX > primaryElement.rightEdge;
     final isFlippingRightToLeft =
-        primaryElement.rightEdge + renderDeltaX < primaryElement.leftEdge;
+        primaryElement.rightEdge + renderDeltaX < primaryElement.leftEdge!;
     final isFlippingTopToBottom =
-        primaryElement.topEdge + renderDeltaY > primaryElement.bottomEdge;
+        primaryElement.topEdge! + renderDeltaY > primaryElement.bottomEdge;
     final isFlippingBottomToTop =
-        primaryElement.bottomEdge + renderDeltaY < primaryElement.topEdge;
+        primaryElement.bottomEdge + renderDeltaY < primaryElement.topEdge!;
 
     final currentLogicalHandle = _logicalResizeHandle ?? physicalHandle;
 
@@ -412,7 +373,7 @@ class _LayoutCanvasState extends State<LayoutCanvas> {
     final deltaYSnapAccumulator = _deltaYSnapAccumulator + renderDeltaY;
 
     // Declare a local function to get a snap delta only if snapping is enabled (Saves repeating code in handles switch statement later).
-    final maybeGetSnapDeltaX = (double currentPos, double renderDeltaX) {
+    final maybeGetSnapDeltaX = (double? currentPos, double renderDeltaX) {
       if (widget.showGrid == false) {
         return renderDeltaX;
       }
@@ -422,7 +383,7 @@ class _LayoutCanvasState extends State<LayoutCanvas> {
     };
 
     // Declare a local function to get a snap delta only if snapping is enabled (Saves repeating code in handles switch statement later).
-    final maybeGetSnapDeltaY = (double currentPos, double renderDeltaY) {
+    final maybeGetSnapDeltaY = (double? currentPos, double renderDeltaY) {
       if (widget.showGrid == false) {
         return renderDeltaY;
       }
@@ -480,7 +441,7 @@ class _LayoutCanvasState extends State<LayoutCanvas> {
                   ));
             } else {
               final existingSecondary =
-                  _activeElements[id] ?? widget.elements[id];
+                  _activeElements[id] ?? widget.elements[id]!;
               final scaledDeltas = deltas.scaled(
                   existingSecondary.width / primaryElement.width,
                   existingSecondary.height / primaryElement.height);
@@ -546,7 +507,7 @@ class _LayoutCanvasState extends State<LayoutCanvas> {
                   ));
             } else {
               final existingSecondary =
-                  _activeElements[id] ?? widget.elements[id];
+                  _activeElements[id] ?? widget.elements[id]!;
               final scaledDeltas = deltas.scaled(
                   existingSecondary.width / primaryElement.width,
                   existingSecondary.height / primaryElement.height);
@@ -621,7 +582,7 @@ class _LayoutCanvasState extends State<LayoutCanvas> {
                   ));
             } else {
               final existingSecondary =
-                  _activeElements[id] ?? widget.elements[id];
+                  _activeElements[id] ?? widget.elements[id]!;
               final scaledDeltas = deltas.scaled(
                   existingSecondary.width / primaryElement.width,
                   existingSecondary.height / primaryElement.height);
@@ -692,7 +653,7 @@ class _LayoutCanvasState extends State<LayoutCanvas> {
                     ));
               } else {
                 final existingSecondary =
-                    _activeElements[id] ?? widget.elements[id];
+                    _activeElements[id] ?? widget.elements[id]!;
                 final scaledDeltas = deltas.scaled(
                     existingSecondary.width / primaryElement.width,
                     existingSecondary.height / primaryElement.height);
@@ -770,7 +731,7 @@ class _LayoutCanvasState extends State<LayoutCanvas> {
                   ));
             } else {
               final existingSecondary =
-                  _activeElements[id] ?? widget.elements[id];
+                  _activeElements[id] ?? widget.elements[id]!;
               final scaledDeltas = deltas.scaled(
                   existingSecondary.width / primaryElement.width,
                   existingSecondary.height / primaryElement.height);
@@ -836,7 +797,7 @@ class _LayoutCanvasState extends State<LayoutCanvas> {
                   ));
             } else {
               final existingSecondary =
-                  _activeElements[id] ?? widget.elements[id];
+                  _activeElements[id] ?? widget.elements[id]!;
               final scaledDeltas = deltas.scaled(
                   existingSecondary.width / primaryElement.width,
                   existingSecondary.height / primaryElement.height);
@@ -912,7 +873,7 @@ class _LayoutCanvasState extends State<LayoutCanvas> {
                   ));
             } else {
               final existingSecondary =
-                  _activeElements[id] ?? widget.elements[id];
+                  _activeElements[id] ?? widget.elements[id]!;
               final scaledDeltas = deltas.scaled(
                   existingSecondary.width / primaryElement.width,
                   existingSecondary.height / primaryElement.height);
@@ -979,7 +940,7 @@ class _LayoutCanvasState extends State<LayoutCanvas> {
                   ));
             } else {
               final existingSecondary =
-                  _activeElements[id] ?? widget.elements[id];
+                  _activeElements[id] ?? widget.elements[id]!;
               final scaledDeltas = deltas.scaled(
                   existingSecondary.width / primaryElement.width,
                   existingSecondary.height / primaryElement.height);
@@ -1018,19 +979,19 @@ class _LayoutCanvasState extends State<LayoutCanvas> {
   ///
   /// Calculates the delta required to snap the element to the next appropriate gridline. Returns 0 if the element does not need to move.
   ///
-  double _getSnapDelta(double currentPos, double deltaSinceLastSnap,
+  double _getSnapDelta(double? currentPos, double deltaSinceLastSnap,
       double gridSize, double deadZoneRatio) {
     if (deltaSinceLastSnap >= gridSize * deadZoneRatio) {
       // Snap to Right or Bottom grid Line. (Increasing value on the X or Y Axis)
       final double nextSnap =
-          ((currentPos + deltaSinceLastSnap) / gridSize).round() * gridSize;
+          ((currentPos! + deltaSinceLastSnap) / gridSize).round() * gridSize;
       return nextSnap - currentPos;
     }
 
     if (deltaSinceLastSnap * -1 >= gridSize * deadZoneRatio) {
       // Snap to Left or Top grid line. (Decreasing value on the X or Y Axis)
       final prevSnap =
-          ((currentPos + deltaSinceLastSnap) / gridSize).round() * gridSize;
+          ((currentPos! + deltaSinceLastSnap) / gridSize).round() * gridSize;
       return currentPos % gridSize == 0 ? gridSize * -1 : prevSnap - currentPos;
     }
 
@@ -1083,7 +1044,7 @@ class _LayoutCanvasState extends State<LayoutCanvas> {
       Map<String, LayoutBlock> elements,
       double scaledDeltaX,
       double scaledDeltaY) {
-    final primaryElement = activeElements[uid] ?? elements[uid];
+    final primaryElement = activeElements[uid] ?? elements[uid]!;
     final double deltaXSnapAccumulator = _deltaXSnapAccumulator +
         scaledDeltaX; // Get updated Delta Accumulators.
     final double deltaYSnapAccumulator = _deltaYSnapAccumulator +
@@ -1134,12 +1095,12 @@ class _LayoutCanvasState extends State<LayoutCanvas> {
         selectedElements.map((id) => MapEntry(
             id,
             activeElements[id]?.copyWith(
-                  xPos: activeElements[id].xPos + deltaX,
-                  yPos: activeElements[id].yPos + deltaY,
+                  xPos: activeElements[id]!.xPos + deltaX,
+                  yPos: activeElements[id]!.yPos + deltaY,
                 ) ??
-                elements[id].copyWith(
-                  xPos: elements[id].xPos + deltaX,
-                  yPos: elements[id].yPos + deltaY,
+                elements[id]!.copyWith(
+                  xPos: elements[id]!.xPos + deltaX,
+                  yPos: elements[id]!.yPos + deltaY,
                 ))));
   }
 
@@ -1174,5 +1135,5 @@ class _HitRect {
   final Rect rect;
   final String blockId;
 
-  _HitRect({this.rect, this.blockId});
+  _HitRect({required this.rect, required this.blockId});
 }

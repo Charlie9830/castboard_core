@@ -1,19 +1,21 @@
+
+
 import 'package:castboard_core/inherited/RenderScaleProvider.dart';
 import 'package:castboard_core/slide-viewport/SlideScroller.dart';
 import 'package:flutter/material.dart';
 
 class SlideViewport extends StatelessWidget {
-  final Widget child;
+  final Widget? child;
   final int slideWidth;
   final int slideHeight;
   final double slideRenderScale;
   final bool enableScrolling;
-  final BoxDecoration background;
+  final BoxDecoration? background;
 
   const SlideViewport({
-    Key key,
+    Key? key,
     this.child,
-    @required this.slideRenderScale,
+    required this.slideRenderScale,
     this.slideWidth = 1920,
     this.slideHeight = 1080,
     this.enableScrolling = true,

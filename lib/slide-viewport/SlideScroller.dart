@@ -1,10 +1,12 @@
+
+
 import 'package:flutter/material.dart';
 
 class SlideScroller extends StatefulWidget {
-  final Widget child;
+  final Widget? child;
   final bool enabled;
   const SlideScroller({
-    Key key,
+    Key? key,
     this.child,
     this.enabled = true,
   }) : super(key: key);
@@ -19,7 +21,7 @@ class _SlideScrollerState extends State<SlideScroller> {
   @override
   Widget build(BuildContext context) {
     if (widget.enabled == false) {
-      return widget.child;
+      return widget.child!;
     }
 
     return SingleChildScrollView(

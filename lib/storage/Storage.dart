@@ -54,16 +54,16 @@ enum StorageMode {
 }
 
 class Storage {
-  static Storage _instance;
+  static Storage? _instance;
   static bool _initalized = false;
 
-  final Directory _appStorageRoot;
-  final Directory _headshotsDir;
-  final Directory _backgroundsDir;
-  final Directory _playerDir;
-  final Directory _fontsDir;
+  final Directory? _appStorageRoot;
+  final Directory? _headshotsDir;
+  final Directory? _backgroundsDir;
+  final Directory? _playerDir;
+  final Directory? _fontsDir;
 
-  static Storage get instance {
+  static Storage? get instance {
     if (_initalized == false) {
       throw StorageException(
           'Storage() as not been initialized Yet. Ensure you are calling Storage.initalize() prior to making any other calls');
@@ -73,11 +73,11 @@ class Storage {
   }
 
   Storage(
-      {Directory appStorageRoot,
-      Directory headshots,
-      Directory backgrounds,
-      Directory playerDir,
-      Directory fontsDir})
+      {Directory? appStorageRoot,
+      Directory? headshots,
+      Directory? backgrounds,
+      Directory? playerDir,
+      Directory? fontsDir})
       : _appStorageRoot = appStorageRoot,
         _headshotsDir = headshots,
         _backgroundsDir = backgrounds,
@@ -108,10 +108,10 @@ class Storage {
             .create();
 
     // Build Directories.
-    Directory headshots;
-    Directory backgrounds;
-    Directory playerDir;
-    Directory fontsDir;
+    Directory? headshots;
+    Directory? backgrounds;
+    Directory? playerDir;
+    Directory? fontsDir;
     await Future.wait([
       () async {
         headshots =
@@ -148,12 +148,12 @@ class Storage {
   }
 
   Future<File> addFont(String uid, String path) async {
-    final Directory fonts = _fontsDir;
+    final Directory? fonts = _fontsDir;
 
     final font = File(path);
     if (await font.exists()) {
       final ext = p.extension(path);
-      final targetFile = await font.copy(p.join(fonts.path, '$uid$ext'));
+      final targetFile = await font.copy(p.join(fonts!.path, '$uid$ext'));
 
       return targetFile;
     } else {
@@ -162,12 +162,12 @@ class Storage {
   }
 
   Future<File> addHeadshot(String uid, String path) async {
-    final Directory headshots = _headshotsDir;
+    final Directory? headshots = _headshotsDir;
 
     final photo = File(path);
     if (await photo.exists()) {
       final ext = p.extension(path);
-      final targetFile = await photo.copy(p.join(headshots.path, '$uid$ext'));
+      final targetFile = await photo.copy(p.join(headshots!.path, '$uid$ext'));
 
       return targetFile;
     } else {
@@ -184,7 +184,7 @@ class Storage {
   }
 
   Future<void> deleteHeadshot(PhotoRef ref) async {
-    final Directory headshots = _headshotsDir;
+    final Directory headshots = _headshotsDir!;
     final File file = File(p.join(headshots.path, ref.basename));
 
     if (await file.exists()) {
@@ -196,7 +196,7 @@ class Storage {
   }
 
   Future<void> deleteFont(FontRef ref) async {
-    final Directory fonts = _fontsDir;
+    final Directory fonts = _fontsDir!;
     final File file = File(p.join(fonts.path, ref.basename));
 
     if (await file.exists()) {
@@ -208,12 +208,13 @@ class Storage {
   }
 
   Future<File> addBackground(String uid, String path) async {
-    final Directory backgrounds = _backgroundsDir;
+    final Directory? backgrounds = _backgroundsDir;
 
     final photo = File(path);
     if (await photo.exists()) {
       final ext = p.extension(path);
-      final targetFile = await photo.copy(p.join(backgrounds.path, '$uid$ext'));
+      final targetFile =
+          await photo.copy(p.join(backgrounds!.path, '$uid$ext'));
 
       return targetFile;
     } else {
@@ -230,7 +231,7 @@ class Storage {
   }
 
   Future<void> deleteBackground(PhotoRef ref) async {
-    final Directory backgrounds = _backgroundsDir;
+    final Directory backgrounds = _backgroundsDir!;
     final File file = File(p.join(backgrounds.path, ref.basename));
 
     if (await file.exists()) {
@@ -241,56 +242,52 @@ class Storage {
     return;
   }
 
-  File getHeadshotFile(PhotoRef ref) {
+  File? getHeadshotFile(PhotoRef ref) {
     if (ref == null) {
       return null;
     }
 
-    if (ref.uid == null || ref.uid.isEmpty) {
+    if (ref.uid == null || ref.uid!.isEmpty) {
       return null;
     }
 
     return File(
-        p.join(_appStorageRoot.path, _headshotsTempDirName, ref.basename));
+        p.join(_appStorageRoot!.path, _headshotsTempDirName, ref.basename));
   }
 
-  File getBackgroundFile(PhotoRef ref) {
+  File? getBackgroundFile(PhotoRef ref) {
     if (ref == null) {
       return null;
     }
 
-    if (ref.uid == null || ref.uid.isEmpty) {
+    if (ref.uid == null || ref.uid!.isEmpty) {
       return null;
     }
 
     return File(
-        p.join(_appStorageRoot.path, _backgroundsTempDirName, ref.basename));
+        p.join(_appStorageRoot!.path, _backgroundsTempDirName, ref.basename));
   }
 
-  File getFontFile(FontRef ref) {
-    if (ref == null) {
-      return null;
-    }
-
-    if (ref.uid == null || ref.uid.isEmpty) {
+  File? getFontFile(FontRef ref) {
+    if (ref.uid.isEmpty) {
       return null;
     }
 
     return File(
-      p.join(_appStorageRoot.path, _fontsTempDirName, ref.basename),
+      p.join(_appStorageRoot!.path, _fontsTempDirName, ref.basename),
     );
   }
 
   Future<void> copyShowFileIntoPlayerStorage(List<int> bytes) async {
     final targetFile = File(p.join(
-        _appStorageRoot.path, _playerDir.path, _playerCurrentShowFileName));
+        _appStorageRoot!.path, _playerDir!.path, _playerCurrentShowFileName));
 
     await targetFile.writeAsBytes(bytes);
     return;
   }
 
   Future<bool> isPlayerStoragePopulated() async {
-    if (await File(p.join(_playerDir.path, _playerCurrentShowFileName))
+    if (await File(p.join(_playerDir!.path, _playerCurrentShowFileName))
         .exists()) {
       return true;
     } else {
@@ -299,17 +296,13 @@ class Storage {
   }
 
   Future<ImportedShowData> readFromPlayerStorage() async {
-    final file = File(p.join(_playerDir.path, _playerCurrentShowFileName));
+    final file = File(p.join(_playerDir!.path, _playerCurrentShowFileName));
 
     return readFromPermanentStorage(file: file);
   }
 
   Future<ImportedShowData> readFromPermanentStorage(
-      {@required File file}) async {
-    if (file == null) {
-      throw ArgumentError('File argument must not be null');
-    }
-
+      {required File file}) async {
     if (await file.exists() == false) {
       throw FileDoesNotExistException();
     }
@@ -325,9 +318,9 @@ class Storage {
     final unzipper = ZipDecoder();
     final archive = unzipper.decodeBytes(bytes);
 
-    Map<String, dynamic> rawManifest = {};
-    Map<String, dynamic> rawShowData = {};
-    Map<String, dynamic> rawSlideData = {};
+    Map<String, dynamic>? rawManifest = {};
+    Map<String, dynamic>? rawShowData = {};
+    Map<String, dynamic>? rawSlideData = {};
     final fileWriteRequests = <Future<File>>[];
 
     for (var entity in archive) {
@@ -341,53 +334,61 @@ class Storage {
       // Should it be made aware of that?
 
       if (entity.isFile) {
-        final bytedata = entity.content as List<int>;
+        final bytedata = entity.content as List<int>?;
         // Headshots
         if (parentDirectoryName == _headshotsTempDirName) {
           fileWriteRequests.add(
-              File(p.join(_headshotsDir.path, p.basename(name)))
-                  .writeAsBytes(bytedata));
+              File(p.join(_headshotsDir!.path, p.basename(name)))
+                  .writeAsBytes(bytedata!));
         }
 
         // Backgrounds
         if (parentDirectoryName == _backgroundsTempDirName) {
           fileWriteRequests.add(
-              File(p.join(_backgroundsDir.path, p.basename(name)))
-                  .writeAsBytes(bytedata));
+              File(p.join(_backgroundsDir!.path, p.basename(name)))
+                  .writeAsBytes(bytedata!));
         }
 
         // Fonts
         if (parentDirectoryName == _fontsTempDirName) {
-          fileWriteRequests.add(File(p.join(_fontsDir.path, p.basename(name)))
-              .writeAsBytes(bytedata));
+          fileWriteRequests.add(File(p.join(_fontsDir!.path, p.basename(name)))
+              .writeAsBytes(bytedata!));
         }
 
         // Manifest
         if (name == _manifestSaveName) {
-          rawManifest = json.decode(utf8.decode(bytedata));
+          rawManifest = json.decode(utf8.decode(bytedata!));
         }
 
         // Show Data (Actors, Tracks, Presets)
         if (name == _showDataSaveName) {
-          rawShowData = json.decode(utf8.decode(bytedata));
+          rawShowData = json.decode(utf8.decode(bytedata!));
         }
 
         // Slide Data (Slides, SlideSize, SlideOrientation)
         if (name == _slideDataSaveName) {
-          rawSlideData = json.decode(utf8.decode(bytedata));
+          rawSlideData = json.decode(utf8.decode(bytedata!));
         }
       }
     }
 
     await Future.wait(fileWriteRequests);
 
-    final showData = ShowDataModel.fromMap(rawShowData);
-    final slideData = SlideDataModel.fromMap(rawSlideData);
+    final manifestData = rawManifest == null
+        ? ManifestModel()
+        : ManifestModel.fromMap(rawManifest);
+    final showData = rawShowData == null
+        ? ShowDataModel()
+        : ShowDataModel.fromMap(rawShowData);
+    final slideData = rawSlideData == null
+        ? SlideDataModel()
+        : SlideDataModel.fromMap(rawSlideData);
 
     // TODO: Verification and Coercion. Values or behaviour for ImportedShowData if properties are Null.
     // -> Coerce a default Preset into existence if not already existing.
+    // -> If the Manifest is null, something bad has probalby happened. Should notify the user.
     return ImportedShowData(
-      manifest: ManifestModel.fromMap(rawManifest),
+      manifest: manifestData,
       actors: showData.actors,
       tracks: showData.tracks,
       presets: showData.presets,
@@ -404,19 +405,19 @@ class Storage {
 
     await Future.wait([
       // Headshots
-      _headshotsDir.list().listen((entity) {
+      _headshotsDir!.list().listen((entity) {
         if (entity is File) {
           headshots.add(entity);
         }
       }).asFuture(),
       // Backgrounds
-      _backgroundsDir.list().listen((entity) {
+      _backgroundsDir!.list().listen((entity) {
         if (entity is File) {
           backgrounds.add(entity);
         }
       }).asFuture(),
       // Fonts
-      _fontsDir.list().listen((entity) {
+      _fontsDir!.list().listen((entity) {
         if (entity is File) {
           fonts.add(entity);
         }
@@ -439,14 +440,14 @@ class Storage {
   /// Stages all required show data, compresses (Zips) it and saves it to the file referenced by the targetFile parameter.
   ///
   Future<void> writeToPermanentStorage(
-      {@required Map<ActorRef, ActorModel> actors,
-      @required Map<TrackRef, TrackModel> tracks,
-      @required Map<String, PresetModel> presets,
-      @required Map<String, SlideModel> slides,
-      @required String slideSizeId,
-      @required SlideOrientation slideOrientation,
-      @required ManifestModel manifest,
-      @required File targetFile}) async {
+      {required Map<ActorRef, ActorModel> actors,
+      required Map<TrackRef, TrackModel> tracks,
+      required Map<String, PresetModel> presets,
+      required Map<String, SlideModel> slides,
+      required String slideSizeId,
+      required SlideOrientation slideOrientation,
+      required ManifestModel manifest,
+      required File targetFile}) async {
     final mfs = memoryFs.MemoryFileSystem();
 
     // Stage Directories in Memory.
@@ -512,7 +513,7 @@ class Storage {
 
   Future<void> _stageSlideData(
       memoryFs.MemoryFileSystem mfs, SlideDataModel slideData) async {
-    final data = slideData?.toMap() ?? SlideDataModel().toMap();
+    final data = slideData.toMap();
 
     final jsonData = json.encoder.convert(data);
 
@@ -529,12 +530,13 @@ class Storage {
         .where((ref) => ref != PhotoRef.none());
 
     final requests = refs.map((ref) {
-      final sourceFile = getBackgroundFile(ref);
+      final sourceFile = getBackgroundFile(ref)!;
       return _copyToMemoryFileSystem(sourceFile,
           mfs.file(mfs.path.join(_backgroundsSaveDirName, ref.basename)));
     });
 
-    return Future.wait(requests);
+    await Future.wait(requests);
+    return;
   }
 
   Future<void> _stageFonts(
@@ -543,14 +545,15 @@ class Storage {
         fonts.map((font) => font.ref).where((ref) => ref != FontRef.none());
 
     final requests = relativePaths.map((path) {
-      final sourceFile = getFontFile(path);
+      final sourceFile = getFontFile(path)!;
       return _copyToMemoryFileSystem(
           sourceFile,
           mfs.file(
               mfs.path.join(_fontsSaveDirName, p.basename(sourceFile.path))));
     });
 
-    return Future.wait(requests);
+    await Future.wait(requests);
+    return;
   }
 
   Future<void> _stageHeadshots(
@@ -560,12 +563,13 @@ class Storage {
         .where((ref) => ref != PhotoRef.none());
 
     final requests = refs.map((ref) {
-      final sourceFile = getHeadshotFile(ref);
+      final sourceFile = getHeadshotFile(ref)!;
       return _copyToMemoryFileSystem(sourceFile,
           mfs.file(mfs.path.join(_headshotsSaveDirName, ref.basename)));
     });
 
-    return Future.wait(requests);
+    await Future.wait(requests);
+    return;
   }
 
   Future<void> _stagePermStorageDirectories(
@@ -575,7 +579,8 @@ class Storage {
       mfs.directory(_backgroundsSaveDirName).create(),
       mfs.directory(_fontsSaveDirName).create(),
     ];
-    return Future.wait(requests);
+    await Future.wait(requests);
+    return;
   }
 
   Future<File> _copyToMemoryFileSystem(File sourceFile, File targetFile) async {

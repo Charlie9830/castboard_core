@@ -20,9 +20,10 @@ BoxDecoration getBackground(Map<String, SlideModel> slides, String slideId) {
     final sortedSlides = List<SlideModel>.from(slides.values)
       ..sort((a, b) => a.index - b.index)
       ..sublist(0, currentSlide.index);
-    final hardValueSlide = sortedSlides.lastWhere((slide) =>
-            slide != currentSlide && slide.usePreviousBackground == false) ??
-        SlideModel();
+    final hardValueSlide = sortedSlides.lastWhere(
+        (slide) =>
+            slide != currentSlide && slide.usePreviousBackground == false,
+        orElse: () => SlideModel());
 
     return base.copyWith(
         color: hardValueSlide.backgroundColor,
@@ -41,7 +42,7 @@ BoxDecoration getBackground(Map<String, SlideModel> slides, String slideId) {
   return base;
 }
 
-DecorationImage _buildDecorationImage(PhotoRef backgroundRef) {
+DecorationImage? _buildDecorationImage(PhotoRef backgroundRef) {
   if (backgroundRef == const PhotoRef.none()) {
     return null;
   }
@@ -49,6 +50,6 @@ DecorationImage _buildDecorationImage(PhotoRef backgroundRef) {
   return DecorationImage(
     alignment: Alignment.center,
     fit: BoxFit.contain,
-    image: FileImage(Storage.instance.getBackgroundFile(backgroundRef)),
+    image: FileImage(Storage.instance!.getBackgroundFile(backgroundRef)!),
   );
 }

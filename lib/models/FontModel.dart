@@ -17,19 +17,19 @@ class FontModel {
     this.uid = '',
     this.familyName = '',
     this.ref = const FontRef.none(),
-    @required this.encoding,
+    required this.encoding,
   });
 
   FontModel copyWith({
-    String uid,
-    String familyName,
-    String path,
-    FontEncoding encoding,
+    String? uid,
+    String? familyName,
+    String? path,
+    FontEncoding? encoding,
   }) {
     return FontModel(
       uid: uid ?? this.uid,
       familyName: familyName ?? this.familyName,
-      ref: path ?? this.ref,
+      ref: path as FontRef? ?? this.ref,
       encoding: encoding ?? this.encoding,
     );
   }
@@ -45,8 +45,8 @@ class FontModel {
 
   factory FontModel.fromMap(Map<String, dynamic> map) {
     return FontModel(
-      uid: map['uid'],
-      familyName: map['familyName'],
+      uid: map['uid'] ?? '',
+      familyName: map['familyName'] ?? '',
       ref: FontRef.fromMap(map['ref']),
       encoding: parseFontEncoding(map['encoding']),
     );

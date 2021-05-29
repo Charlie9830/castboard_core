@@ -10,11 +10,11 @@ class SlideSizeModel {
   final int height;
 
   SlideSizeModel({
-    this.uid,
-    this.name,
-    this.details,
-    this.width,
-    this.height,
+    required this.uid,
+    this.name = '',
+    this.details = '',
+    this.width = 1920,
+    this.height = 1080,
   });
 
   const SlideSizeModel.hd()
@@ -63,11 +63,11 @@ class SlideSizeModel {
   }
 
   SlideSizeModel copyWith({
-    String uid,
-    String name,
-    String details,
-    int width,
-    int height,
+    String? uid,
+    String? name,
+    String? details,
+    int? width,
+    int? height,
   }) {
     return SlideSizeModel(
       uid: uid ?? this.uid,

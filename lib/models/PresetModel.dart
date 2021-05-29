@@ -8,10 +8,10 @@ class PresetModel {
   final String name;
   final String details;
   final bool isNestable;
-  final CastChangeModel castChange; // { key: Track, value: Actor }
+  final CastChangeModel castChange;
 
   PresetModel({
-    this.uid,
+    required this.uid,
     this.name = '',
     this.details = '',
     this.castChange = const CastChangeModel.initial(),
@@ -26,11 +26,11 @@ class PresetModel {
         isNestable = false;
 
   PresetModel copyWith({
-    String uid,
-    String name,
-    String details,
-    CastChangeModel castChange,
-    bool isNestable,
+    String? uid,
+    String? name,
+    String? details,
+    CastChangeModel? castChange,
+    bool? isNestable,
   }) {
     return PresetModel(
       uid: uid ?? this.uid,
@@ -52,14 +52,12 @@ class PresetModel {
   }
 
   factory PresetModel.fromMap(Map<String, dynamic> map) {
-    if (map == null) return null;
-
     return PresetModel(
-      uid: map['uid'],
-      name: map['name'],
-      details: map['details'],
+      uid: map['uid'] ?? '',
+      name: map['name'] ?? '',
+      details: map['details'] ?? '',
       castChange: CastChangeModel.fromMap(map['castChange']),
-      isNestable: map['isNestable'],
+      isNestable: map['isNestable'] ?? false,
     );
   }
 

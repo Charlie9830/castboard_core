@@ -18,7 +18,7 @@ class SlideDataModel {
 
   Map<String, dynamic> toMap() {
     return {
-      'slides': Map<String, dynamic>.fromEntries(
+      'slides': Map<String?, dynamic>.fromEntries(
         slides.values.map(
           (slide) => MapEntry(
             slide.uid,

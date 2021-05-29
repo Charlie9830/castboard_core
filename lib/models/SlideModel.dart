@@ -22,7 +22,7 @@ class SlideModel {
     this.index = 0,
     this.name = '',
     this.backgroundRef = const PhotoRef.none(),
-    this.backgroundFileName,
+    this.backgroundFileName = '',
     this.backgroundColor = Colors.white,
     this.usePreviousBackground = false,
     this.holdTime = 1,
@@ -30,15 +30,15 @@ class SlideModel {
   });
 
   SlideModel copyWith({
-    String uid,
-    int index,
-    String name,
-    PhotoRef backgroundRef,
-    String backgroundFileName,
-    Color backgroundColor,
-    bool usePreviousBackground,
-    double holdTime,
-    Map<String, LayoutElementModel> elements,
+    String? uid,
+    int? index,
+    String? name,
+    PhotoRef? backgroundRef,
+    String? backgroundFileName,
+    Color? backgroundColor,
+    bool? usePreviousBackground,
+    double? holdTime,
+    Map<String, LayoutElementModel>? elements,
   }) {
     return SlideModel(
       uid: uid ?? this.uid,
@@ -59,7 +59,7 @@ class SlideModel {
       'uid': uid,
       'index': index,
       'name': name,
-      'backgroundRef': backgroundRef?.toMap(),
+      'backgroundRef': backgroundRef.toMap(),
       'backgroundFileName': backgroundFileName,
       'backgroundColor': ColorModel(backgroundColor.alpha, backgroundColor.red,
               backgroundColor.green, backgroundColor.blue)
@@ -72,23 +72,21 @@ class SlideModel {
   }
 
   factory SlideModel.fromMap(Map<String, dynamic> map) {
-    if (map == null) return null;
-
     return SlideModel(
-      uid: map['uid'],
-      index: map['index'],
-      name: map['name'],
+      uid: map['uid'] ?? '',
+      index: map['index'] ?? 0,
+      name: map['name'] ?? '',
       backgroundRef: PhotoRef.fromMap(map['backgroundRef']),
-      backgroundFileName: map['backgroundFileName'],
+      backgroundFileName: map['backgroundFileName'] ?? '',
       backgroundColor: ColorModel.fromMap(map['backgroundColor']).toColor(),
-      usePreviousBackground: map['usePreviousBackground'],
-      holdTime: map['holdTime'],
+      usePreviousBackground: map['usePreviousBackground'] ?? false,
+      holdTime: map['holdTime'] ?? 1,
       elements: _mapElements(map['elements']),
     );
   }
 
   static Map<String, LayoutElementModel> _mapElements(
-      Map<String, dynamic> map) {
+      Map<String, dynamic>? map) {
     if (map == null || map.isEmpty) {
       return const {};
     }

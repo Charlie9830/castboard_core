@@ -11,14 +11,14 @@ const double rotateHandleTotalHeight =
     rotateHandleHeight + rotateHandleTrunkHeight;
 
 class RotateHandle extends StatelessWidget {
-  final bool interactive;
+  final bool? interactive;
   final bool selected;
-  final OnRotateStartCallback onDragStart;
-  final OnRotateCallback onDrag;
-  final OnRotateDoneCallback onDragDone;
+  final OnRotateStartCallback? onDragStart;
+  final OnRotateCallback? onDrag;
+  final OnRotateDoneCallback? onDragDone;
 
   const RotateHandle(
-      {Key key,
+      {Key? key,
       this.onDrag,
       this.interactive = true,
       this.onDragStart,
@@ -42,31 +42,35 @@ class RotateHandle extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Listener(
-              onPointerDown: interactive ? _handlePointerDown : null,
-              onPointerUp: interactive ? _handlePointerUp : null,
-              onPointerMove: interactive ? _handlePointerMove : null,
-              child: Icon(Icons.refresh_outlined, color: Theme.of(context).colorScheme.secondaryVariant,),
+              onPointerDown: interactive! ? _handlePointerDown : null,
+              onPointerUp: interactive! ? _handlePointerUp : null,
+              onPointerMove: interactive! ? _handlePointerMove : null,
+              child: Icon(
+                Icons.refresh_outlined,
+                color: Theme.of(context).colorScheme.secondaryVariant,
+              ),
             ),
             Expanded(
               child: CustomPaint(
-                  painter: _Trunk(color: Theme.of(context).colorScheme.secondaryVariant)),
+                  painter: _Trunk(
+                      color: Theme.of(context).colorScheme.secondaryVariant)),
             )
           ],
         ));
   }
 
-  void _handlePointerDown(pointerEvent) {
-    onDragStart?.call(pointerEvent.original.pointer);
+  void _handlePointerDown(PointerDownEvent pointerEvent) {
+    onDragStart?.call(pointerEvent.original?.pointer ?? 0);
   }
 
-  void _handlePointerUp(pointerEvent) {
-    onDragDone?.call(pointerEvent.original.pointer);
+  void _handlePointerUp(PointerUpEvent pointerEvent) {
+    onDragDone?.call(pointerEvent.original?.pointer ?? 0);
   }
 
-  void _handlePointerMove(pointerEvent) {
+  void _handlePointerMove(PointerMoveEvent pointerEvent) {
     if (pointerEvent.down) {
       onDrag?.call(pointerEvent.delta.dx, pointerEvent.delta.dy,
-          pointerEvent.original.pointer);
+          pointerEvent.original?.pointer ?? 0);
     }
   }
 }
@@ -75,7 +79,7 @@ class _Trunk extends CustomPainter {
   final Color color;
 
   _Trunk({
-    this.color,
+    required this.color,
   });
 
   @override

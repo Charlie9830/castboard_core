@@ -1,7 +1,9 @@
+
+
 import 'package:castboard_core/enum-converters/EnumConversionError.dart';
 import 'package:castboard_core/models/FontModel.dart';
 
-FontEncoding parseFontEncoding(String value) {
+FontEncoding parseFontEncoding(String? value) {
   if (value == 'otf') {
     return FontEncoding.otf;
   }

@@ -1,3 +1,5 @@
+
+
 import 'package:castboard_core/classes/LayoutElementChild.dart';
 import 'package:castboard_core/models/LayoutElementModel.dart';
 
@@ -5,7 +7,7 @@ class GroupElementModel extends LayoutElementChild {
   final List<LayoutElementModel> children;
 
   GroupElementModel({
-    List<LayoutElementModel> children,
+    List<LayoutElementModel>? children,
   })  : this.children = children ?? <LayoutElementModel>[],
         super(
             updateContracts: <PropertyUpdateContracts>{},
@@ -20,7 +22,7 @@ class GroupElementModel extends LayoutElementChild {
   }
 
   GroupElementModel copyWith({
-    List<LayoutElementModel> children,
+    List<LayoutElementModel>? children,
   }) {
     return GroupElementModel(children: children ?? this.children);
   }

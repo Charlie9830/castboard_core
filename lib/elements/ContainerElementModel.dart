@@ -1,3 +1,5 @@
+
+
 import 'package:castboard_core/enum-converters/axisConverters.dart';
 
 import 'package:castboard_core/classes/LayoutElementChild.dart';
@@ -16,12 +18,12 @@ class ContainerElementModel extends LayoutElementChild {
   final List<LayoutElementModel> children;
 
   ContainerElementModel({
-    MainAxisAlignment mainAxisAlignment,
-    CrossAxisAlignment crossAxisAlignment,
-    WrapAlignment runAlignment,
-    bool wrapEnabled,
-    List<LayoutElementModel> children,
-    Axis axis,
+    MainAxisAlignment? mainAxisAlignment,
+    CrossAxisAlignment? crossAxisAlignment,
+    WrapAlignment? runAlignment,
+    bool? wrapEnabled,
+    List<LayoutElementModel>? children,
+    Axis? axis,
   })  : this.children = children ?? <LayoutElementModel>[],
         this.mainAxisAlignment = mainAxisAlignment ?? MainAxisAlignment.center,
         this.crossAxisAlignment =
@@ -47,12 +49,12 @@ class ContainerElementModel extends LayoutElementChild {
   }
 
   ContainerElementModel copyWith({
-    Axis axis,
-    MainAxisAlignment mainAxisAlignment,
-    CrossAxisAlignment crossAxisAlignment,
-    WrapAlignment runAlignment,
-    bool wrapEnabled,
-    List<LayoutElementModel> children,
+    Axis? axis,
+    MainAxisAlignment? mainAxisAlignment,
+    CrossAxisAlignment? crossAxisAlignment,
+    WrapAlignment? runAlignment,
+    bool? wrapEnabled,
+    List<LayoutElementModel>? children,
   }) {
     return ContainerElementModel(
         mainAxisAlignment: mainAxisAlignment ?? this.mainAxisAlignment,

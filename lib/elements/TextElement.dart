@@ -1,14 +1,16 @@
+
+
 import 'package:castboard_core/inherited/RenderScaleProvider.dart';
 import 'package:flutter/material.dart';
 
 class TextElement extends StatelessWidget {
-  final String text;
+  final String? text;
   final TextElementStyle style;
 
   const TextElement({
-    Key key,
-    @required this.text,
-    @required this.style,
+    Key? key,
+    required this.text,
+    required this.style,
   }) : super(key: key);
 
   @override
@@ -20,7 +22,7 @@ class TextElement extends StatelessWidget {
         style: TextStyle(
           color: style.color,
           fontFamily: style.fontFamily,
-          fontSize: style.fontSize * RenderScale.of(context).scale,
+          fontSize: style.fontSize * RenderScale.of(context)!.scale!,
           fontStyle: style.italics ? FontStyle.italic : FontStyle.normal,
           fontWeight: style.bold ? FontWeight.bold : FontWeight.normal,
           decoration:

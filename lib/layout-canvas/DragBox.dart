@@ -1,3 +1,5 @@
+
+
 import 'package:castboard_core/layout-canvas/ResizeHandle.dart';
 import 'package:flutter/material.dart';
 
@@ -10,16 +12,16 @@ typedef void OnPositionChangeCallback(
 
 class DragBox extends StatelessWidget {
   final bool selected;
-  final double xPos;
-  final double yPos;
-  final double width;
-  final double height;
-  final OnClickCallback onClick;
-  final OnPositionChangeCallback onPositionChange;
-  final OnMouseUpCallback onMouseUp;
+  final double? xPos;
+  final double? yPos;
+  final double? width;
+  final double? height;
+  final OnClickCallback? onClick;
+  final OnPositionChangeCallback? onPositionChange;
+  final OnMouseUpCallback? onMouseUp;
 
   const DragBox({
-    Key key,
+    Key? key,
     this.width,
     this.xPos,
     this.yPos,
@@ -37,11 +39,11 @@ class DragBox extends StatelessWidget {
         alignment: Alignment.center,
         children: [
           Positioned(
-            width: width - dragHandleWidth,
-            height: height - dragHandleHeight,
+            width: width! - dragHandleWidth,
+            height: height! - dragHandleHeight,
             child: Listener(
               onPointerDown: (pointerEvent) {
-                onClick?.call(pointerEvent.original.pointer);
+                onClick?.call(pointerEvent.original!.pointer);
               },
               onPointerMove: (pointerEvent) {
                 if (pointerEvent.down) {
@@ -54,7 +56,7 @@ class DragBox extends StatelessWidget {
                 }
               },
               onPointerUp: (pointerEvent) {
-                onMouseUp?.call(pointerEvent.original.pointer);
+                onMouseUp?.call(pointerEvent.original!.pointer);
               },
               child: Container(
                 decoration: BoxDecoration(

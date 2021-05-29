@@ -32,9 +32,11 @@ class FontRef {
     };
   }
 
-  factory FontRef.fromMap(Map<String, dynamic> map) {
-    if (map == null) return null;
-
+  factory FontRef.fromMap(Map<String, dynamic>? map) {
+    if (map == null) {
+      return FontRef.none();
+    }
+    
     return FontRef(
       map['uid'],
       map['ext'],

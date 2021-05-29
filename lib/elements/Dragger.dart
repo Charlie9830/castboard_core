@@ -2,30 +2,30 @@ import 'package:flutter/material.dart';
 
 enum HoverSide { start, end }
 
-typedef void OnHover(HoverSide side, DraggerDetails candidateDetails);
-typedef void OnDragEnd(DraggerDetails candidateDetails);
-typedef void FeedbackBuilder(BuildContext context);
+typedef void OnHover(HoverSide side, DraggerDetails? candidateDetails);
+typedef void OnDragEnd(DraggerDetails? candidateDetails);
+typedef Widget FeedbackBuilder(BuildContext context);
 
 class Dragger extends StatelessWidget {
-  final Widget child;
-  final Axis axis;
+  final Widget? child;
+  final Axis? axis;
   final bool targetOnly;
-  final DraggerDetails dragData;
-  final OnHover onHover;
+  final DraggerDetails? dragData;
+  final OnHover? onHover;
   final dynamic onDragStart;
-  final OnDragEnd onDragEnd;
-  final FeedbackBuilder feedbackBuilder;
+  final OnDragEnd? onDragEnd;
+  final FeedbackBuilder? feedbackBuilder;
 
   const Dragger({
-    Key key,
-    this.child,
+    Key? key,
+    required this.child,
+    this.feedbackBuilder,
     this.axis = Axis.horizontal,
     this.targetOnly = false,
     this.dragData,
     this.onHover,
     this.onDragStart,
     this.onDragEnd,
-    this.feedbackBuilder,
   }) : super(key: key);
 
   @override
@@ -72,12 +72,11 @@ class Dragger extends StatelessWidget {
         if (targetOnly == false)
           LongPressDraggable<DraggerDetails>(
             delay: Duration(milliseconds: 25),
-            
             dragAnchorStrategy: pointerDragAnchorStrategy,
             feedback: feedbackBuilder != null
-                ? Builder(builder: feedbackBuilder)
+                ? Builder(builder: feedbackBuilder as FeedbackBuilder)
                 : SizedBox.shrink(),
-            child: child,
+            child: child!,
             childWhenDragging: SizedBox.shrink(),
             data: dragData,
             onDragStarted: () => onDragStart?.call(),
@@ -87,15 +86,15 @@ class Dragger extends StatelessWidget {
     );
   }
 
-  Widget _wrapAxisContainer({Axis axis, List<Widget> children}) {
+  Widget _wrapAxisContainer({Axis? axis, List<Widget>? children}) {
     switch (axis) {
       case Axis.horizontal:
         return Row(
-          children: children,
+          children: children!,
         );
       case Axis.vertical:
         return Column(
-          children: children,
+          children: children!,
         );
       default:
         throw Exception(
@@ -105,7 +104,7 @@ class Dragger extends StatelessWidget {
 }
 
 class DraggerDetails {
-  final String id;
+  final String? id;
   final int index;
 
   DraggerDetails(this.id, this.index);

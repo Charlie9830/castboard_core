@@ -1,17 +1,19 @@
+
+
 import 'package:castboard_core/inherited/RenderScaleProvider.dart';
 import 'package:flutter/material.dart';
 
 class NoActorFallback extends StatelessWidget {
-  final String trackTitle;
-  const NoActorFallback({Key key, this.trackTitle}) : super(key: key);
+  final String? trackTitle;
+  const NoActorFallback({Key? key, this.trackTitle}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    final renderScale = RenderScale.of(context).scale;
-    final textStyle = Theme.of(context).textTheme.bodyText1.copyWith(
+    final renderScale = RenderScale.of(context)!.scale!;
+    final textStyle = Theme.of(context).textTheme.bodyText1!.copyWith(
       color: Colors.black,
           fontSize:
-              Theme.of(context).textTheme.bodyText1.fontSize * renderScale,
+              Theme.of(context).textTheme.bodyText1!.fontSize! * renderScale,
         );
 
     return Container(

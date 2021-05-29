@@ -28,19 +28,19 @@ import 'package:castboard_core/storage/Storage.dart';
 import 'package:flutter/material.dart';
 
 typedef void OnContainerItemsReorder(
-    String containerId, String itemId, int oldIndex, int newIndex);
+    String? containerId, String itemId, int oldIndex, int newIndex);
 
 Map<String, LayoutBlock> buildElements({
-  SlideModel slide,
-  CastChangeModel castChange,
-  Map<ActorRef, ActorModel> actors,
-  Map<TrackRef, TrackModel> tracks,
-  OnContainerItemsReorder onContainerItemsReorder,
+  SlideModel? slide,
+  CastChangeModel? castChange,
+  Map<ActorRef, ActorModel>? actors,
+  Map<TrackRef, TrackModel>? tracks,
+  OnContainerItemsReorder? onContainerItemsReorder,
   String editingContainerId = '',
   String highlightedContainerId = '',
   bool isInSlideEditor = false,
   dynamic onContainerItemClick,
-  Set<String> selectedContainerItemIds,
+  Set<String>? selectedContainerItemIds,
 }) {
   final Map<String, LayoutElementModel> elements =
       slide?.elements ?? <String, LayoutElementModel>{};
@@ -49,8 +49,7 @@ Map<String, LayoutBlock> buildElements({
     elements.values.where((element) => _shouldBuild(element, castChange)).map(
       (element) {
         final id = element.uid;
-        final isEditingContainer =
-            editingContainerId != null && id == editingContainerId;
+        final isEditingContainer = id == editingContainerId;
         return MapEntry(
           id,
           LayoutBlock(
@@ -66,10 +65,11 @@ Map<String, LayoutBlock> buildElements({
               actors: actors,
               tracks: tracks,
               elementPadding: EdgeInsets.fromLTRB(
-                  element.leftPadding?.toDouble() ?? 0,
-                  element.topPadding?.toDouble() ?? 0,
-                  element.rightPadding?.toDouble() ?? 0,
-                  element.bottomPadding?.toDouble() ?? 0),
+                element.leftPadding.toDouble(),
+                element.topPadding.toDouble(),
+                element.rightPadding.toDouble(),
+                element.bottomPadding.toDouble(),
+              ),
               isInSlideEditor: isInSlideEditor,
               isEditingContainer: isEditingContainer,
               isHighlighted: isEditingContainer || highlightedContainerId == id,
@@ -86,16 +86,16 @@ Map<String, LayoutBlock> buildElements({
 }
 
 Widget _buildChild({
-  LayoutElementChild element,
-  CastChangeModel castChange,
-  Map<ActorRef, ActorModel> actors = const {},
-  Map<TrackRef, TrackModel> tracks = const {},
+  LayoutElementChild? element,
+  CastChangeModel? castChange,
+  Map<ActorRef, ActorModel>? actors = const {},
+  Map<TrackRef, TrackModel>? tracks = const {},
   dynamic onContainerItemsReorder,
   bool isEditingContainer = false,
   bool isInSlideEditor = false,
   bool isHighlighted = false,
   dynamic onItemClick,
-  Set<String> selectedContainerIds = const <String>{},
+  Set<String>? selectedContainerIds = const <String>{},
   EdgeInsets elementPadding = EdgeInsets.zero,
 }) {
   final withPadding = (Widget child) => Padding(
@@ -133,10 +133,11 @@ Widget _buildChild({
             actors: actors,
             tracks: tracks,
             elementPadding: EdgeInsets.fromLTRB(
-                child.leftPadding?.toDouble() ?? 0,
-                child.topPadding?.toDouble() ?? 0,
-                child.rightPadding?.toDouble() ?? 0,
-                child.bottomPadding?.toDouble() ?? 0),
+              child.leftPadding.toDouble(),
+              child.topPadding.toDouble(),
+              child.rightPadding.toDouble(),
+              child.bottomPadding.toDouble(),
+            ),
           ),
         );
       }).toList(),
@@ -185,19 +186,19 @@ Widget _buildChild({
       ));
     }
 
-    if (actor.headshotRef == null || actor.headshotRef.uid.isEmpty) {
+    if (actor.headshotRef.uid!.isEmpty) {
       return withPadding(NoHeadshotFallback(
         trackTitle: track.title,
       ));
     }
 
     return withPadding(ImageElement(
-      file: Storage.instance.getHeadshotFile(actor.headshotRef),
+      file: Storage.instance!.getHeadshotFile(actor.headshotRef),
     ));
   }
 
   if (element is TextElementModel) {
-    String text = _lookupText(element, castChange, actors, tracks);
+    String? text = _lookupText(element, castChange, actors, tracks);
     return withPadding(
       TextElement(
         text: text,
@@ -225,7 +226,7 @@ Widget _buildChild({
   return SizedBox.fromSize(size: Size.zero);
 }
 
-bool _shouldBuild(LayoutElementModel element, CastChangeModel castChange) {
+bool _shouldBuild(LayoutElementModel element, CastChangeModel? castChange) {
   if (castChange == null) {
     return true;
   }
@@ -264,8 +265,8 @@ bool _shouldBuild(LayoutElementModel element, CastChangeModel castChange) {
   return true;
 }
 
-String _lookupText(TextElementModel element, CastChangeModel castChange,
-    Map<ActorRef, ActorModel> actors, Map<TrackRef, TrackModel> tracks) {
+String? _lookupText(TextElementModel element, CastChangeModel? castChange,
+    Map<ActorRef, ActorModel>? actors, Map<TrackRef, TrackModel>? tracks) {
   if (element is ActorElementModel) {
     return _lookupActorName(element.trackRef, castChange, actors, tracks);
   }
@@ -277,10 +278,9 @@ String _lookupText(TextElementModel element, CastChangeModel castChange,
   return element.text;
 }
 
-String _lookupTrackName(TrackRef trackRef, CastChangeModel castChange,
-    Map<ActorRef, ActorModel> actors, Map<TrackRef, TrackModel> tracks) {
-  if (trackRef == null ||
-      trackRef == TrackRef.blank() ||
+String _lookupTrackName(TrackRef trackRef, CastChangeModel? castChange,
+    Map<ActorRef, ActorModel>? actors, Map<TrackRef, TrackModel>? tracks) {
+  if (trackRef == TrackRef.blank() ||
       tracks == null ||
       tracks.containsKey(trackRef) == false) {
     return 'Unassigned';
@@ -289,29 +289,26 @@ String _lookupTrackName(TrackRef trackRef, CastChangeModel castChange,
   return tracks[trackRef]?.title ?? 'No Name Track';
 }
 
-String _lookupActorName(TrackRef trackRef, CastChangeModel castChange,
-    Map<ActorRef, ActorModel> actors, Map<TrackRef, TrackModel> tracks) {
-  if (trackRef == null ||
-      trackRef == TrackRef.blank() ||
+String? _lookupActorName(TrackRef trackRef, CastChangeModel? castChange,
+    Map<ActorRef, ActorModel>? actors, Map<TrackRef, TrackModel>? tracks) {
+  if (trackRef == TrackRef.blank() ||
       tracks == null ||
       tracks.containsKey(trackRef) == false) {
     return 'Unassigned';
   }
 
-  final track = tracks[trackRef];
-  final trackTitle = track.title == null || track.title.isEmpty
-      ? 'No Name Track'
-      : track.title;
+  final track = tracks[trackRef]!;
+  final trackTitle = track.title.isEmpty ? 'No Name Track' : track.title;
 
   if (castChange == null) {
     return trackTitle;
   }
 
-  if (castChange == null || castChange.hasAssignment(trackRef) == false) {
+  if (castChange.hasAssignment(trackRef) == false) {
     return trackTitle;
   }
 
-  final actor = actors[castChange.actorAt(trackRef)];
+  final actor = actors![castChange.actorAt(trackRef)!];
   if (actor == null) {
     return "No Actor Found";
   }
@@ -319,9 +316,9 @@ String _lookupActorName(TrackRef trackRef, CastChangeModel castChange,
   return actor.name;
 }
 
-ActorModel _getAssignedActor(HeadshotElementModel element,
-    CastChangeModel castChange, Map<ActorRef, ActorModel> actors) {
-  if (element == null || castChange == null) {
+ActorModel? _getAssignedActor(HeadshotElementModel element,
+    CastChangeModel? castChange, Map<ActorRef, ActorModel>? actors) {
+  if (castChange == null) {
     return null;
   }
 
@@ -329,7 +326,7 @@ ActorModel _getAssignedActor(HeadshotElementModel element,
 
   if (actorRef == null ||
       actorRef.isBlank ||
-      actors.containsKey(actorRef) == false) {
+      actors!.containsKey(actorRef) == false) {
     return null;
   }
 

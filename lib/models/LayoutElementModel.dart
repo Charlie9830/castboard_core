@@ -16,32 +16,32 @@ class LayoutElementModel {
   final LayoutElementChild child;
 
   LayoutElementModel({
-    this.uid,
-    this.xPos,
-    this.yPos,
-    this.width,
-    this.height,
-    this.topPadding,
-    this.bottomPadding,
-    this.rightPadding,
-    this.leftPadding,
-    this.child,
+    required this.uid,
+    required this.child,
+    this.xPos = 0,
+    this.yPos = 0,
+    this.width = 100,
+    this.height = 100,
+    this.topPadding = 0,
+    this.bottomPadding = 0,
+    this.rightPadding = 0,
+    this.leftPadding = 0,
     this.rotation = 0.0,
   });
 
   LayoutElementModel copyWith({
-    String uid,
-    double xPos,
-    double yPos,
-    double width,
-    double height,
-    int topPadding,
-    int rightPadding,
-    int bottomPadding,
-    int leftPadding,
-    double rotation,
-    LayoutElementChild child,
-    Color color,
+    String? uid,
+    double? xPos,
+    double? yPos,
+    double? width,
+    double? height,
+    int? topPadding,
+    int? rightPadding,
+    int? bottomPadding,
+    int? leftPadding,
+    double? rotation,
+    LayoutElementChild? child,
+    Color? color,
   }) {
     return LayoutElementModel(
       uid: uid ?? this.uid,
@@ -59,8 +59,8 @@ class LayoutElementModel {
   }
 
   LayoutElementModel copyWithOffset({
-    double x,
-    double y,
+    required double x,
+    required double y,
   }) {
     return copyWith(
       xPos: xPos - x,
@@ -69,8 +69,8 @@ class LayoutElementModel {
   }
 
   LayoutElementModel copyWithScale({
-    double xScale,
-    double yScale,
+    required double xScale,
+    required double yScale,
   }) {
     return copyWith(
       width: width * xScale,
@@ -92,24 +92,22 @@ class LayoutElementModel {
       'rightPadding': rightPadding,
       'bottomPadding': bottomPadding,
       'leftPadding': leftPadding,
-      'child': child?.toMap(),
+      'child': child.toMap(),
     };
   }
 
   factory LayoutElementModel.fromMap(Map<String, dynamic> map) {
-    if (map == null) return null;
-
     return LayoutElementModel(
-      uid: map['uid'],
-      xPos: map['xPos'],
-      yPos: map['yPos'],
-      width: map['width'],
-      height: map['height'],
-      rotation: map['rotation'],
-      topPadding: map['topPadding'],
-      rightPadding: map['rightPadding'],
-      bottomPadding: map['bottomPadding'],
-      leftPadding: map['leftPadding'],
+      uid: map['uid'] ?? '',
+      xPos: map['xPos'] ?? 0,
+      yPos: map['yPos'] ?? 0,
+      width: map['width'] ?? 100,
+      height: map['height'] ?? 100,
+      rotation: map['rotation'] ?? 0,
+      topPadding: map['topPadding'] ?? 0,
+      rightPadding: map['rightPadding'] ?? 0,
+      bottomPadding: map['bottomPadding'] ?? 0,
+      leftPadding: map['leftPadding'] ?? 0,
       child: LayoutElementChild.fromMap(map['child']),
     );
   }

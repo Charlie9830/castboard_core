@@ -1,3 +1,5 @@
+
+
 import 'package:castboard_core/enum-converters/textAlignConverters.dart';
 import 'package:castboard_core/models/ColorModel.dart';
 import 'package:flutter/material.dart';
@@ -15,16 +17,16 @@ class TextElementModel extends LayoutElementChild {
   final Color color;
 
   TextElementModel({
-    Set<PropertyUpdateContracts> propertyUpdateContracts,
-    bool canConditionallyRender,
-    String text,
-    String fontFamily,
-    double fontSize,
-    bool italics,
-    bool bold,
-    bool underline,
-    TextAlign alignment,
-    Color color,
+    Set<PropertyUpdateContracts>? propertyUpdateContracts,
+    bool? canConditionallyRender,
+    String? text,
+    String? fontFamily,
+    double? fontSize,
+    bool? italics,
+    bool? bold,
+    bool? underline,
+    TextAlign? alignment,
+    Color? color,
   })  : this.text = text ?? '',
         this.fontFamily = fontFamily ?? 'Arial',
         this.fontSize = fontSize ?? 16,
@@ -42,14 +44,14 @@ class TextElementModel extends LayoutElementChild {
             canConditionallyRender: canConditionallyRender ?? false);
 
   TextElementModel copyWith({
-    String text,
-    String fontFamily,
-    double fontSize,
-    bool italics,
-    bool bold,
-    bool underline,
-    TextAlign alignment,
-    Color color,
+    String? text,
+    String? fontFamily,
+    double? fontSize,
+    bool? italics,
+    bool? bold,
+    bool? underline,
+    TextAlign? alignment,
+    Color? color,
   }) {
     return TextElementModel(
       text: text ?? this.text,

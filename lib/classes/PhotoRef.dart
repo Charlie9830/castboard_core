@@ -3,8 +3,8 @@ import 'dart:convert';
 import 'package:quiver/core.dart';
 
 class PhotoRef {
-  final String uid;
-  final String ext;
+  final String? uid;
+  final String? ext;
 
   PhotoRef(this.uid, this.ext);
 
@@ -32,8 +32,8 @@ class PhotoRef {
     };
   }
 
-  factory PhotoRef.fromMap(Map<String, dynamic> map) {
-    if (map == null) return null;
+  factory PhotoRef.fromMap(Map<String, dynamic>? map) {
+    if (map == null) return PhotoRef.none();
 
     return PhotoRef(
       map['uid'],

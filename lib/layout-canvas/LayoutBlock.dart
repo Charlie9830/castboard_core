@@ -14,27 +14,27 @@ class LayoutBlock extends StatelessWidget {
   final double debugRenderYPos;
 
   const LayoutBlock({
-    Key key,
-    @required this.id,
-    this.xPos,
-    this.yPos,
-    this.width,
-    this.height,
-    this.child,
-    this.rotation,
-    this.debugRenderXPos,
-    this.debugRenderYPos,
+    Key? key,
+    required this.id,
+    required this.child,
+    this.xPos = 0,
+    this.yPos = 0,
+    this.width = 100,
+    this.height = 100,
+    this.rotation = 0,
+    this.debugRenderXPos = 0,
+    this.debugRenderYPos = 0,
   }) : super(key: key);
 
   LayoutBlock copyWith({
-    Widget child,
-    double xPos,
-    double yPos,
-    double width,
-    double height,
-    double rotation,
-    double debugRenderXPos,
-    double debugRenderYPos,
+    Widget? child,
+    double? xPos,
+    double? yPos,
+    double? width,
+    double? height,
+    double? rotation,
+    double? debugRenderXPos,
+    double? debugRenderYPos,
   }) {
     return LayoutBlock(
       id: this.id,
@@ -50,8 +50,8 @@ class LayoutBlock extends StatelessWidget {
   }
 
   LayoutBlock copyWithMultiChildUpdates({
-    double ratioX,
-    double ratioY,
+    double? ratioX,
+    double? ratioY,
   }) {
     if (child is! MultiChildCanvasItem) {
       return copyWith();
@@ -64,8 +64,8 @@ class LayoutBlock extends StatelessWidget {
   }
 
   LayoutBlock combinedWith({
-    LayoutBlock xComponent,
-    LayoutBlock yComponent,
+    LayoutBlock? xComponent,
+    LayoutBlock? yComponent,
   }) {
     return copyWith(
       xPos: xComponent?.xPos ?? this.xPos,
@@ -89,9 +89,9 @@ class LayoutBlock extends StatelessWidget {
     return child;
   }
 
-  double get leftEdge => xPos;
+  double? get leftEdge => xPos;
   double get rightEdge => xPos + width;
-  double get topEdge => yPos;
+  double? get topEdge => yPos;
   double get bottomEdge => yPos + height;
 
   Rect get rectangle {

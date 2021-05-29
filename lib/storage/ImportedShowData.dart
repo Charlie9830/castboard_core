@@ -18,13 +18,12 @@ class ImportedShowData {
   final Map<ActorRef, ActorModel> actors;
   final Map<String, PresetModel> presets;
 
-  ImportedShowData({
-    this.manifest,
-    this.slides,
-    this.slideSizeId,
-    this.slideOrientation,
-    this.tracks,
-    this.actors,
-    this.presets
-  });
+  ImportedShowData(
+      {required this.manifest,
+      required this.slides,
+      required this.slideSizeId,
+      required this.slideOrientation,
+      required this.tracks,
+      required this.actors,
+      required this.presets});
 }

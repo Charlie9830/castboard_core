@@ -29,26 +29,25 @@ class ManifestModel {
   }
 
   factory ManifestModel.fromMap(Map<String, dynamic> map) {
-    if (map == null) return null;
-
     return ManifestModel(
-      fileName: map['fileName'],
-      created: map['created'],
-      modified: map['modified'],
-      createByVersion: map['createByVersion'],
-      fileVersion: map['fileVersion'],
-      requiredFonts: (map['requiredFonts'] as List<dynamic>)
-          .map((font) => FontModel.fromMap(font)).toList(),
+      fileName: map['fileName'] ?? '',
+      created: map['created'] ?? '',
+      modified: map['modified'] ?? '',
+      createByVersion: map['createByVersion'] ?? '',
+      fileVersion: map['fileVersion'] ?? '',
+      requiredFonts: ((map['requiredFonts'] ?? <dynamic>[]) as List<dynamic>)
+          .map((font) => FontModel.fromMap(font))
+          .toList(),
     );
   }
 
   ManifestModel copyWith({
-    String fileName,
-    String created,
-    String modified,
-    String createByVersion,
-    String fileVersion,
-    List<FontModel> requiredFonts,
+    String? fileName,
+    String? created,
+    String? modified,
+    String? createByVersion,
+    String? fileVersion,
+    List<FontModel>? requiredFonts,
   }) {
     return ManifestModel(
       fileName: fileName ?? this.fileName,

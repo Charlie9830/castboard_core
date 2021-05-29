@@ -7,6 +7,6 @@ class StorageException extends Error {
 
   @override
   String toString() {
-    return message ?? 'StorageException thrown but no message was provided';
+    return message;
   }
 }

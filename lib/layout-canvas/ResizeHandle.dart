@@ -10,12 +10,12 @@ const double dragHandleHeight = 12.0;
 class ResizeHandle extends StatelessWidget {
   final bool interactive;
   final bool selected;
-  final OnDragStartCallback onDragStart;
-  final OnDragCallback onDrag;
-  final OnDragDoneCallback onDragDone;
+  final OnDragStartCallback? onDragStart;
+  final OnDragCallback? onDrag;
+  final OnDragDoneCallback? onDragDone;
 
   const ResizeHandle(
-      {Key key,
+      {Key? key,
       this.interactive = true,
       this.onDrag,
       this.onDragStart,
@@ -35,8 +35,9 @@ class ResizeHandle extends StatelessWidget {
         decoration: selected
             ? BoxDecoration(
                 shape: BoxShape.circle,
-                border:
-                    Border.all(color: Theme.of(context).colorScheme.secondaryVariant, width: 2),
+                border: Border.all(
+                    color: Theme.of(context).colorScheme.secondaryVariant,
+                    width: 2),
                 color: Theme.of(context).colorScheme.onBackground,
               )
             : null,
@@ -44,18 +45,18 @@ class ResizeHandle extends StatelessWidget {
     );
   }
 
-  void _handlePointerDown(pointerEvent) {
-    onDragStart?.call(pointerEvent.original.pointer);
+  void _handlePointerDown(PointerDownEvent pointerEvent) {
+    onDragStart?.call(pointerEvent.original?.pointer ?? 0);
   }
 
-  void _handlePointerUp(pointerEvent) {
-    onDragDone?.call(pointerEvent.original.pointer);
+  void _handlePointerUp(PointerUpEvent pointerEvent) {
+    onDragDone?.call(pointerEvent.original?.pointer ?? 0);
   }
 
-  void _handlePointerMove(pointerEvent) {
+  void _handlePointerMove(PointerMoveEvent pointerEvent) {
     if (pointerEvent.down) {
       onDrag?.call(pointerEvent.localDelta.dx, pointerEvent.localDelta.dy,
-          pointerEvent.original.pointer);
+          pointerEvent.original?.pointer ?? 0);
     }
   }
 }

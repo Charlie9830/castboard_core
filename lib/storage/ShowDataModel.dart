@@ -1,3 +1,5 @@
+
+
 import 'dart:convert';
 
 import 'package:castboard_core/models/ActorModel.dart';
@@ -26,7 +28,7 @@ class ShowDataModel {
           .map((track) => MapEntry(track.ref.toJsonKey(), track.toMap()))),
       'actors': Map<dynamic, dynamic>.fromEntries(actors.values
           .map((actor) => MapEntry(actor.ref.toJsonKey(), actor.toMap()))),
-      'presets': Map<String, dynamic>.fromEntries(
+      'presets': Map<String?, dynamic>.fromEntries(
           presets.values.map((preset) => MapEntry(preset.uid, preset.toMap()))),
     };
   }

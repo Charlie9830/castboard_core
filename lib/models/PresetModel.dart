@@ -9,6 +9,7 @@ class PresetModel {
   final String details;
   final bool isNestable;
   final CastChangeModel castChange;
+  final bool createdOnRemote;
 
   PresetModel({
     required this.uid,
@@ -16,6 +17,7 @@ class PresetModel {
     this.details = '',
     this.castChange = const CastChangeModel.initial(),
     this.isNestable = false,
+    this.createdOnRemote = false,
   });
 
   const PresetModel.builtIn()
@@ -23,21 +25,24 @@ class PresetModel {
         name = 'Default',
         details = '',
         castChange = const CastChangeModel.initial(),
-        isNestable = false;
+        isNestable = false,
+        createdOnRemote = false;
 
   PresetModel copyWith({
     String? uid,
     String? name,
     String? details,
-    CastChangeModel? castChange,
     bool? isNestable,
+    CastChangeModel? castChange,
+    bool? createdOnRemote,
   }) {
     return PresetModel(
       uid: uid ?? this.uid,
       name: name ?? this.name,
       details: details ?? this.details,
-      castChange: castChange ?? this.castChange,
       isNestable: isNestable ?? this.isNestable,
+      castChange: castChange ?? this.castChange,
+      createdOnRemote: createdOnRemote ?? this.createdOnRemote,
     );
   }
 
@@ -48,6 +53,7 @@ class PresetModel {
       'details': details,
       'castChange': castChange.toMap(),
       'isNestable': isNestable,
+      'createdOnRemote': createdOnRemote,
     };
   }
 
@@ -58,6 +64,7 @@ class PresetModel {
       details: map['details'] ?? '',
       castChange: CastChangeModel.fromMap(map['castChange']),
       isNestable: map['isNestable'] ?? false,
+      createdOnRemote: map['createdOnRemote'] ?? false,
     );
   }
 

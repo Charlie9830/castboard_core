@@ -9,7 +9,7 @@ import 'package:castboard_core/widgets/cast-change-details/CastChangeDetails.dar
 Map<String, ActorTuple> buildCombinedAssignments(
     PresetModel? basePreset, List<PresetModel> mixedInPresets) {
   if (basePreset == null) {
-    return const <String, ActorTuple>{};
+    return <String, ActorTuple>{};
   }
 
   final currentAssignmentsAsTuples = basePreset.castChange.map(

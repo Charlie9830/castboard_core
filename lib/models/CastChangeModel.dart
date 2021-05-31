@@ -10,6 +10,10 @@ class CastChangeModel {
 
   const CastChangeModel.initial() : assignments = const <TrackRef, ActorRef>{};
 
+  CastChangeModel copy() {
+    return _copyWith();
+  }
+
   CastChangeModel _copyWith({Map<TrackRef, ActorRef>? assignments}) {
     return CastChangeModel(
       assignments ?? this.assignments,
@@ -52,6 +56,14 @@ class CastChangeModel {
     }
 
     return others.reduce((accum, other) => accum.combinedWithOther(other));
+  }
+
+  CastChangeModel stompedByOther(CastChangeModel other) {
+    return _copyWith(
+        assignments: Map<TrackRef, ActorRef>.from(assignments)
+          ..addAll(
+            other.assignments,
+          ));
   }
 
   Map<K2, V2> map<K2, V2>(

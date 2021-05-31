@@ -24,6 +24,12 @@ class CastChangeModel {
     return assignments[track];
   }
 
+  CastChangeModel withRemovedAssignment(TrackRef track) {
+    return _copyWith(
+      assignments: Map<TrackRef, ActorRef>.from(assignments)..remove(track),
+    );
+  }
+
   CastChangeModel withUpdatedAssignment(TrackRef track, ActorRef actor) {
     return _copyWith(
         assignments: Map<TrackRef, ActorRef>.from(assignments)

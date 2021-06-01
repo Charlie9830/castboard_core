@@ -55,7 +55,8 @@ class CastChangeModel {
       return _copyWith();
     }
 
-    return others.reduce((accum, other) => accum.combinedWithOther(other));
+    return [this, ...others]
+        .reduce((accum, other) => accum.combinedWithOther(other));
   }
 
   CastChangeModel stompedByOther(CastChangeModel other) {
@@ -85,6 +86,9 @@ class CastChangeModel {
   bool isCut(TrackRef track) {
     return assignments[track]?.isCut ?? false;
   }
+
+  bool get isEmpty => assignments.isEmpty;
+  bool get isNotEmpty => assignments.isNotEmpty;
 
   factory CastChangeModel.fromMap(Map<String, dynamic>? map) {
     if (map == null) {

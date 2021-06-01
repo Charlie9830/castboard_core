@@ -27,7 +27,7 @@ class CastChangeDetails extends StatelessWidget {
   final List<ActorModel> actors;
   final Map<ActorRef, ActorModel>? actorsByRef;
   final void Function(TrackRef track, ActorRef actor)? onAssignmentUpdated;
-  final void Function(TrackRef track)? onClearLiveEdit;
+  final void Function(TrackRef track)? onResetLiveEdit;
 
   const CastChangeDetails({
     Key? key,
@@ -39,7 +39,7 @@ class CastChangeDetails extends StatelessWidget {
     this.actors = const <ActorModel>[],
     this.actorsByRef,
     this.onAssignmentUpdated,
-    this.onClearLiveEdit,
+    this.onResetLiveEdit,
   }) : super(key: key);
 
   @override
@@ -57,8 +57,8 @@ class CastChangeDetails extends StatelessWidget {
                     children: [
                       if (_fromLiveEdit(track.ref.uid, assignments) == true)
                         TextButton(
-                          child: Text('Clear'),
-                          onPressed: () => onClearLiveEdit?.call(track.ref),
+                          child: Text('Reset'),
+                          onPressed: () => onResetLiveEdit?.call(track.ref),
                         ),
                       if (_fromNestedPreset(track.ref.uid, assignments) == true)
                         Row(

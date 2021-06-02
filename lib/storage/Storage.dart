@@ -9,12 +9,13 @@ import 'package:castboard_core/models/ActorRef.dart';
 import 'package:castboard_core/models/FontModel.dart';
 import 'package:castboard_core/models/ManifestModel.dart';
 import 'package:castboard_core/models/PresetModel.dart';
+import 'package:castboard_core/models/RemoteCastChangeData.dart';
 import 'package:castboard_core/models/TrackModel.dart';
 import 'package:castboard_core/models/SlideModel.dart';
 import 'package:castboard_core/models/TrackRef.dart';
 import 'package:castboard_core/storage/Exceptions.dart';
 import 'package:castboard_core/storage/ImportedShowData.dart';
-import 'package:castboard_core/storage/ShowDataModel.dart';
+import 'package:castboard_core/models/ShowDataModel.dart';
 import 'package:castboard_core/storage/SlideDataModel.dart';
 import 'package:file/memory.dart' as memoryFs;
 
@@ -47,6 +48,7 @@ const _fontsSaveDirName = 'fonts';
 const _manifestSaveName = 'manifest.json';
 const _slideDataSaveName = 'slidedata.json';
 const _showDataSaveName = 'showdata.json';
+const _playbackStateSaveName = 'playback_state.json';
 
 enum StorageMode {
   editor,
@@ -295,6 +297,25 @@ class Storage {
     }
   }
 
+  Future<bool> updatePlayerShowData({
+    required Map<String, PresetModel> presets,
+    required PlaybackStateData playbackState,
+  }) async {
+    final onDiskData = await readFromPlayerStorage();
+
+    await writeToPermanentStorage(
+        actors: onDiskData.actors,
+        tracks: onDiskData.tracks,
+        presets: presets,
+        slides: onDiskData.slides,
+        slideSizeId: onDiskData.slideSizeId,
+        slideOrientation: onDiskData.slideOrientation,
+        manifest: onDiskData.manifest,
+        targetFile: File(p.join(_playerDir!.path, _playerCurrentShowFileName)));
+
+    return true;
+  }
+
   Future<ImportedShowData> readFromPlayerStorage() async {
     final file = File(p.join(_playerDir!.path, _playerCurrentShowFileName));
 
@@ -321,6 +342,7 @@ class Storage {
     Map<String, dynamic>? rawManifest = {};
     Map<String, dynamic>? rawShowData = {};
     Map<String, dynamic>? rawSlideData = {};
+    Map<String, dynamic>? rawPlaybackState = {};
     final fileWriteRequests = <Future<File>>[];
 
     for (var entity in archive) {
@@ -334,40 +356,45 @@ class Storage {
       // Should it be made aware of that?
 
       if (entity.isFile) {
-        final bytedata = entity.content as List<int>?;
+        final byteData = entity.content as List<int>?;
         // Headshots
         if (parentDirectoryName == _headshotsTempDirName) {
           fileWriteRequests.add(
               File(p.join(_headshotsDir!.path, p.basename(name)))
-                  .writeAsBytes(bytedata!));
+                  .writeAsBytes(byteData!));
         }
 
         // Backgrounds
         if (parentDirectoryName == _backgroundsTempDirName) {
           fileWriteRequests.add(
               File(p.join(_backgroundsDir!.path, p.basename(name)))
-                  .writeAsBytes(bytedata!));
+                  .writeAsBytes(byteData!));
         }
 
         // Fonts
         if (parentDirectoryName == _fontsTempDirName) {
           fileWriteRequests.add(File(p.join(_fontsDir!.path, p.basename(name)))
-              .writeAsBytes(bytedata!));
+              .writeAsBytes(byteData!));
         }
 
         // Manifest
         if (name == _manifestSaveName) {
-          rawManifest = json.decode(utf8.decode(bytedata!));
+          rawManifest = json.decode(utf8.decode(byteData!));
         }
 
         // Show Data (Actors, Tracks, Presets)
         if (name == _showDataSaveName) {
-          rawShowData = json.decode(utf8.decode(bytedata!));
+          rawShowData = json.decode(utf8.decode(byteData!));
         }
 
         // Slide Data (Slides, SlideSize, SlideOrientation)
         if (name == _slideDataSaveName) {
-          rawSlideData = json.decode(utf8.decode(bytedata!));
+          rawSlideData = json.decode(utf8.decode(byteData!));
+        }
+
+        // Playback State (Currently displayed Cast Change etc)
+        if (name == _playbackStateSaveName) {
+          rawPlaybackState = json.decode(utf8.decode(byteData!));
         }
       }
     }
@@ -383,6 +410,9 @@ class Storage {
     final slideData = rawSlideData == null
         ? SlideDataModel()
         : SlideDataModel.fromMap(rawSlideData);
+    final playbackState = rawPlaybackState == null
+        ? PlaybackStateData.initial()
+        : PlaybackStateData.fromMap(rawPlaybackState);
 
     // TODO: Verification and Coercion. Values or behaviour for ImportedShowData if properties are Null.
     // -> Coerce a default Preset into existence if not already existing.
@@ -395,6 +425,7 @@ class Storage {
       slides: slideData.slides,
       slideSizeId: slideData.slideSizeId,
       slideOrientation: slideData.slideOrientation,
+      playbackState: playbackState,
     );
   }
 
@@ -447,12 +478,14 @@ class Storage {
       required String slideSizeId,
       required SlideOrientation slideOrientation,
       required ManifestModel manifest,
+      PlaybackStateData? playbackState,
       required File targetFile}) async {
     final mfs = memoryFs.MemoryFileSystem();
 
     // Stage Directories in Memory.
     await _stagePermStorageDirectories(mfs);
     await Future.wait([
+      _stagePlaybackState(mfs, playbackState),
       _stageManifest(mfs, manifest),
       _stageHeadshots(mfs, actors),
       _stageBackgrounds(mfs, slides),
@@ -475,8 +508,21 @@ class Storage {
     zipper.addFile(mfs.file(_manifestSaveName));
     zipper.addFile(mfs.file(_showDataSaveName));
     zipper.addFile(mfs.file(_slideDataSaveName));
+    zipper.addFile(mfs.file(_playbackStateSaveName));
     zipper.close();
 
+    return;
+  }
+
+  Future<void> _stagePlaybackState(
+    memoryFs.MemoryFileSystem mfs,
+    PlaybackStateData? playbackState,
+  ) async {
+    final data = playbackState?.toMap() ?? {};
+
+    final jsonData = json.encoder.convert(data);
+    final targetFile = await mfs.file(_playbackStateSaveName).create();
+    await targetFile.writeAsString(jsonData);
     return;
   }
 

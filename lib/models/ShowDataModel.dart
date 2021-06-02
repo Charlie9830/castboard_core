@@ -1,5 +1,3 @@
-
-
 import 'dart:convert';
 
 import 'package:castboard_core/models/ActorModel.dart';
@@ -22,6 +20,11 @@ class ShowDataModel {
     this.presets = const {},
   });
 
+  const ShowDataModel.initial()
+      : tracks = const {},
+        actors = const {},
+        presets = const {};
+
   Map<String, dynamic> toMap() {
     return <String, dynamic>{
       'tracks': Map<dynamic, dynamic>.fromEntries(tracks.values
@@ -33,7 +36,10 @@ class ShowDataModel {
     };
   }
 
-  factory ShowDataModel.fromMap(Map<String, dynamic> map) {
+  factory ShowDataModel.fromMap(Map<String, dynamic>? map) {
+    if (map == null) {
+      return ShowDataModel.initial();
+    }
     final rawTracksMap = map['tracks'] as Map<String, dynamic>;
     final rawActorsMap = map['actors'] as Map<String, dynamic>;
     final rawPresetsMap = map['presets'] as Map<String, dynamic>;

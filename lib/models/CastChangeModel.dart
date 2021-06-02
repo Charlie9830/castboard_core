@@ -106,4 +106,16 @@ class CastChangeModel {
       ),
     );
   }
+
+  static CastChangeModel compose({
+    CastChangeModel? base,
+    List<CastChangeModel> combined = const <CastChangeModel>[],
+    CastChangeModel liveEdits = const CastChangeModel.initial(),
+  }) {
+    if (base == null) {
+      return CastChangeModel.initial();
+    }
+
+    return base.combinedWithOthers(combined).stompedByOther(liveEdits);
+  }
 }

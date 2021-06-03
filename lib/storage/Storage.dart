@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'dart:convert';
 import 'dart:typed_data';
@@ -316,10 +317,50 @@ class Storage {
     return true;
   }
 
+  File getPlayerStorageFile() {
+    final file = File(p.join(_playerDir!.path, _playerCurrentShowFileName));
+
+    return file;
+  }
+
   Future<ImportedShowData> readFromPlayerStorage() async {
     final file = File(p.join(_playerDir!.path, _playerCurrentShowFileName));
 
     return readFromPermanentStorage(file: file);
+  }
+
+  Future<bool> validateShowFile(List<int> byteData) async {
+    if (byteData.isEmpty) {
+      return false;
+    }
+
+    final unzipper = ZipDecoder();
+    final archive = unzipper.decodeBytes(byteData);
+
+    // Search for the Manifest.
+    final manifestEntityHits =
+        archive.where((ArchiveFile entity) => entity.name == _manifestSaveName);
+
+    if (manifestEntityHits.isEmpty) {
+      return false;
+    }
+
+    final manifestByteData = manifestEntityHits.first.content as List<int>?;
+
+    if (manifestByteData == null || manifestByteData.length == 0) {
+      return false;
+    }
+
+    final rawManifest = json.decode(utf8.decode(manifestByteData));
+
+    if (rawManifest == null) {
+      return false;
+    }
+
+    final manifest = ManifestModel.fromMap(rawManifest);
+
+    // TODO: Check Manifest Version.
+    return true;
   }
 
   Future<ImportedShowData> readFromPermanentStorage(

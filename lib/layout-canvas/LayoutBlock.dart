@@ -89,9 +89,9 @@ class LayoutBlock extends StatelessWidget {
     return child;
   }
 
-  double? get leftEdge => xPos;
+  double get leftEdge => xPos;
   double get rightEdge => xPos + width;
-  double? get topEdge => yPos;
+  double get topEdge => yPos;
   double get bottomEdge => yPos + height;
 
   Rect get rectangle {

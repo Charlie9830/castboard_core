@@ -13,7 +13,6 @@ import 'package:vector_math/vector_math_64.dart' hide Colors;
 import 'package:flutter/material.dart';
 
 const double _gridSnapDeadZoneRatio = 0.5;
-const double _gridSize = 10;
 
 typedef void OnSelectedElementsChangedCallback(Set<String> selectedElements);
 typedef void OnElementsChangedCallback(
@@ -24,6 +23,7 @@ class LayoutCanvas extends StatefulWidget {
   final bool interactive;
   final bool deferHitTestingToChildren;
   final bool showGrid;
+  final double gridSize;
   final Map<String, LayoutBlock> elements;
   final Set<String> selectedElements;
   final double renderScale;
@@ -37,6 +37,7 @@ class LayoutCanvas extends StatefulWidget {
       this.interactive = true,
       this.deferHitTestingToChildren = false,
       this.showGrid = false,
+      this.gridSize = 10,
       this.elements = const {},
       this.selectedElements = const {},
       this.placing = false,
@@ -87,9 +88,9 @@ class _LayoutCanvasState extends State<LayoutCanvas> {
         color: Colors
             .transparent, // If a color isn't set. Hit testing for the Parent Listener stops working.
         child: CustomPaint(
-          painter: false //widget.showGrid
+          painter: widget.showGrid
               ? GridPainter(
-                  gridSize: _gridSize, renderScale: widget.renderScale)
+                  gridSize: widget.gridSize, renderScale: widget.renderScale)
               : null,
           child: Stack(
             // TODO, This Stack may be Redundant Now.
@@ -358,55 +359,47 @@ class _LayoutCanvasState extends State<LayoutCanvas> {
 
     // Determine if we are going to flip over an Axis on this move.
     final isFlippingLeftToRight =
-        primaryElement.leftEdge! + renderDeltaX > primaryElement.rightEdge;
+        primaryElement.leftEdge+ renderDeltaX > primaryElement.rightEdge;
     final isFlippingRightToLeft =
-        primaryElement.rightEdge + renderDeltaX < primaryElement.leftEdge!;
+        primaryElement.rightEdge + renderDeltaX < primaryElement.leftEdge;
     final isFlippingTopToBottom =
-        primaryElement.topEdge! + renderDeltaY > primaryElement.bottomEdge;
+        primaryElement.topEdge+ renderDeltaY > primaryElement.bottomEdge;
     final isFlippingBottomToTop =
-        primaryElement.bottomEdge + renderDeltaY < primaryElement.topEdge!;
+        primaryElement.bottomEdge + renderDeltaY < primaryElement.topEdge;
 
     final currentLogicalHandle = _logicalResizeHandle ?? physicalHandle;
 
-    // Update Delta Snap Accumulators, (Will only be refered if snapping is enabled)
+    // Update Delta Snap Accumulators.
     final deltaXSnapAccumulator = _deltaXSnapAccumulator + renderDeltaX;
     final deltaYSnapAccumulator = _deltaYSnapAccumulator + renderDeltaY;
 
-    // Declare a local function to get a snap delta only if snapping is enabled (Saves repeating code in handles switch statement later).
-    final maybeGetSnapDeltaX = (double? currentPos, double renderDeltaX) {
-      if (widget.showGrid == false) {
-        return renderDeltaX;
-      }
-
-      return _getSnapDelta(
-          currentPos, deltaXSnapAccumulator, _gridSize, _gridSnapDeadZoneRatio);
+    // Declare a local function to get a snap delta (Saves repeating code in handles switch statement later).
+    final getSnappedDeltaX = (double currentPos, double renderDeltaX) {
+      return _getSnapDelta(currentPos, deltaXSnapAccumulator, widget.gridSize,
+          _gridSnapDeadZoneRatio);
     };
 
-    // Declare a local function to get a snap delta only if snapping is enabled (Saves repeating code in handles switch statement later).
-    final maybeGetSnapDeltaY = (double? currentPos, double renderDeltaY) {
-      if (widget.showGrid == false) {
-        return renderDeltaY;
-      }
-
-      return _getSnapDelta(
-          currentPos, deltaYSnapAccumulator, _gridSize, _gridSnapDeadZoneRatio);
+    // Declare a local function to get a snap delta (Saves repeating code in handles switch statement later).
+    final getSnappedDeltaY = (double currentPos, double renderDeltaY) {
+      return _getSnapDelta(currentPos, deltaYSnapAccumulator, widget.gridSize,
+          _gridSnapDeadZoneRatio);
     };
 
     switch (currentLogicalHandle) {
       // Top Left.
       case ResizeHandleLocation.topLeft:
-        final maybeSnappedDeltaX =
-            maybeGetSnapDeltaX(primaryElement.leftEdge, renderDeltaX);
-        final maybeSnappedDeltaY =
-            maybeGetSnapDeltaY(primaryElement.topEdge, renderDeltaY);
+        final snappedDeltaX =
+            getSnappedDeltaX(primaryElement.leftEdge, renderDeltaX);
+        final snappedDeltaY =
+            getSnappedDeltaY(primaryElement.topEdge, renderDeltaY);
 
         final interimPrimary = primaryElement.combinedWith(
             xComponent: isFlippingLeftToRight
-                ? applyLeftCrossoverUpdate(primaryElement, maybeSnappedDeltaX)
-                : applyLeftNormalUpdate(primaryElement, maybeSnappedDeltaX),
+                ? applyLeftCrossoverUpdate(primaryElement, snappedDeltaX)
+                : applyLeftNormalUpdate(primaryElement, snappedDeltaX),
             yComponent: isFlippingTopToBottom
-                ? applyTopCrossoverUpdate(primaryElement, maybeSnappedDeltaY)
-                : applyTopNormalUpdate(primaryElement, maybeSnappedDeltaY));
+                ? applyTopCrossoverUpdate(primaryElement, snappedDeltaY)
+                : applyTopNormalUpdate(primaryElement, snappedDeltaY));
 
         final offsetVector =
             _getRotationOffsetVector(primaryElement, interimPrimary);
@@ -414,11 +407,11 @@ class _LayoutCanvasState extends State<LayoutCanvas> {
         setState(() {
           // Update DeltaX Snap Accumulator.
           _deltaXSnapAccumulator = _updateDeltaAccumulator(
-              maybeSnappedDeltaX, deltaXSnapAccumulator);
+              snappedDeltaX, deltaXSnapAccumulator);
 
           // Update DeltaX Snap Accumulator.
           _deltaYSnapAccumulator = _updateDeltaAccumulator(
-              maybeSnappedDeltaY, deltaYSnapAccumulator);
+              snappedDeltaY, deltaYSnapAccumulator);
 
           // Update Elements.
           final finalizedPrimaryElement = interimPrimary.copyWith(
@@ -471,13 +464,13 @@ class _LayoutCanvasState extends State<LayoutCanvas> {
 
       // Top Center.
       case ResizeHandleLocation.topCenter:
-        final maybeSnappedDeltaY =
-            maybeGetSnapDeltaY(primaryElement.topEdge, renderDeltaY);
+        final snappedDeltaY =
+            getSnappedDeltaY(primaryElement.topEdge, renderDeltaY);
 
         final interimPrimary = primaryElement.combinedWith(
             yComponent: isFlippingTopToBottom
-                ? applyTopCrossoverUpdate(primaryElement, maybeSnappedDeltaY)
-                : applyTopNormalUpdate(primaryElement, maybeSnappedDeltaY));
+                ? applyTopCrossoverUpdate(primaryElement, snappedDeltaY)
+                : applyTopNormalUpdate(primaryElement, snappedDeltaY));
 
         final offsetVector =
             _getRotationOffsetVector(primaryElement, interimPrimary);
@@ -485,7 +478,7 @@ class _LayoutCanvasState extends State<LayoutCanvas> {
         setState(() {
           // Update DeltaX Snap Accumulator.
           _deltaYSnapAccumulator = _updateDeltaAccumulator(
-              maybeSnappedDeltaY, deltaYSnapAccumulator);
+              snappedDeltaY, deltaYSnapAccumulator);
 
           // Update Elements.
           //
@@ -536,18 +529,18 @@ class _LayoutCanvasState extends State<LayoutCanvas> {
 
       // Top Right.
       case ResizeHandleLocation.topRight:
-        final maybeSnappedDeltaX =
-            maybeGetSnapDeltaX(primaryElement.rightEdge, renderDeltaX);
-        final maybeSnappedDeltaY =
-            maybeGetSnapDeltaY(primaryElement.topEdge, renderDeltaY);
+        final snappedDeltaX =
+            getSnappedDeltaX(primaryElement.rightEdge, renderDeltaX);
+        final snappedDeltaY =
+            getSnappedDeltaY(primaryElement.topEdge, renderDeltaY);
 
         final interimPrimary = primaryElement.combinedWith(
             xComponent: isFlippingRightToLeft
-                ? applyRightCrossoverUpdate(primaryElement, maybeSnappedDeltaX)
-                : applyRightNormalUpdate(primaryElement, maybeSnappedDeltaX),
+                ? applyRightCrossoverUpdate(primaryElement, snappedDeltaX)
+                : applyRightNormalUpdate(primaryElement, snappedDeltaX),
             yComponent: isFlippingTopToBottom
-                ? applyTopCrossoverUpdate(primaryElement, maybeSnappedDeltaY)
-                : applyTopNormalUpdate(primaryElement, maybeSnappedDeltaY));
+                ? applyTopCrossoverUpdate(primaryElement, snappedDeltaY)
+                : applyTopNormalUpdate(primaryElement, snappedDeltaY));
 
         final offsetVector =
             _getRotationOffsetVector(primaryElement, interimPrimary);
@@ -555,11 +548,11 @@ class _LayoutCanvasState extends State<LayoutCanvas> {
         setState(() {
           // Update DeltaX Snap Accumulator.
           _deltaXSnapAccumulator = _updateDeltaAccumulator(
-              maybeSnappedDeltaX, deltaXSnapAccumulator);
+              snappedDeltaX, deltaXSnapAccumulator);
 
           // Update DeltaX Snap Accumulator.
           _deltaYSnapAccumulator = _updateDeltaAccumulator(
-              maybeSnappedDeltaY, deltaYSnapAccumulator);
+              snappedDeltaY, deltaYSnapAccumulator);
 
           // Update Elements.
           final finalizedPrimaryElement = interimPrimary.copyWith(
@@ -617,13 +610,13 @@ class _LayoutCanvasState extends State<LayoutCanvas> {
 
       // Middle Right.
       case ResizeHandleLocation.middleRight:
-        final maybeSnappedDeltaX =
-            maybeGetSnapDeltaX(primaryElement.rightEdge, renderDeltaX);
+        final snappedDeltaX =
+            getSnappedDeltaX(primaryElement.rightEdge, renderDeltaX);
 
         final interimPrimary = primaryElement.combinedWith(
           xComponent: isFlippingRightToLeft
-              ? applyRightCrossoverUpdate(primaryElement, maybeSnappedDeltaX)
-              : applyRightNormalUpdate(primaryElement, maybeSnappedDeltaX),
+              ? applyRightCrossoverUpdate(primaryElement, snappedDeltaX)
+              : applyRightNormalUpdate(primaryElement, snappedDeltaX),
         );
 
         final offsetVector =
@@ -632,7 +625,7 @@ class _LayoutCanvasState extends State<LayoutCanvas> {
         setState(() {
           // Update DeltaX Snap Accumulator.
           _deltaXSnapAccumulator = _updateDeltaAccumulator(
-              maybeSnappedDeltaX, deltaXSnapAccumulator);
+              snappedDeltaX, deltaXSnapAccumulator);
 
           // Update Elements.
           final finalizedPrimaryElement = interimPrimary.copyWith(
@@ -685,18 +678,18 @@ class _LayoutCanvasState extends State<LayoutCanvas> {
 
       // Bottom Right.
       case ResizeHandleLocation.bottomRight:
-        final maybeSnappedDeltaX =
-            maybeGetSnapDeltaX(primaryElement.rightEdge, renderDeltaX);
-        final maybeSnappedDeltaY =
-            maybeGetSnapDeltaY(primaryElement.bottomEdge, renderDeltaY);
+        final snappedDeltaX =
+            getSnappedDeltaX(primaryElement.rightEdge, renderDeltaX);
+        final snappedDeltaY =
+            getSnappedDeltaY(primaryElement.bottomEdge, renderDeltaY);
 
         final interimPrimary = primaryElement.combinedWith(
             xComponent: isFlippingRightToLeft
-                ? applyRightCrossoverUpdate(primaryElement, maybeSnappedDeltaX)
-                : applyRightNormalUpdate(primaryElement, maybeSnappedDeltaX),
+                ? applyRightCrossoverUpdate(primaryElement, snappedDeltaX)
+                : applyRightNormalUpdate(primaryElement, snappedDeltaX),
             yComponent: isFlippingBottomToTop
-                ? applyBottomCrossoverUpdate(primaryElement, maybeSnappedDeltaY)
-                : applyBottomNormalUpdate(primaryElement, maybeSnappedDeltaY));
+                ? applyBottomCrossoverUpdate(primaryElement, snappedDeltaY)
+                : applyBottomNormalUpdate(primaryElement, snappedDeltaY));
 
         final offsetVector =
             _getRotationOffsetVector(primaryElement, interimPrimary);
@@ -704,11 +697,11 @@ class _LayoutCanvasState extends State<LayoutCanvas> {
         setState(() {
           // Update DeltaX Snap Accumulator.
           _deltaXSnapAccumulator = _updateDeltaAccumulator(
-              maybeSnappedDeltaX, deltaXSnapAccumulator);
+              snappedDeltaX, deltaXSnapAccumulator);
 
           // Update DeltaX Snap Accumulator.
           _deltaYSnapAccumulator = _updateDeltaAccumulator(
-              maybeSnappedDeltaY, deltaYSnapAccumulator);
+              snappedDeltaY, deltaYSnapAccumulator);
 
           // Update Elements.
           final finalizedPrimaryElement = interimPrimary.copyWith(
@@ -761,13 +754,13 @@ class _LayoutCanvasState extends State<LayoutCanvas> {
 
       // Bottom Center.
       case ResizeHandleLocation.bottomCenter:
-        final maybeSnappedDeltaY =
-            maybeGetSnapDeltaY(primaryElement.bottomEdge, renderDeltaY);
+        final snappedDeltaY =
+            getSnappedDeltaY(primaryElement.bottomEdge, renderDeltaY);
 
         final interimPrimary = primaryElement.combinedWith(
           yComponent: isFlippingBottomToTop
-              ? applyBottomCrossoverUpdate(primaryElement, maybeSnappedDeltaY)
-              : applyBottomNormalUpdate(primaryElement, maybeSnappedDeltaY),
+              ? applyBottomCrossoverUpdate(primaryElement, snappedDeltaY)
+              : applyBottomNormalUpdate(primaryElement, snappedDeltaY),
         );
 
         final offsetVector =
@@ -776,7 +769,7 @@ class _LayoutCanvasState extends State<LayoutCanvas> {
         setState(() {
           // Update DeltaX Snap Accumulator.
           _deltaYSnapAccumulator = _updateDeltaAccumulator(
-              maybeSnappedDeltaY, deltaYSnapAccumulator);
+              snappedDeltaY, deltaYSnapAccumulator);
 
           // Update Elements.
           final finalizedPrimaryElement = interimPrimary.copyWith(
@@ -827,18 +820,18 @@ class _LayoutCanvasState extends State<LayoutCanvas> {
 
       // Bottom Left.
       case ResizeHandleLocation.bottomLeft:
-        final maybeSnappedDeltaX =
-            maybeGetSnapDeltaX(primaryElement.leftEdge, renderDeltaX);
-        final maybeSnappedDeltaY =
-            maybeGetSnapDeltaY(primaryElement.bottomEdge, renderDeltaY);
+        final snappedDeltaX =
+            getSnappedDeltaX(primaryElement.leftEdge, renderDeltaX);
+        final snappedDeltaY =
+            getSnappedDeltaY(primaryElement.bottomEdge, renderDeltaY);
 
         final interimPrimary = primaryElement.combinedWith(
             xComponent: isFlippingLeftToRight
-                ? applyLeftCrossoverUpdate(primaryElement, maybeSnappedDeltaX)
-                : applyLeftNormalUpdate(primaryElement, maybeSnappedDeltaX),
+                ? applyLeftCrossoverUpdate(primaryElement, snappedDeltaX)
+                : applyLeftNormalUpdate(primaryElement, snappedDeltaX),
             yComponent: isFlippingBottomToTop
-                ? applyBottomCrossoverUpdate(primaryElement, maybeSnappedDeltaY)
-                : applyBottomNormalUpdate(primaryElement, maybeSnappedDeltaY));
+                ? applyBottomCrossoverUpdate(primaryElement, snappedDeltaY)
+                : applyBottomNormalUpdate(primaryElement, snappedDeltaY));
 
         final offsetVector =
             _getRotationOffsetVector(primaryElement, interimPrimary);
@@ -846,11 +839,11 @@ class _LayoutCanvasState extends State<LayoutCanvas> {
         setState(() {
           // Update DeltaX Snap Accumulator.
           _deltaXSnapAccumulator = _updateDeltaAccumulator(
-              maybeSnappedDeltaX, deltaXSnapAccumulator);
+              snappedDeltaX, deltaXSnapAccumulator);
 
           // Update DeltaX Snap Accumulator.
           _deltaYSnapAccumulator = _updateDeltaAccumulator(
-              maybeSnappedDeltaY, deltaYSnapAccumulator);
+              snappedDeltaY, deltaYSnapAccumulator);
 
           // Update Elements.
           final finalizedPrimaryElement = interimPrimary.copyWith(
@@ -904,13 +897,13 @@ class _LayoutCanvasState extends State<LayoutCanvas> {
 
       // Middle Left.
       case ResizeHandleLocation.middleLeft:
-        final maybeSnappedDeltaX =
-            maybeGetSnapDeltaX(primaryElement.leftEdge, renderDeltaX);
+        final snappedDeltaX =
+            getSnappedDeltaX(primaryElement.leftEdge, renderDeltaX);
 
         final interimPrimary = primaryElement.combinedWith(
           xComponent: isFlippingLeftToRight
-              ? applyLeftCrossoverUpdate(primaryElement, maybeSnappedDeltaX)
-              : applyLeftNormalUpdate(primaryElement, maybeSnappedDeltaX),
+              ? applyLeftCrossoverUpdate(primaryElement, snappedDeltaX)
+              : applyLeftNormalUpdate(primaryElement, snappedDeltaX),
         );
 
         final offsetVector =
@@ -919,7 +912,7 @@ class _LayoutCanvasState extends State<LayoutCanvas> {
         setState(() {
           // Update DeltaX Snap Accumulator.
           _deltaXSnapAccumulator = _updateDeltaAccumulator(
-              maybeSnappedDeltaX, deltaXSnapAccumulator);
+              snappedDeltaX, deltaXSnapAccumulator);
 
           // Update Elements.
           final finalizedPrimaryElement = interimPrimary.copyWith(
@@ -1006,29 +999,9 @@ class _LayoutCanvasState extends State<LayoutCanvas> {
     final scaledDeltaX = rawDeltaX / widget.renderScale;
     final scaledDeltaY = rawDeltaY / widget.renderScale;
 
-    if (widget.showGrid == true) {
-      _handleSnappingPositionChange(uid, widget.selectedElements,
-          _activeElements, widget.elements, scaledDeltaX, scaledDeltaY);
-    } else {
-      _handleStandardPositionChange(uid, widget.selectedElements,
-          _activeElements, widget.elements, scaledDeltaX, scaledDeltaY);
-    }
-  }
-
-  void _handleStandardPositionChange(
-      String uid,
-      Set<String> selectedElements,
-      Map<String, LayoutBlock> activeElements,
-      Map<String, LayoutBlock> elements,
-      double scaledDeltaX,
-      double scaledDeltaY) {
-    // Apply new delta values to the active elements.
-    final newActiveElements = _applyDeltaPositionUpdates(
-        selectedElements, activeElements, elements, scaledDeltaX, scaledDeltaY);
-
-    setState(() {
-      _activeElements = newActiveElements;
-    });
+    // Snapping is enabled by Default, but at a fine grain level.
+    _handleSnappingPositionChange(uid, widget.selectedElements, _activeElements,
+        widget.elements, scaledDeltaX, scaledDeltaY);
   }
 
   /// Returns an Accumulated Delta value. If [snapDelta] is 0, signalling that no snap was required, then [accumulator] is returned as is. Else [accumulator] is returned with the
@@ -1056,10 +1029,10 @@ class _LayoutCanvasState extends State<LayoutCanvas> {
 
     // Determine the delta required to snap to the next appropriate gridline (if any).
     final double snapDeltaX = _getSnapDelta(primaryElement.xPos,
-        deltaXSnapAccumulator, _gridSize, _gridSnapDeadZoneRatio);
+        deltaXSnapAccumulator, widget.gridSize, _gridSnapDeadZoneRatio);
 
     final double snapDeltaY = _getSnapDelta(primaryElement.yPos,
-        deltaYSnapAccumulator, _gridSize, _gridSnapDeadZoneRatio);
+        deltaYSnapAccumulator, widget.gridSize, _gridSnapDeadZoneRatio);
 
     if (snapDeltaX != 0 || snapDeltaY != 0) {
       // We either need to snap the object along the X or Y Axis.

@@ -1,5 +1,3 @@
-
-
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
@@ -7,8 +5,13 @@ import 'package:flutter/material.dart';
 class GridPainter extends CustomPainter {
   final double gridSize;
   final double renderScale;
+  final int gridLineDrawRatio;
 
-  GridPainter({required this.gridSize, required this.renderScale});
+  GridPainter({
+    required this.gridSize,
+    required this.renderScale,
+    this.gridLineDrawRatio = 4,
+  });
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -16,49 +19,14 @@ class GridPainter extends CustomPainter {
       return;
     }
 
-    final double renderedWidth = size.width;
-    final double renderedHeight = size.height;
-    final double renderedGridSize = gridSize * renderScale;
+    final renderedGridSize = gridSize * renderScale;
 
-    final Paint paint = Paint();
-    paint.color = Colors.grey;
+    final Paint gridLinePaint = Paint();
+    gridLinePaint.color = Colors.grey.withAlpha(128);
 
     final Paint centerLinePaint = Paint();
-    centerLinePaint.color = Colors.grey;
+    centerLinePaint.color = Colors.grey.withAlpha(128);
     centerLinePaint.strokeWidth = 2.0;
-
-    for (int i = 0; i < 16; i++) {
-      canvas.drawLine(
-        Offset(80.0 * renderScale * i, 0),
-        Offset(80.0 * renderScale * i, size.height),
-        paint,
-      );
-    }
-
-    for (int i = 0; i < 9; i++) {
-      canvas.drawLine(
-        Offset(0, 80.0 * renderScale * i),
-        Offset(size.width, 80.0 * renderScale * i),
-        paint,
-      );
-    }
-
-    // final int xLineCount = (renderedWidth / renderedGridSize).floor();
-
-    // for (int i = 0; i <= xLineCount; i++) {
-    //   canvas.drawLine(Offset(renderedGridSize * i, 0),
-    //       Offset(renderedGridSize * i, renderedHeight), paint);
-    // }
-
-    // final int yLineCount = (renderedHeight / renderedGridSize).floor();
-
-    // for (int i = 0; i <= yLineCount; i++) {
-    //   canvas.drawLine(
-    //     Offset(0, renderedGridSize * i),
-    //     Offset(renderedWidth, renderedGridSize * i),
-    //     paint,
-    //   );
-    // }
 
     // Center Line
     canvas.drawLine(
@@ -73,6 +41,55 @@ class GridPainter extends CustomPainter {
       Offset(size.width, size.height / 2),
       centerLinePaint,
     );
+
+    // Draw Grid Lines.
+    final double gridLineGap = renderedGridSize *
+        gridLineDrawRatio; // It's optically overwhelming to draw every single line
+    // so we only draw every gridLineDrawRatio'th line.
+
+    // Vertical gridLines.
+    final double center = size.width / 2;
+    double currentLeft = center - gridLineGap;
+    double currentRight = center + gridLineGap;
+
+    while (currentLeft >= 0 && currentRight <= size.width) {
+      canvas.drawLine(
+        Offset(currentLeft, 0),
+        Offset(currentLeft, size.height),
+        gridLinePaint,
+      );
+
+      canvas.drawLine(
+        Offset(currentRight, 0),
+        Offset(currentRight, size.height),
+        gridLinePaint,
+      );
+
+      currentLeft -= gridLineGap;
+      currentRight += gridLineGap;
+    }
+
+    // Horizontal GridLines
+    final double middle = size.height / 2;
+    double currentTop = middle - gridLineGap;
+    double currentBottom = middle + gridLineGap;
+
+    while (currentTop >= 0 && currentBottom <= size.height) {
+      canvas.drawLine(
+        Offset(0, currentTop),
+        Offset(size.width, currentTop),
+        gridLinePaint,
+      );
+
+      canvas.drawLine(
+        Offset(0, currentBottom),
+        Offset(size.width, currentBottom),
+        gridLinePaint,
+      );
+
+      currentTop -= gridLineGap;
+      currentBottom += gridLineGap;
+    }
   }
 
   @override

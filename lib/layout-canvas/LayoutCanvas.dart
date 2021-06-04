@@ -90,7 +90,9 @@ class _LayoutCanvasState extends State<LayoutCanvas> {
         child: CustomPaint(
           painter: widget.showGrid
               ? GridPainter(
-                  gridSize: widget.gridSize, renderScale: widget.renderScale)
+                  gridSize: widget.gridSize,
+                  renderScale: widget.renderScale,
+                )
               : null,
           child: Stack(
             // TODO, This Stack may be Redundant Now.
@@ -359,11 +361,11 @@ class _LayoutCanvasState extends State<LayoutCanvas> {
 
     // Determine if we are going to flip over an Axis on this move.
     final isFlippingLeftToRight =
-        primaryElement.leftEdge+ renderDeltaX > primaryElement.rightEdge;
+        primaryElement.leftEdge + renderDeltaX > primaryElement.rightEdge;
     final isFlippingRightToLeft =
         primaryElement.rightEdge + renderDeltaX < primaryElement.leftEdge;
     final isFlippingTopToBottom =
-        primaryElement.topEdge+ renderDeltaY > primaryElement.bottomEdge;
+        primaryElement.topEdge + renderDeltaY > primaryElement.bottomEdge;
     final isFlippingBottomToTop =
         primaryElement.bottomEdge + renderDeltaY < primaryElement.topEdge;
 
@@ -406,12 +408,12 @@ class _LayoutCanvasState extends State<LayoutCanvas> {
 
         setState(() {
           // Update DeltaX Snap Accumulator.
-          _deltaXSnapAccumulator = _updateDeltaAccumulator(
-              snappedDeltaX, deltaXSnapAccumulator);
+          _deltaXSnapAccumulator =
+              _updateDeltaAccumulator(snappedDeltaX, deltaXSnapAccumulator);
 
           // Update DeltaX Snap Accumulator.
-          _deltaYSnapAccumulator = _updateDeltaAccumulator(
-              snappedDeltaY, deltaYSnapAccumulator);
+          _deltaYSnapAccumulator =
+              _updateDeltaAccumulator(snappedDeltaY, deltaYSnapAccumulator);
 
           // Update Elements.
           final finalizedPrimaryElement = interimPrimary.copyWith(
@@ -477,8 +479,8 @@ class _LayoutCanvasState extends State<LayoutCanvas> {
 
         setState(() {
           // Update DeltaX Snap Accumulator.
-          _deltaYSnapAccumulator = _updateDeltaAccumulator(
-              snappedDeltaY, deltaYSnapAccumulator);
+          _deltaYSnapAccumulator =
+              _updateDeltaAccumulator(snappedDeltaY, deltaYSnapAccumulator);
 
           // Update Elements.
           //
@@ -547,12 +549,12 @@ class _LayoutCanvasState extends State<LayoutCanvas> {
 
         setState(() {
           // Update DeltaX Snap Accumulator.
-          _deltaXSnapAccumulator = _updateDeltaAccumulator(
-              snappedDeltaX, deltaXSnapAccumulator);
+          _deltaXSnapAccumulator =
+              _updateDeltaAccumulator(snappedDeltaX, deltaXSnapAccumulator);
 
           // Update DeltaX Snap Accumulator.
-          _deltaYSnapAccumulator = _updateDeltaAccumulator(
-              snappedDeltaY, deltaYSnapAccumulator);
+          _deltaYSnapAccumulator =
+              _updateDeltaAccumulator(snappedDeltaY, deltaYSnapAccumulator);
 
           // Update Elements.
           final finalizedPrimaryElement = interimPrimary.copyWith(
@@ -624,8 +626,8 @@ class _LayoutCanvasState extends State<LayoutCanvas> {
 
         setState(() {
           // Update DeltaX Snap Accumulator.
-          _deltaXSnapAccumulator = _updateDeltaAccumulator(
-              snappedDeltaX, deltaXSnapAccumulator);
+          _deltaXSnapAccumulator =
+              _updateDeltaAccumulator(snappedDeltaX, deltaXSnapAccumulator);
 
           // Update Elements.
           final finalizedPrimaryElement = interimPrimary.copyWith(
@@ -696,12 +698,12 @@ class _LayoutCanvasState extends State<LayoutCanvas> {
 
         setState(() {
           // Update DeltaX Snap Accumulator.
-          _deltaXSnapAccumulator = _updateDeltaAccumulator(
-              snappedDeltaX, deltaXSnapAccumulator);
+          _deltaXSnapAccumulator =
+              _updateDeltaAccumulator(snappedDeltaX, deltaXSnapAccumulator);
 
           // Update DeltaX Snap Accumulator.
-          _deltaYSnapAccumulator = _updateDeltaAccumulator(
-              snappedDeltaY, deltaYSnapAccumulator);
+          _deltaYSnapAccumulator =
+              _updateDeltaAccumulator(snappedDeltaY, deltaYSnapAccumulator);
 
           // Update Elements.
           final finalizedPrimaryElement = interimPrimary.copyWith(
@@ -768,8 +770,8 @@ class _LayoutCanvasState extends State<LayoutCanvas> {
 
         setState(() {
           // Update DeltaX Snap Accumulator.
-          _deltaYSnapAccumulator = _updateDeltaAccumulator(
-              snappedDeltaY, deltaYSnapAccumulator);
+          _deltaYSnapAccumulator =
+              _updateDeltaAccumulator(snappedDeltaY, deltaYSnapAccumulator);
 
           // Update Elements.
           final finalizedPrimaryElement = interimPrimary.copyWith(
@@ -838,12 +840,12 @@ class _LayoutCanvasState extends State<LayoutCanvas> {
 
         setState(() {
           // Update DeltaX Snap Accumulator.
-          _deltaXSnapAccumulator = _updateDeltaAccumulator(
-              snappedDeltaX, deltaXSnapAccumulator);
+          _deltaXSnapAccumulator =
+              _updateDeltaAccumulator(snappedDeltaX, deltaXSnapAccumulator);
 
           // Update DeltaX Snap Accumulator.
-          _deltaYSnapAccumulator = _updateDeltaAccumulator(
-              snappedDeltaY, deltaYSnapAccumulator);
+          _deltaYSnapAccumulator =
+              _updateDeltaAccumulator(snappedDeltaY, deltaYSnapAccumulator);
 
           // Update Elements.
           final finalizedPrimaryElement = interimPrimary.copyWith(
@@ -911,8 +913,8 @@ class _LayoutCanvasState extends State<LayoutCanvas> {
 
         setState(() {
           // Update DeltaX Snap Accumulator.
-          _deltaXSnapAccumulator = _updateDeltaAccumulator(
-              snappedDeltaX, deltaXSnapAccumulator);
+          _deltaXSnapAccumulator =
+              _updateDeltaAccumulator(snappedDeltaX, deltaXSnapAccumulator);
 
           // Update Elements.
           final finalizedPrimaryElement = interimPrimary.copyWith(

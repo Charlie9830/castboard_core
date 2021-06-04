@@ -44,47 +44,51 @@ class CastChangeDetails extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ListView(
+    return ListView.builder(
       shrinkWrap: !selfScrolling,
-      children: tracks
-          .map((track) => Row(
-                key: Key(track.ref.uid),
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(track.internalTitle,
-                      style: Theme.of(context).textTheme.bodyText2),
+      itemCount: tracks.length,
+      itemBuilder: (context, index) {
+        final track = tracks[index];
+        return Row(
+          key: Key(track.ref.uid),
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(track.internalTitle,
+                style: Theme.of(context).textTheme.bodyText2),
+            Row(
+              children: [
+                if (_fromLiveEdit(track.ref.uid, assignments) == true)
+                  TextButton(
+                    child: Text('Reset'),
+                    onPressed: () => onResetLiveEdit?.call(track.ref),
+                  ),
+                if (_fromNestedPreset(track.ref.uid, assignments) == true)
                   Row(
                     children: [
-                      if (_fromLiveEdit(track.ref.uid, assignments) == true)
-                        TextButton(
-                          child: Text('Reset'),
-                          onPressed: () => onResetLiveEdit?.call(track.ref),
-                        ),
-                      if (_fromNestedPreset(track.ref.uid, assignments) == true)
-                        Row(
-                          children: [
-                            Text(
-                                'From ${_lookupSourcePresetName(track.ref.uid, assignments)}',
-                                overflow: TextOverflow.ellipsis,
-                                style: Theme.of(context).textTheme.caption),
-                            SizedBox(width: 24),
-                          ],
-                        ),
-                      Container(
-                        constraints: BoxConstraints.loose(Size.fromWidth(150)),
-                        child: _buildDropdownButton(
-                            allowNestedEditing, track, context),
-                      ),
+                      Text(
+                          'From ${_lookupSourcePresetName(track.ref.uid, assignments)}',
+                          overflow: TextOverflow.ellipsis,
+                          style: Theme.of(context).textTheme.caption),
+                      SizedBox(width: 24),
                     ],
-                  )
-                ],
-              ))
-          .toList(),
+                  ),
+                Container(
+                  constraints: BoxConstraints.loose(Size.fromWidth(150)),
+                  child:
+                      _buildDropdownButton(allowNestedEditing, track, context),
+                ),
+              ],
+            )
+          ],
+        );
+      },
     );
   }
 
   DropdownButton<ActorRef> _buildDropdownButton(
       bool allowNestedEditing, TrackModel track, BuildContext context) {
+        // TODO: This is causing some series Jank. Because DropdownButtonItems can't be lazily built. We are building,
+        // thousands of items when the Parent ListView is building.
     return DropdownButton<ActorRef>(
         isExpanded: true,
         value: _lookupValue(track.ref.uid, assignments),

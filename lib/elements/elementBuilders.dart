@@ -7,9 +7,7 @@ import 'package:castboard_core/elements/ImageElement.dart';
 import 'package:castboard_core/layout-canvas/MultiChildCanvasItem.dart';
 import 'package:castboard_core/elements/GroupElementModel.dart';
 import 'package:castboard_core/elements/HeadshotElementModel.dart';
-import 'package:castboard_core/elements/NoActorFallback.dart';
-import 'package:castboard_core/elements/NoHeadshotFallback.dart';
-import 'package:castboard_core/elements/NoTrackFallback.dart';
+import 'package:castboard_core/elements/HeadshotFallback.dart';
 import 'package:castboard_core/elements/ShapeElement.dart';
 import 'package:castboard_core/elements/ShapeElementModel.dart';
 import 'package:castboard_core/elements/TextElement.dart';
@@ -168,27 +166,29 @@ Widget _buildChild({
   }
 
   if (element is HeadshotElementModel) {
-    final actor = _getAssignedActor(element, castChange, actors);
-
     if (tracks == null) {
-      return withPadding(NoTrackFallback());
+      return withPadding(HeadshotFallback(
+        reason: HeadshotFallbackReason.noTrack,
+      ));
     }
 
     final track = tracks[element.trackRef];
 
     if (track == null) {
-      return withPadding(NoTrackFallback());
+      return withPadding(
+          HeadshotFallback(reason: HeadshotFallbackReason.noTrack));
     }
 
+    final actor = _getAssignedActor(element, castChange, actors);
+
     if (actor == null) {
-      return withPadding(NoActorFallback(
-        trackTitle: track.title,
-      ));
+      return withPadding(
+          HeadshotFallback(reason: HeadshotFallbackReason.noActor));
     }
 
     if (actor.headshotRef.uid!.isEmpty) {
-      return withPadding(NoHeadshotFallback(
-        trackTitle: track.title,
+      return withPadding(HeadshotFallback(
+        reason: HeadshotFallbackReason.noPhoto,
       ));
     }
 

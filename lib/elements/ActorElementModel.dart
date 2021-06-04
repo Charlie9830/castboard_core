@@ -75,4 +75,9 @@ class ActorElementModel extends TextElementModel
       'color': ColorModel.fromColor(color).toMap(),
     };
   }
+
+  @override
+  LayoutElementChild copy() {
+    return copyWith();
+  }
 }

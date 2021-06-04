@@ -1,7 +1,6 @@
-
-
 import 'package:castboard_core/classes/LayoutElementChild.dart';
 import 'package:castboard_core/models/LayoutElementModel.dart';
+import 'package:castboard_core/utils/getUid.dart';
 
 class GroupElementModel extends LayoutElementChild {
   final List<LayoutElementModel> children;
@@ -25,5 +24,12 @@ class GroupElementModel extends LayoutElementChild {
     List<LayoutElementModel>? children,
   }) {
     return GroupElementModel(children: children ?? this.children);
+  }
+
+  @override
+  LayoutElementChild copy() {
+    return copyWith(
+      children: children.map((child) => child.copy(getUid())).toList(),
+    );
   }
 }

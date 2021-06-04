@@ -111,4 +111,11 @@ class LayoutElementModel {
       child: LayoutElementChild.fromMap(map['child']),
     );
   }
+
+  LayoutElementModel copy(String parentUid) {
+    return copyWith(
+      uid: parentUid,
+      child: child.copy(),
+    );
+  }
 }

@@ -78,4 +78,9 @@ class TextElementModel extends LayoutElementChild {
       'color': ColorModel.fromColor(color).toMap(),
     };
   }
+
+  @override
+  LayoutElementChild copy() {
+    return copyWith();
+  }
 }

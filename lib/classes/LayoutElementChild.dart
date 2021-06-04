@@ -31,6 +31,8 @@ abstract class LayoutElementChild {
 
   Map<String, dynamic> toMap();
 
+  LayoutElementChild copy();
+
   factory LayoutElementChild.fromMap(Map<String, dynamic>? map) {
     if (map == null) {
       print('\n Uh Oh, I just created a BlankElementModel \n');

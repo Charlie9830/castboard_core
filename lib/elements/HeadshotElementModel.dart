@@ -28,4 +28,9 @@ class HeadshotElementModel extends LayoutElementChild
       'trackRef': trackRef.toMap(),
     };
   }
+
+  @override
+  LayoutElementChild copy() {
+    return copyWith();
+  }
 }

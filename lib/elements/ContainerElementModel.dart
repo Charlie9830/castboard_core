@@ -1,5 +1,3 @@
-
-
 import 'package:castboard_core/enum-converters/axisConverters.dart';
 
 import 'package:castboard_core/classes/LayoutElementChild.dart';
@@ -7,6 +5,7 @@ import 'package:castboard_core/enum-converters/crossAxisAlignmentConverters.dart
 import 'package:castboard_core/enum-converters/mainAxisAlignmentConverters.dart';
 import 'package:castboard_core/enum-converters/runAlignmentConverters.dart';
 import 'package:castboard_core/models/LayoutElementModel.dart';
+import 'package:castboard_core/utils/getUid.dart';
 import 'package:flutter/widgets.dart';
 
 class ContainerElementModel extends LayoutElementChild {
@@ -63,5 +62,12 @@ class ContainerElementModel extends LayoutElementChild {
         wrapEnabled: wrapEnabled ?? this.wrapEnabled,
         axis: axis ?? this.axis,
         children: children ?? this.children);
+  }
+
+  @override
+  LayoutElementChild copy() {
+    return copyWith(
+      children: children.map((child) => child.copy(getUid())).toList(),
+    );
   }
 }

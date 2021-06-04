@@ -1,5 +1,3 @@
-
-
 import 'package:castboard_core/enum-converters/shapeElementTypeConverters.dart';
 import 'package:castboard_core/models/ColorModel.dart';
 import 'package:flutter/material.dart';
@@ -13,9 +11,12 @@ class ShapeElementModel extends LayoutElementChild {
   final Color lineColor;
   final double lineWeight;
 
-  ShapeElementModel(
-      {ShapeElementType? type, Color? fill, Color? lineColor, double? lineWeight})
-      : this.type = type ?? ShapeElementType.square,
+  ShapeElementModel({
+    ShapeElementType? type,
+    Color? fill,
+    Color? lineColor,
+    double? lineWeight,
+  })  : this.type = type ?? ShapeElementType.square,
         this.fill = fill ?? Colors.blue,
         this.lineColor = lineColor ?? Colors.black,
         this.lineWeight = lineWeight ?? 1,
@@ -45,5 +46,10 @@ class ShapeElementModel extends LayoutElementChild {
       'lineColor': ColorModel.fromColor(lineColor).toMap(),
       'lineWeight': lineWeight,
     };
+  }
+
+  @override
+  LayoutElementChild copy() {
+    return copyWith();
   }
 }

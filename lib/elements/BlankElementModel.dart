@@ -8,4 +8,9 @@ class BlankElementModel extends LayoutElementChild {
       'elementType': 'blank'
     };
   }
+
+  @override
+  LayoutElementChild copy() {
+    return BlankElementModel();
+  }
 }

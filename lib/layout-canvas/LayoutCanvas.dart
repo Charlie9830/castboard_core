@@ -13,7 +13,7 @@ import 'package:vector_math/vector_math_64.dart' hide Colors;
 import 'package:flutter/material.dart';
 
 const double _gridSnapDeadZoneRatio = 0.5;
-const double _gridSize = 80;
+const double _gridSize = 10;
 
 typedef void OnSelectedElementsChangedCallback(Set<String> selectedElements);
 typedef void OnElementsChangedCallback(
@@ -87,7 +87,7 @@ class _LayoutCanvasState extends State<LayoutCanvas> {
         color: Colors
             .transparent, // If a color isn't set. Hit testing for the Parent Listener stops working.
         child: CustomPaint(
-          painter: widget.showGrid
+          painter: false //widget.showGrid
               ? GridPainter(
                   gridSize: _gridSize, renderScale: widget.renderScale)
               : null,
@@ -990,9 +990,13 @@ class _LayoutCanvasState extends State<LayoutCanvas> {
 
     if (deltaSinceLastSnap * -1 >= gridSize * deadZoneRatio) {
       // Snap to Left or Top grid line. (Decreasing value on the X or Y Axis)
-      final prevSnap =
+      final double prevSnap =
           ((currentPos! + deltaSinceLastSnap) / gridSize).round() * gridSize;
-      return currentPos % gridSize == 0 ? gridSize * -1 : prevSnap - currentPos;
+
+      return prevSnap - currentPos;
+      // The line below was causing a bug where moving to the Left or upwards quickly with Grid mode on would
+      // cause the element to lag behind the cursor serverly.
+      //return currentPos % gridSize == 0 ? gridSize * -1 : prevSnap - currentPos;
     }
 
     return 0;
@@ -1027,8 +1031,8 @@ class _LayoutCanvasState extends State<LayoutCanvas> {
     });
   }
 
-  /// Returns an Accumulated Delta value. If SnapDelta is 0, signalling that no snap was required, then accumulator is returned as is. Else accumulator is returned with the
-  /// snapDelta subtracted from it to account for any leftover delta after a Snap has occurred.
+  /// Returns an Accumulated Delta value. If [snapDelta] is 0, signalling that no snap was required, then [accumulator] is returned as is. Else [accumulator] is returned with the
+  /// [snapDelta] subtracted from it to account for any leftover delta after a snap has occurred.
   double _updateDeltaAccumulator(double snapDelta, double accumulator) {
     if (snapDelta == 0) {
       return accumulator;
@@ -1053,10 +1057,12 @@ class _LayoutCanvasState extends State<LayoutCanvas> {
     // Determine the delta required to snap to the next appropriate gridline (if any).
     final double snapDeltaX = _getSnapDelta(primaryElement.xPos,
         deltaXSnapAccumulator, _gridSize, _gridSnapDeadZoneRatio);
+
     final double snapDeltaY = _getSnapDelta(primaryElement.yPos,
         deltaYSnapAccumulator, _gridSize, _gridSnapDeadZoneRatio);
 
     if (snapDeltaX != 0 || snapDeltaY != 0) {
+      // We either need to snap the object along the X or Y Axis.
       // Get updated values for the deltaAccumulators.
       final newDeltaXSnapAccumulator =
           _updateDeltaAccumulator(snapDeltaX, deltaXSnapAccumulator);

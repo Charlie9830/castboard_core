@@ -1,5 +1,13 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+
+final isMobile = (BuildContext context) {
+  return true;
+  return kIsWeb ||
+      Theme.of(context).platform == TargetPlatform.iOS ||
+      Theme.of(context).platform == TargetPlatform.android;
+};
 
 class SearchDropdown extends StatefulWidget {
   final List<SearchDropdownItem> Function(BuildContext context) itemsBuilder;
@@ -39,6 +47,27 @@ class _SearchDropdownState extends State<SearchDropdown> {
   }
 
   void _handleOpen(BuildContext context, SearchDropdownItem? selectedItem) {
+    if (isMobile(context)) {
+      _handleMobileOpen(context, selectedItem);
+    } else {
+      _handleDesktopOpen(context, selectedItem);
+    }
+  }
+
+  void _handleMobileOpen(
+      BuildContext context, SearchDropdownItem? selectedItem) async {
+    await showModalBottomSheet(
+        enableDrag: false,
+        context: context,
+        builder: (_) => _SearchDropdownContent(
+              value: selectedItem,
+              items: widget.itemsBuilder(context),
+              onChanged: _handleValueChanged,
+            ));
+  }
+
+  void _handleDesktopOpen(
+      BuildContext context, SearchDropdownItem? selectedItem) {
     final renderBox = context.findRenderObject() as RenderBox;
     final offset = renderBox.localToGlobal(Offset.zero);
     final screenHeight = MediaQuery.of(context).size.height;
@@ -49,7 +78,7 @@ class _SearchDropdownState extends State<SearchDropdown> {
           top: offset.dy,
           bottom: 0,
           child: _SearchDropdownContent(
-            value: selectedItem as SearchDropdownItem,
+            value: selectedItem,
             items: widget.itemsBuilder.call(context),
             onChanged: _handleValueChanged,
           ));
@@ -74,11 +103,15 @@ class _SearchDropdownState extends State<SearchDropdown> {
   }
 
   void _handleClose() {
-    _entry?.remove();
-    _backdrop?.remove();
+    if (isMobile(context)) {
+      Navigator.of(context).pop();
+    } else {
+      _entry?.remove();
+      _backdrop?.remove();
 
-    _entry = null;
-    _backdrop = null;
+      _entry = null;
+      _backdrop = null;
+    }
   }
 
   @override
@@ -148,59 +181,56 @@ class __SearchDropdownContentState extends State<_SearchDropdownContent> {
 
   @override
   Widget build(BuildContext context) {
-    return RawKeyboardListener(
-      focusNode: _keyListenerFocusNode,
-      onKey: _handleKey,
-      child: Container(
-        padding: EdgeInsets.only(left: 8, right: 8, bottom: 8),
-        width: 400,
-        child: Material(
-            color: Theme.of(context).colorScheme.surface,
-            child: Column(
-              children: [
-                Padding(
-                  padding: EdgeInsets.only(left: 8, top: 8, right: 8),
-                  child: TextField(
-                    controller: _controller,
-                    focusNode: _textFieldFocusNode,
-                    decoration: InputDecoration(
-                      suffixIcon: Icon(Icons.search),
-                      border: OutlineInputBorder(
-                        borderSide: BorderSide(),
-                      ),
-                    ),
-                  ),
-                ),
-                Expanded(
-                  child: ListView.builder(
-                    itemCount: _options.length,
-                    itemBuilder: (context, index) {
-                      final item = _options[index];
-                      return ConstrainedBox(
-                        constraints:
-                            BoxConstraints(minHeight: 36, maxHeight: 48),
-                        key: ValueKey(item.value),
-                        child: Container(
-                          padding: EdgeInsets.only(left: 8),
-                          color: _highlightedItem?.value == item.value
-                              ? Theme.of(context).highlightColor
-                              : null,
-                          child: ListTile(
-                            title: item.child,
-                            onTap: () => widget.onChanged(item.value),
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                )
-              ],
-            )),
+    return _withKeyboardListener(
+        child: _AdaptiveContentLayout(
+      searchField: TextField(
+        controller: _controller,
+        focusNode: _textFieldFocusNode,
+        decoration: InputDecoration(
+          suffixIcon: Icon(Icons.search),
+          border: OutlineInputBorder(
+            borderSide: BorderSide(),
+          ),
+        ),
+        onEditingComplete: isMobile(context) ? () => _handleEnterPress() : null,
       ),
-    );
+      listView: ListView.builder(
+        reverse: isMobile(context) ? true : false,
+        itemCount: _options.length,
+        itemBuilder: (context, index) {
+          final item = _options[index];
+          return ConstrainedBox(
+            constraints: BoxConstraints(minHeight: 36, maxHeight: 48),
+            key: ValueKey(item.value),
+            child: Container(
+              padding: EdgeInsets.only(left: 8),
+              color: _highlightedItem?.value == item.value
+                  ? Theme.of(context).highlightColor
+                  : null,
+              child: ListTile(
+                title: item.child,
+                onTap: () => widget.onChanged(item.value),
+              ),
+            ),
+          );
+        },
+      ),
+    ));
   }
 
-  void _handleKey(RawKeyEvent event) {
+  Widget _withKeyboardListener({required Widget child}) {
+    if (isMobile(context)) {
+      return child;
+    } else {
+      return RawKeyboardListener(
+        focusNode: _keyListenerFocusNode,
+        onKey: _handleDesktopKey,
+        child: child,
+      );
+    }
+  }
+
+  void _handleDesktopKey(RawKeyEvent event) {
     if (event is RawKeyDownEvent) {
       if (event.logicalKey == LogicalKeyboardKey.enter) {
         _handleEnterPress();
@@ -336,4 +366,51 @@ class SearchDropdownItem {
     required this.child,
     required this.value,
   });
+}
+
+class _AdaptiveContentLayout extends StatelessWidget {
+  final Widget listView;
+  final Widget searchField;
+
+  const _AdaptiveContentLayout(
+      {Key? key, required this.listView, required this.searchField})
+      : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    if (isMobile(context)) {
+      return Container(
+        padding: EdgeInsets.only(left: 8, right: 8, bottom: 8),
+        child: Material(
+            color: Theme.of(context).colorScheme.surface,
+            child: Column(
+              children: [
+                Padding(
+                    padding: EdgeInsets.all(8), child: Text('Select Artist')),
+                Expanded(child: listView),
+                Padding(
+                  padding: EdgeInsets.only(left: 8, top: 8, right: 8),
+                  child: searchField,
+                ),
+              ],
+            )),
+      );
+    } else {
+      return Container(
+        padding: EdgeInsets.only(left: 8, right: 8, bottom: 8),
+        width: 400,
+        child: Material(
+            color: Theme.of(context).colorScheme.surface,
+            child: Column(
+              children: [
+                Padding(
+                  padding: EdgeInsets.only(left: 8, top: 8, right: 8),
+                  child: searchField,
+                ),
+                Expanded(child: listView)
+              ],
+            )),
+      );
+    }
+  }
 }

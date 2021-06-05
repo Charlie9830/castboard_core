@@ -2,6 +2,7 @@ import 'package:castboard_core/models/ActorModel.dart';
 import 'package:castboard_core/models/ActorRef.dart';
 import 'package:castboard_core/models/TrackModel.dart';
 import 'package:castboard_core/models/TrackRef.dart';
+import 'package:castboard_core/widgets/SearchDropdown.dart';
 import 'package:flutter/material.dart';
 
 class ActorTuple {
@@ -23,9 +24,9 @@ class CastChangeDetails extends StatelessWidget {
   final bool allowNestedEditing;
   final Map<String, ActorTuple> assignments;
   final List<TrackModel> tracks;
-  final Map<TrackRef, TrackModel>? tracksByRef;
+  final Map<TrackRef, TrackModel> tracksByRef;
   final List<ActorModel> actors;
-  final Map<ActorRef, ActorModel>? actorsByRef;
+  final Map<ActorRef, ActorModel> actorsByRef;
   final void Function(TrackRef track, ActorRef actor)? onAssignmentUpdated;
   final void Function(TrackRef track)? onResetLiveEdit;
 
@@ -35,9 +36,9 @@ class CastChangeDetails extends StatelessWidget {
     this.selfScrolling = true,
     this.allowNestedEditing = false,
     this.tracks = const <TrackModel>[],
-    this.tracksByRef,
+    required this.tracksByRef,
     this.actors = const <ActorModel>[],
-    this.actorsByRef,
+    required this.actorsByRef,
     this.onAssignmentUpdated,
     this.onResetLiveEdit,
   }) : super(key: key);
@@ -85,27 +86,54 @@ class CastChangeDetails extends StatelessWidget {
     );
   }
 
-  DropdownButton<ActorRef> _buildDropdownButton(
+  SearchDropdown _buildDropdownButton(
       bool allowNestedEditing, TrackModel track, BuildContext context) {
-        // TODO: This is causing some series Jank. Because DropdownButtonItems can't be lazily built. We are building,
-        // thousands of items when the Parent ListView is building.
-    return DropdownButton<ActorRef>(
-        isExpanded: true,
-        value: _lookupValue(track.ref.uid, assignments),
-        onChanged: allowNestedEditing == true ||
-                _fromNestedPreset(track.ref.uid, assignments) == false
-            ? (actorRef) => onAssignmentUpdated?.call(
-                track.ref, actorRef ?? ActorRef.blank())
-            : null,
-        items: <DropdownMenuItem<ActorRef>>[
+    return SearchDropdown(
+      selectedItemBuilder: (context) => _buildSelectedItem(context, track.ref),
+      enabled: allowNestedEditing == true ||
+          _fromNestedPreset(track.ref.uid, assignments) == false,
+      onChanged: (actorRef) =>
+          onAssignmentUpdated?.call(track.ref, actorRef ?? ActorRef.blank()),
+      itemsBuilder: (context) {
+        return [
           _buildUnassignedOption(context),
           _buildTrackCutOption(context),
           ..._mapActorOptions(context),
-        ]);
+        ];
+      },
+    );
   }
 
-  DropdownMenuItem<ActorRef> _buildTrackCutOption(BuildContext context) {
-    return DropdownMenuItem<ActorRef>(
+  SearchDropdownItem? _buildSelectedItem(
+    BuildContext context,
+    TrackRef track,
+  ) {
+    final actorRef = _lookupValue(track.uid, assignments);
+
+    if (actorRef == ActorRef.unassigned()) {
+      return _buildUnassignedOption(context);
+    }
+
+    if (actorRef == ActorRef.cut()) {
+      return _buildTrackCutOption(context);
+    }
+
+    final actor = actorsByRef[actorRef];
+
+    if (actor == null) {
+      return null;
+    }
+
+    return SearchDropdownItem(
+      keyword: actor.name,
+      value: actor.ref,
+      child: Text(actor.name),
+    );
+  }
+
+  SearchDropdownItem _buildTrackCutOption(BuildContext context) {
+    return SearchDropdownItem(
+        keyword: 'Track Cut',
         child: Row(
           children: [
             Icon(
@@ -124,20 +152,32 @@ class CastChangeDetails extends StatelessWidget {
         value: ActorRef.cut());
   }
 
-  DropdownMenuItem<ActorRef> _buildUnassignedOption(BuildContext context) {
-    return DropdownMenuItem<ActorRef>(
-      child: Text('Unassigned',
-          style: Theme.of(context)
-              .textTheme
-              .caption!
-              .copyWith(color: Theme.of(context).colorScheme.secondary)),
+  SearchDropdownItem _buildUnassignedOption(BuildContext context) {
+    return SearchDropdownItem(
+      keyword: 'Unassigned',
+      child: Row(
+        children: [
+          Icon(
+            Icons.person_off,
+            size: 16,
+            color: Theme.of(context).colorScheme.secondary,
+          ),
+          SizedBox(width: 8),
+          Text('Unassigned',
+              style: Theme.of(context)
+                  .textTheme
+                  .bodyText2!
+                  .copyWith(color: Theme.of(context).colorScheme.secondary)),
+        ],
+      ),
       value: ActorRef.unassigned(),
     );
   }
 
-  List<DropdownMenuItem<ActorRef>> _mapActorOptions(BuildContext context) {
+  List<SearchDropdownItem> _mapActorOptions(BuildContext context) {
     return actors
-        .map((actor) => DropdownMenuItem<ActorRef>(
+        .map((actor) => SearchDropdownItem(
+              keyword: actor.name,
               child: Text(actor.name,
                   style: Theme.of(context).textTheme.bodyText2),
               value: actor.ref,

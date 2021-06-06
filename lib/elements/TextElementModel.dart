@@ -29,7 +29,7 @@ class TextElementModel extends LayoutElementChild {
     Color? color,
   })  : this.text = text ?? '',
         this.fontFamily = fontFamily ?? 'Arial',
-        this.fontSize = fontSize ?? 16,
+        this.fontSize = fontSize ?? 48,
         this.italics = italics ?? false,
         this.bold = bold ?? false,
         this.underline = underline ?? false,

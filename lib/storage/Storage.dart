@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 import 'dart:convert';
+import 'dart:isolate';
 import 'dart:typed_data';
 
 import 'package:castboard_core/classes/FontRef.dart';
@@ -15,13 +16,18 @@ import 'package:castboard_core/models/TrackModel.dart';
 import 'package:castboard_core/models/SlideModel.dart';
 import 'package:castboard_core/models/TrackRef.dart';
 import 'package:castboard_core/storage/Exceptions.dart';
+import 'package:castboard_core/storage/FileWriteResult.dart';
 import 'package:castboard_core/storage/ImportedShowData.dart';
 import 'package:castboard_core/models/ShowDataModel.dart';
 import 'package:castboard_core/storage/SlideDataModel.dart';
+import 'package:castboard_core/storage/compressFile.dart';
 import 'package:file/memory.dart' as memoryFs;
+import 'package:file/local.dart' as localFs;
+import 'package:file/file.dart' as fs;
 
 import 'package:castboard_core/classes/PhotoRef.dart';
 import 'package:castboard_core/storage/StorageException.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import 'package:path/path.dart' as p;
@@ -41,6 +47,9 @@ const _playerDirName = 'playerfiles';
 
 // Player Show File Name.
 const _playerCurrentShowFileName = 'currentshow.castboard';
+
+// Staging Directory Base Name.
+const _stagingDirName = 'castboard_file_staging';
 
 // Save File Names.
 const _headshotsSaveDirName = 'headshots';
@@ -511,7 +520,7 @@ class Storage {
   ///
   /// Stages all required show data, compresses (Zips) it and saves it to the file referenced by the targetFile parameter.
   ///
-  Future<void> writeToPermanentStorage(
+  Future<FileWriteResult> writeToPermanentStorage(
       {required Map<ActorRef, ActorModel> actors,
       required Map<TrackRef, TrackModel> tracks,
       required Map<String, PresetModel> presets,
@@ -521,66 +530,86 @@ class Storage {
       required ManifestModel manifest,
       PlaybackStateData? playbackState,
       required File targetFile}) async {
-    final mfs = memoryFs.MemoryFileSystem();
+    final lfs = localFs.LocalFileSystem();
 
-    // Stage Directories in Memory.
-    await _stagePermStorageDirectories(mfs);
+    // Stage Directories.
+    final fs.Directory stagingDir =
+        lfs.systemTempDirectory.childDirectory(_stagingDirName);
+    if (await stagingDir.exists()) {
+      await stagingDir.delete(recursive: true);
+    }
+
+    await stagingDir.create();
+
+    await _stagePermStorageDirectories(stagingDir);
     await Future.wait([
-      _stagePlaybackState(mfs, playbackState),
-      _stageManifest(mfs, manifest),
-      _stageHeadshots(mfs, actors),
-      _stageBackgrounds(mfs, slides),
+      _stagePlaybackState(stagingDir, playbackState),
+      _stageManifest(stagingDir, manifest),
+      _stageHeadshots(stagingDir, actors),
+      _stageBackgrounds(stagingDir, slides),
       _stageSlideData(
-          mfs,
+          stagingDir,
           SlideDataModel(
             slides: slides,
             slideSizeId: slideSizeId,
             slideOrientation: slideOrientation,
           )),
-      _stageShowData(mfs, tracks, actors, presets),
-      _stageFonts(mfs, manifest.requiredFonts),
+      _stageShowData(stagingDir, tracks, actors, presets),
+      _stageFonts(stagingDir, manifest.requiredFonts),
     ]);
 
-    final zipper = ZipFileEncoder();
-    zipper.create(targetFile.path);
-    zipper.addDirectory(mfs.directory(_headshotsSaveDirName));
-    zipper.addDirectory(mfs.directory(_backgroundsSaveDirName));
-    zipper.addDirectory(mfs.directory(_fontsSaveDirName));
-    zipper.addFile(mfs.file(_manifestSaveName));
-    zipper.addFile(mfs.file(_showDataSaveName));
-    zipper.addFile(mfs.file(_slideDataSaveName));
-    zipper.addFile(mfs.file(_playbackStateSaveName));
-    zipper.close();
+    try {
+      await compute(
+          compressFile,
+          CompressFileParameters(
+              targetFilePath: targetFile.path,
+              headshotsDirPath: p.join(stagingDir.path, _headshotsSaveDirName),
+              backgroundsDirPath:
+                  p.join(stagingDir.path, _backgroundsSaveDirName),
+              fontsDirPath: p.join(stagingDir.path, _fontsSaveDirName),
+              manifestFilePath: p.join(stagingDir.path, _manifestSaveName),
+              showDataFilePath: p.join(stagingDir.path, _showDataSaveName),
+              playbackStateFilePath:
+                  p.join(stagingDir.path, _playbackStateSaveName),
+              slideDataFilePath: p.join(stagingDir.path, _slideDataSaveName)),
+          debugLabel: 'File Compression Isolate - compressFile()');
 
-    return;
+      // Cleanup
+      await stagingDir.delete(recursive: true);
+
+      return FileWriteResult(true);
+    } catch (error) {
+      return FileWriteResult(false, message: 'File compression failed.');
+    }
   }
 
   Future<void> _stagePlaybackState(
-    memoryFs.MemoryFileSystem mfs,
+    fs.Directory stagingDir,
     PlaybackStateData? playbackState,
   ) async {
     final data = playbackState?.toMap() ?? {};
 
     final jsonData = json.encoder.convert(data);
-    final targetFile = await mfs.file(_playbackStateSaveName).create();
+    final targetFile =
+        await stagingDir.childFile(_playbackStateSaveName).create();
     await targetFile.writeAsString(jsonData);
     return;
   }
 
   Future<void> _stageManifest(
-    memoryFs.MemoryFileSystem mfs,
+    fs.Directory stagingDir,
     ManifestModel manifest,
   ) async {
     final data = manifest.toMap();
 
     final jsonData = json.encoder.convert(data);
-    final targetFile = await mfs.file(_manifestSaveName).create();
+    final targetFile = await stagingDir.childFile(_manifestSaveName).create();
     await targetFile.writeAsString(jsonData);
     return;
   }
 
   Future<void> _stageShowData(
-      memoryFs.MemoryFileSystem mfs,
+      fs.Directory stagingDir,
       Map<TrackRef, TrackModel> tracks,
       Map<ActorRef, ActorModel> actors,
       Map<String, PresetModel> presets) async {
@@ -590,36 +619,37 @@ class Storage {
       presets: presets,
     ).toMap();
 
-    print(data.runtimeType);
-
     final jsonData = json.encoder.convert(data);
-    final targetFile = await mfs.file(_showDataSaveName).create();
+    final targetFile = await stagingDir.childFile(_showDataSaveName).create();
     await targetFile.writeAsString(jsonData);
     return;
   }
 
   Future<void> _stageSlideData(
-      memoryFs.MemoryFileSystem mfs, SlideDataModel slideData) async {
+      fs.Directory stagingDir, SlideDataModel slideData) async {
     final data = slideData.toMap();
 
     final jsonData = json.encoder.convert(data);
 
-    final targetFile = await mfs.file(_slideDataSaveName).create();
+    final targetFile = await stagingDir.childFile(_slideDataSaveName).create();
 
     await targetFile.writeAsString(jsonData);
     return;
   }
 
   Future<void> _stageBackgrounds(
-      memoryFs.MemoryFileSystem mfs, Map<String, SlideModel> slides) async {
+      fs.Directory stagingDir, Map<String, SlideModel> slides) async {
     final refs = slides.values
         .map((slide) => slide.backgroundRef)
         .where((ref) => ref != PhotoRef.none());
 
     final requests = refs.map((ref) {
       final sourceFile = getBackgroundFile(ref)!;
-      return _copyToMemoryFileSystem(sourceFile,
-          mfs.file(mfs.path.join(_backgroundsSaveDirName, ref.basename)));
+      return _copyToStagingDir(
+          sourceFile,
+          stagingDir
+              .childDirectory(_backgroundsSaveDirName)
+              .childFile(ref.basename));
     });
 
     await Future.wait(requests);
@@ -627,16 +657,14 @@ class Storage {
   }
 
   Future<void> _stageFonts(
-      memoryFs.MemoryFileSystem mfs, List<FontModel> fonts) async {
+      fs.Directory stagingDir, List<FontModel> fonts) async {
     final relativePaths =
         fonts.map((font) => font.ref).where((ref) => ref != FontRef.none());
 
-    final requests = relativePaths.map((path) {
-      final sourceFile = getFontFile(path)!;
-      return _copyToMemoryFileSystem(
-          sourceFile,
-          mfs.file(
-              mfs.path.join(_fontsSaveDirName, p.basename(sourceFile.path))));
+    final requests = relativePaths.map((ref) {
+      final sourceFile = getFontFile(ref)!;
+      return _copyToStagingDir(sourceFile,
+          stagingDir.childDirectory(_fontsSaveDirName).childFile(ref.basename));
     });
 
     await Future.wait(requests);
@@ -644,33 +672,35 @@ class Storage {
   }
 
   Future<void> _stageHeadshots(
-      memoryFs.MemoryFileSystem mfs, Map<ActorRef, ActorModel> actors) async {
+      fs.Directory stagingDir, Map<ActorRef, ActorModel> actors) async {
     final refs = actors.values
         .map((actor) => actor.headshotRef)
         .where((ref) => ref != PhotoRef.none());
 
     final requests = refs.map((ref) {
       final sourceFile = getHeadshotFile(ref)!;
-      return _copyToMemoryFileSystem(sourceFile,
-          mfs.file(mfs.path.join(_headshotsSaveDirName, ref.basename)));
+      return _copyToStagingDir(
+          sourceFile,
+          stagingDir
+              .childDirectory(_headshotsSaveDirName)
+              .childFile(ref.basename));
     });
 
     await Future.wait(requests);
     return;
   }
 
-  Future<void> _stagePermStorageDirectories(
-      memoryFs.MemoryFileSystem mfs) async {
+  Future<void> _stagePermStorageDirectories(fs.Directory dir) async {
     final requests = [
-      mfs.directory(_headshotsSaveDirName).create(),
-      mfs.directory(_backgroundsSaveDirName).create(),
-      mfs.directory(_fontsSaveDirName).create(),
+      dir.childDirectory(_headshotsSaveDirName).create(),
+      dir.childDirectory(_backgroundsSaveDirName).create(),
+      dir.childDirectory(_fontsSaveDirName).create(),
     ];
     await Future.wait(requests);
     return;
   }
 
-  Future<File> _copyToMemoryFileSystem(File sourceFile, File targetFile) async {
+  Future<File> _copyToStagingDir(File sourceFile, File targetFile) async {
     await targetFile.create(recursive: true);
     final sourceFileBytes = await sourceFile.readAsBytes();
     return await targetFile.writeAsBytes(sourceFileBytes);

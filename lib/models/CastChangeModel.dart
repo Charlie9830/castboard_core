@@ -28,6 +28,12 @@ class CastChangeModel {
     return assignments[track];
   }
 
+  CastChangeModel withPrunedActor(ActorRef actorRef) {
+    return _copyWith(
+        assignments: Map<TrackRef, ActorRef>.from(assignments)
+          ..removeWhere((tRef, aRef) => aRef == actorRef));
+  }
+
   CastChangeModel withRemovedAssignment(TrackRef track) {
     return _copyWith(
       assignments: Map<TrackRef, ActorRef>.from(assignments)..remove(track),

@@ -286,7 +286,7 @@ String _lookupTrackName(TrackRef trackRef, CastChangeModel? castChange,
     return 'Unassigned';
   }
 
-  return tracks[trackRef]?.title ?? 'No Name Track';
+  return tracks[trackRef]?.title ?? 'Untitled track';
 }
 
 String? _lookupActorName(TrackRef trackRef, CastChangeModel? castChange,
@@ -301,16 +301,16 @@ String? _lookupActorName(TrackRef trackRef, CastChangeModel? castChange,
   final trackTitle = track.title.isEmpty ? 'No Name Track' : track.title;
 
   if (castChange == null) {
-    return trackTitle;
+    return "Artist's name";
   }
 
   if (castChange.hasAssignment(trackRef) == false) {
-    return trackTitle;
+    return "Artist's name";
   }
 
   final actor = actors![castChange.actorAt(trackRef)!];
   if (actor == null) {
-    return "No Actor Found";
+    return "Artist missing";
   }
 
   return actor.name;

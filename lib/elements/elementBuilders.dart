@@ -62,12 +62,7 @@ Map<String, LayoutBlock> buildElements({
               castChange: castChange,
               actors: actors,
               tracks: tracks,
-              elementPadding: EdgeInsets.fromLTRB(
-                element.leftPadding.toDouble(),
-                element.topPadding.toDouble(),
-                element.rightPadding.toDouble(),
-                element.bottomPadding.toDouble(),
-              ),
+              elementPadding: _buildEdgeInsets(element),
               isInSlideEditor: isInSlideEditor,
               isEditingContainer: isEditingContainer,
               isHighlighted: isEditingContainer || highlightedContainerId == id,
@@ -130,12 +125,7 @@ Widget _buildChild({
             castChange: castChange,
             actors: actors,
             tracks: tracks,
-            elementPadding: EdgeInsets.fromLTRB(
-              child.leftPadding.toDouble(),
-              child.topPadding.toDouble(),
-              child.rightPadding.toDouble(),
-              child.bottomPadding.toDouble(),
-            ),
+            elementPadding: _buildEdgeInsets(child),
           ),
         );
       }).toList(),
@@ -225,6 +215,17 @@ Widget _buildChild({
 
   return SizedBox.fromSize(size: Size.zero);
 }
+
+
+EdgeInsets _buildEdgeInsets(LayoutElementModel element) {
+  return EdgeInsets.fromLTRB(
+    element.leftPadding.toDouble(),
+    element.topPadding.toDouble(),
+    element.rightPadding.toDouble(),
+    element.bottomPadding.toDouble(),
+  );
+}
+
 
 bool _shouldBuild(LayoutElementModel element, CastChangeModel? castChange) {
   if (castChange == null) {

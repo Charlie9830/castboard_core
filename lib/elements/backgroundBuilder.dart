@@ -14,15 +14,16 @@ BoxDecoration getBackground(Map<String, SlideModel> slides, String slideId) {
   }
 
   final base = BoxDecoration(color: currentSlide.backgroundColor);
-
   if (currentSlide.usePreviousBackground == true && currentSlide.index >= 1) {
     // Track from a previous Slide.
-    final sortedSlides = List<SlideModel>.from(slides.values)
+    final previousSlides = List<SlideModel>.from(slides.values)
       ..sort((a, b) => a.index - b.index)
       ..sublist(0, currentSlide.index);
-    final hardValueSlide = sortedSlides.lastWhere(
+
+    final hardValueSlide = previousSlides.lastWhere(
         (slide) =>
-            slide != currentSlide && slide.usePreviousBackground == false,
+            slide.index < currentSlide.index &&
+            slide.usePreviousBackground == false,
         orElse: () => SlideModel());
 
     return base.copyWith(

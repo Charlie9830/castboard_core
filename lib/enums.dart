@@ -1,7 +1,5 @@
-
-
 enum ShapeElementType {
-  triangle,
+  line,
   square,
   circle,
 }

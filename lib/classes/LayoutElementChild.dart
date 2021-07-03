@@ -21,6 +21,7 @@ enum PropertyUpdateContracts {
   textStyle,
   trackAssignment,
   container,
+  shape,
 }
 
 abstract class LayoutElementChild {

@@ -5,8 +5,6 @@ ShapeElementType parseShapeElementType(String value) {
   switch (value) {
     case 'square':
       return ShapeElementType.square;
-    case 'line':
-      return ShapeElementType.line;
     case 'circle':
       return ShapeElementType.circle;
     default:
@@ -17,8 +15,6 @@ ShapeElementType parseShapeElementType(String value) {
 
 String convertShapeElementType(ShapeElementType type) {
   switch (type) {
-    case ShapeElementType.line:
-      return 'line';
     case ShapeElementType.square:
       return 'square';
     case ShapeElementType.circle:

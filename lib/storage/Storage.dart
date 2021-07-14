@@ -78,7 +78,7 @@ class Storage {
   static Storage? get instance {
     if (_initalized == false) {
       throw StorageException(
-          'Storage() as not been initialized Yet. Ensure you are calling Storage.initalize() prior to making any other calls');
+          'Storage() has not been initialized Yet. Ensure you are calling Storage.initalize() prior to making any other calls');
     }
 
     return _instance;
@@ -108,7 +108,7 @@ class Storage {
     } else {
       appStorageRootDirName = 'com.charliehall.castboard_player';
     }
-
+    
     final appStorageRoot = mode == StorageMode.editor
         ? await Directory(p.join(
                 (await pathProvider.getTemporaryDirectory()).path,

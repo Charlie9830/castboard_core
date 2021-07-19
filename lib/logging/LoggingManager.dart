@@ -19,6 +19,8 @@ class LoggingManager {
   late File _logFile;
   late IOSink? _logFileSink;
 
+  late final _logFileDirName;
+
   // Forces the [LoggingManager] to run in release mode. Writing all [INFO] logs to file. Helpful for testing the LoggingManger
   // whilst in debug mode.
   late bool _runAsRelease;
@@ -36,10 +38,12 @@ class LoggingManager {
   int _sessionMessageCount = 0;
 
   LoggingManager({
+    required String directoryName,
     required File logFile,
     required IOSink logFileSink,
     required bool runAsRelease,
   }) {
+    _logFileDirName = directoryName;
     _logFile = logFile;
     _logFileSink = logFileSink;
     _runAsRelease = runAsRelease;
@@ -69,19 +73,24 @@ class LoggingManager {
     return _instance;
   }
 
-  static Future<void> initialize({bool runAsRelease = false}) async {
-    final file = await _getLogFile();
+  static Future<void> initialize(String directoryName,
+      {bool runAsRelease = false}) async {
+    final file = await _getLogFile(directoryName);
 
     // ignore: close_sinks
     final sink = file.openWrite(mode: FileMode.append);
 
     _instance = LoggingManager(
-        logFile: file, logFileSink: sink, runAsRelease: runAsRelease);
+      directoryName: directoryName,
+      logFile: file,
+      logFileSink: sink,
+      runAsRelease: runAsRelease,
+    );
     _initialized = true;
   }
 
   void exportLogs(String targetPath) async {
-    final logsDir = await _getLogsDirectory();
+    final logsDir = await _getLogsDirectory(_logFileDirName);
 
     final List<String> logPaths = [];
     await for (var file in logsDir.list().where((entity) => entity is File)) {
@@ -101,7 +110,7 @@ class LoggingManager {
         debugLabel: 'Logfile Compression Isolate - compressLogs()');
 
     // Reopen the log file sink. And Flush any messages to it that may have come through whilst we were compressing and exporting.
-    _logFile = await LoggingManager._getLogFile();
+    _logFile = await LoggingManager._getLogFile(_logFileDirName);
     _logFileSink = _logFile.openWrite(mode: FileMode.append);
     _flushMessageQueueToFile();
   }
@@ -109,7 +118,7 @@ class LoggingManager {
   Future<void> _maybeEnumerateLogFile() async {
     if (await _logFile.length() > _logFileSizeLimit) {
       await _closeSink();
-      _logFile = await LoggingManager._getLogFile();
+      _logFile = await LoggingManager._getLogFile(_logFileDirName);
       _logFileSink = _logFile.openWrite(mode: FileMode.append);
       _flushMessageQueueToFile();
     }
@@ -188,11 +197,11 @@ class LoggingManager {
     }
   }
 
-  static Future<Directory> _getLogsDirectory() async {
+  static Future<Directory> _getLogsDirectory(String directoryName) async {
     final docsDir = await pathProvider.getApplicationDocumentsDirectory();
     final logsDir = await Directory(p.join(
       docsDir.path,
-      'castboard_runtime_logs/',
+      directoryName,
     )).create();
 
     return logsDir;
@@ -201,8 +210,8 @@ class LoggingManager {
   /// Searches for the latest log file. Latest being the file with the geatest log file number. Also checks that the current size of this
   /// file is below the 1mb limit. If so returns an IOSink pointing to that file,
   ///  if not creates and returns an IOSink to a new file.
-  static Future<File> _getLogFile() async {
-    final logsDir = await _getLogsDirectory();
+  static Future<File> _getLogFile(String directoryName) async {
+    final logsDir = await _getLogsDirectory(directoryName);
     final currentLastFileNumber = await _getLastFileNumber(logsDir);
 
     final fileCandidate = await File(p.join(

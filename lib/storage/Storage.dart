@@ -6,6 +6,7 @@ import 'dart:typed_data';
 
 import 'package:castboard_core/classes/FontRef.dart';
 import 'package:castboard_core/enums.dart';
+import 'package:castboard_core/logging/LoggingManager.dart';
 import 'package:castboard_core/models/ActorModel.dart';
 import 'package:castboard_core/models/ActorRef.dart';
 import 'package:castboard_core/models/FontModel.dart';
@@ -108,7 +109,7 @@ class Storage {
     } else {
       appStorageRootDirName = 'com.charliehall.castboard_player';
     }
-    
+
     final appStorageRoot = mode == StorageMode.editor
         ? await Directory(p.join(
                 (await pathProvider.getTemporaryDirectory()).path,
@@ -118,6 +119,9 @@ class Storage {
                 (await pathProvider.getApplicationDocumentsDirectory()).path,
                 appStorageRootDirName))
             .create();
+
+    LoggingManager.instance.storage
+        .info("Storage initialized in $mode, path = ${appStorageRoot.path}");
 
     // Build Directories.
     Directory? headshots;
@@ -157,9 +161,13 @@ class Storage {
         playerDir: playerDir,
         fontsDir: fontsDir);
     _initalized = true;
+
+    LoggingManager.instance.storage
+        .info("Storage initialization completed succesfully");
   }
 
   Future<File> addFont(String uid, String path) async {
+    LoggingManager.instance.server.info("Adding font from $path");
     final Directory? fonts = _fontsDir;
 
     final font = File(path);
@@ -174,6 +182,7 @@ class Storage {
   }
 
   Future<File> addHeadshot(String uid, String path) async {
+    LoggingManager.instance.storage.info("Adding headshot from $path");
     final Directory? headshots = _headshotsDir;
 
     final photo = File(path);
@@ -189,6 +198,8 @@ class Storage {
 
   Future<void> updateHeadshot(
       PhotoRef current, String newId, File newHeadshot) async {
+    LoggingManager.instance.storage
+        .info("Updating headshot ${current.uid} to $newId");
     await addHeadshot(newId, newHeadshot.path);
     await deleteHeadshot(current);
 
@@ -196,6 +207,7 @@ class Storage {
   }
 
   Future<void> deleteHeadshot(PhotoRef ref) async {
+    LoggingManager.instance.storage.info("Deleting Headshot ${ref.uid}");
     final Directory headshots = _headshotsDir!;
     final File file = File(p.join(headshots.path, ref.basename));
 
@@ -208,6 +220,7 @@ class Storage {
   }
 
   Future<void> deleteFont(FontRef ref) async {
+    LoggingManager.instance.storage.info("Deleting Font ${ref.uid}");
     final Directory fonts = _fontsDir!;
     final File file = File(p.join(fonts.path, ref.basename));
 
@@ -220,6 +233,7 @@ class Storage {
   }
 
   Future<File> addBackground(String uid, String path) async {
+    LoggingManager.instance.storage.info("Adding background from $path");
     final Directory? backgrounds = _backgroundsDir;
 
     final photo = File(path);
@@ -236,6 +250,8 @@ class Storage {
 
   Future<void> updateBackground(
       PhotoRef current, String newId, File newBackground) async {
+    LoggingManager.instance.storage
+        .info("Updating background from ${current.uid} to $newId");
     await addBackground(newId, newBackground.path);
     await deleteBackground(current);
 
@@ -243,6 +259,7 @@ class Storage {
   }
 
   Future<void> deleteBackground(PhotoRef ref) async {
+    LoggingManager.instance.storage.info("Deleting background ${ref.uid}");
     final Directory backgrounds = _backgroundsDir!;
     final File file = File(p.join(backgrounds.path, ref.basename));
 
@@ -255,10 +272,6 @@ class Storage {
   }
 
   File? getHeadshotFile(PhotoRef ref) {
-    if (ref == null) {
-      return null;
-    }
-
     if (ref.uid == null || ref.uid!.isEmpty) {
       return null;
     }
@@ -268,10 +281,6 @@ class Storage {
   }
 
   File? getBackgroundFile(PhotoRef ref) {
-    if (ref == null) {
-      return null;
-    }
-
     if (ref.uid == null || ref.uid!.isEmpty) {
       return null;
     }
@@ -281,10 +290,6 @@ class Storage {
   }
 
   File? getFontFile(FontRef ref) {
-    if (ref.uid.isEmpty) {
-      return null;
-    }
-
     return File(
       p.join(_appStorageRoot!.path, _fontsTempDirName, ref.basename),
     );
@@ -293,6 +298,9 @@ class Storage {
   Future<void> copyShowFileIntoPlayerStorage(List<int> bytes) async {
     final targetFile = File(p.join(
         _appStorageRoot!.path, _playerDir!.path, _playerCurrentShowFileName));
+
+    LoggingManager.instance.storage
+        .info("Copying show file into player storage.");
 
     await targetFile.writeAsBytes(bytes);
     return;
@@ -311,8 +319,12 @@ class Storage {
     required Map<String, PresetModel> presets,
     required PlaybackStateData playbackState,
   }) async {
+    LoggingManager.instance.storage
+        .info("Updating player Show Data.. Reading current show from disk..");
     final onDiskData = await readFromPlayerStorage();
 
+    LoggingManager.instance.storage.info(
+        "Writing new show to storage with modified preset and playbackState");
     await writeToPermanentStorage(
         actors: onDiskData.actors,
         tracks: onDiskData.tracks,
@@ -322,6 +334,8 @@ class Storage {
         slideOrientation: onDiskData.slideOrientation,
         manifest: onDiskData.manifest,
         targetFile: File(p.join(_playerDir!.path, _playerCurrentShowFileName)));
+
+    LoggingManager.instance.storage.info("Show Data update complete");
 
     return true;
   }
@@ -334,6 +348,9 @@ class Storage {
 
   Future<ImportedShowData> readFromPlayerStorage() async {
     final file = File(p.join(_playerDir!.path, _playerCurrentShowFileName));
+
+    LoggingManager.instance.storage
+        .info('Reading Player show file from storage. ${file.path}');
 
     return readFromPermanentStorage(file: file);
   }
@@ -374,6 +391,8 @@ class Storage {
 
   Future<ImportedShowData> readFromPermanentStorage(
       {required File file}) async {
+    LoggingManager.instance.storage.info("Opening file ${file.path}");
+
     if (await file.exists() == false) {
       throw FileDoesNotExistException();
     }
@@ -480,6 +499,8 @@ class Storage {
   }
 
   Future<void> clearStorage() async {
+    LoggingManager.instance.storage.info("Clearing storage");
+
     final headshots = <FileSystemEntity>[];
     final backgrounds = <FileSystemEntity>[];
     final fonts = <FileSystemEntity>[];
@@ -530,6 +551,8 @@ class Storage {
       required ManifestModel manifest,
       PlaybackStateData? playbackState,
       required File targetFile}) async {
+    LoggingManager.instance.storage
+        .info("Preparing to write file to permanent storage");
     final lfs = localFs.LocalFileSystem();
 
     // Stage Directories.
@@ -559,6 +582,8 @@ class Storage {
     ]);
 
     try {
+      LoggingManager.instance.storage
+          .info("File staging complete. Beggining compression");
       await compute(
           compressFile,
           CompressFileParameters(
@@ -574,11 +599,16 @@ class Storage {
               slideDataFilePath: p.join(stagingDir.path, _slideDataSaveName)),
           debugLabel: 'File Compression Isolate - compressFile()');
 
+      LoggingManager.instance.storage.info("Compression complete, cleaning up Staging directories");
+
       // Cleanup
       await stagingDir.delete(recursive: true);
 
+      LoggingManager.instance.storage.info("Staging Directory cleanup complete");
+
       return FileWriteResult(true);
     } catch (error) {
+      LoggingManager.instance.storage.warning("File compression failed.");
       return FileWriteResult(false, message: 'File compression failed.');
     }
   }

@@ -168,7 +168,14 @@ class LoggingManager {
   }
 
   String _formatRecord(LogRecord record) {
-    return "\n[${record.level.name}] ${record.time} -- [${record.loggerName}] ${record.message}";
+    final String baseString =
+        "\n[${record.level.name}] ${record.time} -- [${record.loggerName}] ${record.message}";
+
+    if (record.stackTrace == null) {
+      return baseString;
+    } else {
+      return baseString + "\n" + record.stackTrace!.toString() + "\n \n";
+    }
   }
 
   /// Writes the provided message to the current log file sink. If that sink is closed, writes it to the [_messageQueue] instead.

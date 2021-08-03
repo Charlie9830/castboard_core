@@ -76,6 +76,9 @@ class Storage {
   final Directory? _playerDir;
   final Directory? _fontsDir;
 
+  bool isWriting = false;
+  bool isReading = false;
+
   static Storage? get instance {
     if (_initalized == false) {
       throw StorageException(
@@ -391,13 +394,15 @@ class Storage {
 
   Future<ImportedShowData> readFromPermanentStorage(
       {required File file}) async {
+    isReading = true;
     LoggingManager.instance.storage.info("Opening file ${file.path}");
-
     if (await file.exists() == false) {
+      isReading = false;
       throw FileDoesNotExistException();
     }
 
     if (p.extension(file.path) != '.castboard') {
+      isReading = false;
       throw InvalidFileFormatException();
     }
 
@@ -483,6 +488,8 @@ class Storage {
         ? PlaybackStateData.initial()
         : PlaybackStateData.fromMap(rawPlaybackState);
 
+    isReading = false;
+
     // TODO: Verification and Coercion. Values or behaviour for ImportedShowData if properties are Null.
     // -> Coerce a default Preset into existence if not already existing.
     // -> If the Manifest is null, something bad has probalby happened. Should notify the user.
@@ -499,6 +506,7 @@ class Storage {
   }
 
   Future<void> clearStorage() async {
+    isWriting = true;
     LoggingManager.instance.storage.info("Clearing storage");
 
     final headshots = <FileSystemEntity>[];
@@ -535,6 +543,8 @@ class Storage {
       ...backgroundDeleteRequests,
       ...fontDeleteRequests
     ]);
+
+    isWriting = false;
     return;
   }
 
@@ -551,6 +561,9 @@ class Storage {
       required ManifestModel manifest,
       PlaybackStateData? playbackState,
       required File targetFile}) async {
+    // Flag that we are writing to storage.
+    isWriting = true;
+
     LoggingManager.instance.storage
         .info("Preparing to write file to permanent storage");
     final lfs = localFs.LocalFileSystem();
@@ -583,7 +596,7 @@ class Storage {
 
     try {
       LoggingManager.instance.storage
-          .info("File staging complete. Beggining compression");
+          .info("File staging complete. Beginning compression");
       await compute(
           compressFile,
           CompressFileParameters(
@@ -599,16 +612,20 @@ class Storage {
               slideDataFilePath: p.join(stagingDir.path, _slideDataSaveName)),
           debugLabel: 'File Compression Isolate - compressFile()');
 
-      LoggingManager.instance.storage.info("Compression complete, cleaning up Staging directories");
+      LoggingManager.instance.storage
+          .info("Compression complete, cleaning up Staging directories");
 
       // Cleanup
       await stagingDir.delete(recursive: true);
 
-      LoggingManager.instance.storage.info("Staging Directory cleanup complete");
+      LoggingManager.instance.storage
+          .info("Staging Directory cleanup complete");
 
+      isWriting = false;
       return FileWriteResult(true);
     } catch (error) {
       LoggingManager.instance.storage.warning("File compression failed.");
+      isWriting = false;
       return FileWriteResult(false, message: 'File compression failed.');
     }
   }

@@ -18,6 +18,7 @@ typedef void OnSelectedElementsChangedCallback(Set<String> selectedElements);
 typedef void OnElementsChangedCallback(
     Map<String, LayoutBlock> changedElements);
 typedef void OnPlaceCallback(double? xPos, double? yPos);
+typedef void OnElementDoubleClickedCallback(String elementId);
 
 class LayoutCanvas extends StatefulWidget {
   final bool interactive;
@@ -31,21 +32,23 @@ class LayoutCanvas extends StatefulWidget {
   final OnSelectedElementsChangedCallback? onSelectedElementsChanged;
   final OnElementsChangedCallback? onElementsChanged;
   final OnPlaceCallback? onPlace;
+  final OnElementDoubleClickedCallback? onElementDoubleClicked;
 
-  LayoutCanvas(
-      {Key? key,
-      this.interactive = true,
-      this.deferHitTestingToChildren = false,
-      this.showGrid = false,
-      this.gridSize = 10,
-      this.elements = const {},
-      this.selectedElements = const {},
-      this.placing = false,
-      this.renderScale = 1,
-      this.onPlace,
-      this.onSelectedElementsChanged,
-      this.onElementsChanged})
-      : super(key: key);
+  LayoutCanvas({
+    Key? key,
+    this.interactive = true,
+    this.deferHitTestingToChildren = false,
+    this.showGrid = false,
+    this.gridSize = 10,
+    this.elements = const {},
+    this.selectedElements = const {},
+    this.placing = false,
+    this.renderScale = 1,
+    this.onPlace,
+    this.onSelectedElementsChanged,
+    this.onElementsChanged,
+    this.onElementDoubleClicked,
+  }) : super(key: key);
 
   @override
   _LayoutCanvasState createState() => _LayoutCanvasState();
@@ -114,6 +117,9 @@ class _LayoutCanvasState extends State<LayoutCanvas> {
                   setState(() {
                     _lastPointerId = pointerId;
                   });
+                },
+                onDragBoxDoubleClick: (elementId) {
+                  widget.onElementDoubleClicked?.call(elementId);
                 },
                 onPositionChange: (xPosDelta, yPosDelta, blockId) {
                   _handlePositionChange(blockId, xPosDelta, yPosDelta);

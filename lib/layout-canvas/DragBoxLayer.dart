@@ -10,6 +10,7 @@ import 'package:flutter/material.dart';
 
 typedef void OnDragBoxClickCallback(String blockId, int pointerId);
 typedef void OnDragBoxMouseUpCallback(String blockId, int pointerId);
+typedef void OnDragBoxDoubleClickCallback(String blockId);
 typedef void OnResizeDoneCallback(int pointerId);
 typedef void OnResizeStartCallback(
     ResizeHandleLocation handlePosition, int pointerId, String blockId);
@@ -48,29 +49,31 @@ class DragBoxLayer extends StatelessWidget {
   final OnRotateCallback? onRotate;
   final OnRotateDoneCallback? onRotateDone;
   final OnDragBoxMouseUpCallback? onDragBoxMouseUp;
+  final OnDragBoxDoubleClickCallback? onDragBoxDoubleClick;
 
-  const DragBoxLayer(
-      {Key? key,
-      this.interactive = true,
-      this.deferHitTestingToChildren = false,
-      this.blocks,
-      required this.renderScale,
-      this.selectedElementIds,
-      this.isDragSelecting = true,
-      this.dragSelectHeight = 100,
-      this.dragSelectWidth = 100,
-      this.dragSelectXPos = 100,
-      this.dragSelectYPos = 100,
-      this.onDragBoxClick,
-      this.onPositionChange,
-      this.onResizeDone,
-      this.onDragHandleDragged,
-      this.onResizeStart,
-      this.onRotateStart,
-      this.onRotate,
-      this.onRotateDone,
-      this.onDragBoxMouseUp})
-      : super(key: key);
+  const DragBoxLayer({
+    Key? key,
+    this.interactive = true,
+    this.deferHitTestingToChildren = false,
+    this.blocks,
+    required this.renderScale,
+    this.selectedElementIds,
+    this.isDragSelecting = true,
+    this.dragSelectHeight = 100,
+    this.dragSelectWidth = 100,
+    this.dragSelectXPos = 100,
+    this.dragSelectYPos = 100,
+    this.onDragBoxClick,
+    this.onPositionChange,
+    this.onResizeDone,
+    this.onDragHandleDragged,
+    this.onResizeStart,
+    this.onRotateStart,
+    this.onRotate,
+    this.onRotateDone,
+    this.onDragBoxMouseUp,
+    this.onDragBoxDoubleClick,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -181,6 +184,7 @@ class DragBoxLayer extends StatelessWidget {
             onMouseUp: (pointerId) =>
                 onDragBoxMouseUp?.call(blockId, pointerId),
             onClick: (pointerId) => onDragBoxClick?.call(blockId, pointerId),
+            onDoubleClick: () => onDragBoxDoubleClick?.call(blockId),
           ),
         ),
       );

@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 
 typedef void OnClickCallback(int pointerId);
 
+typedef void OnDoubleClickCallback();
+
 typedef void OnMouseUpCallback(int pointerId);
 
 typedef void OnPositionChangeCallback(
@@ -19,6 +21,7 @@ class DragBox extends StatelessWidget {
   final OnClickCallback? onClick;
   final OnPositionChangeCallback? onPositionChange;
   final OnMouseUpCallback? onMouseUp;
+  final OnDoubleClickCallback? onDoubleClick;
 
   const DragBox({
     Key? key,
@@ -30,6 +33,7 @@ class DragBox extends StatelessWidget {
     this.onClick,
     this.selected = false,
     this.onMouseUp,
+    this.onDoubleClick,
   }) : super(key: key);
 
   @override
@@ -41,30 +45,33 @@ class DragBox extends StatelessWidget {
           Positioned(
             width: width! - dragHandleWidth,
             height: height! - dragHandleHeight,
-            child: Listener(
-              onPointerDown: (pointerEvent) {
-                onClick?.call(pointerEvent.original!.pointer);
-              },
-              onPointerMove: (pointerEvent) {
-                if (pointerEvent.down) {
-                  final transformedEvent =
-                      pointerEvent.transformed(Matrix4.rotationZ(0));
-                  onPositionChange?.call(
-                    transformedEvent.localDelta.dx,
-                    transformedEvent.localDelta.dy,
-                  );
-                }
-              },
-              onPointerUp: (pointerEvent) {
-                onMouseUp?.call(pointerEvent.original!.pointer);
-              },
-              child: Container(
-                decoration: BoxDecoration(
-                    border: Border.all(
-                        color: Theme.of(context).colorScheme.secondaryVariant,
-                        width: 2.0,
-                        style:
-                            selected ? BorderStyle.solid : BorderStyle.none)),
+            child: GestureDetector(
+              onDoubleTap: () => onDoubleClick?.call(),
+              child: Listener(
+                onPointerDown: (pointerEvent) {
+                  onClick?.call(pointerEvent.original!.pointer);
+                },
+                onPointerMove: (pointerEvent) {
+                  if (pointerEvent.down) {
+                    final transformedEvent =
+                        pointerEvent.transformed(Matrix4.rotationZ(0));
+                    onPositionChange?.call(
+                      transformedEvent.localDelta.dx,
+                      transformedEvent.localDelta.dy,
+                    );
+                  }
+                },
+                onPointerUp: (pointerEvent) {
+                  onMouseUp?.call(pointerEvent.original!.pointer);
+                },
+                child: Container(
+                  decoration: BoxDecoration(
+                      border: Border.all(
+                          color: Theme.of(context).colorScheme.secondaryVariant,
+                          width: 2.0,
+                          style:
+                              selected ? BorderStyle.solid : BorderStyle.none)),
+                ),
               ),
             ),
           ),

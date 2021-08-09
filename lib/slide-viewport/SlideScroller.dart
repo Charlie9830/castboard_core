@@ -25,6 +25,7 @@ class _SlideScrollerState extends State<SlideScroller> {
     }
 
     return SingleChildScrollView(
+      primary: false,
       scrollDirection: Axis.vertical,
       physics: _allowScrolling
           ? ClampingScrollPhysics()

@@ -194,7 +194,6 @@ class _LayoutCanvasState extends State<LayoutCanvas> {
     if (widget.deferHitTestingToChildren == true) {
       return;
     }
-
     // Clear Selections.
     widget.onSelectedElementsChanged?.call(<String>{});
     setState(() {

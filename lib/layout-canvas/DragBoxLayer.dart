@@ -6,6 +6,7 @@ import 'package:castboard_core/layout-canvas/LayoutBlock.dart';
 import 'package:castboard_core/layout-canvas/MultiChildCanvasItem.dart';
 import 'package:castboard_core/layout-canvas/ResizeHandle.dart';
 import 'package:castboard_core/layout-canvas/RotateHandle.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 typedef void OnDragBoxClickCallback(String blockId, int pointerId);
@@ -178,21 +179,27 @@ class DragBoxLayer extends StatelessWidget {
         height: (block.height * renderScale) + dragHandleHeight,
         child: IgnorePointer(
           ignoring: blockId == openElementId,
-          child: Transform(
-            transform: Matrix4.rotationZ(block.rotation),
-            alignment: Alignment.center,
-            child: DragBox(
-              selected: selectedElementIds!.contains(blockId),
-              xPos: block.xPos * renderScale,
-              yPos: block.yPos * renderScale,
-              height: (block.height * renderScale) + dragHandleHeight,
-              width: (block.width * renderScale) + dragHandleWidth,
-              onPositionChange: (xPosDelta, yPosDelta) =>
-                  _handlePositionChange(xPosDelta, yPosDelta, blockId),
-              onMouseUp: (pointerId) =>
-                  onDragBoxMouseUp?.call(blockId, pointerId),
-              onClick: (pointerId) => onDragBoxClick?.call(blockId, pointerId),
-              onDoubleClick: () => onDragBoxDoubleClick?.call(blockId),
+          child: MouseRegion(
+            cursor: blockId == openElementId
+                ? MouseCursor.defer
+                : SystemMouseCursors.move,
+            child: Transform(
+              transform: Matrix4.rotationZ(block.rotation),
+              alignment: Alignment.center,
+              child: DragBox(
+                selected: selectedElementIds!.contains(blockId),
+                xPos: block.xPos * renderScale,
+                yPos: block.yPos * renderScale,
+                height: (block.height * renderScale) + dragHandleHeight,
+                width: (block.width * renderScale) + dragHandleWidth,
+                onPositionChange: (xPosDelta, yPosDelta) =>
+                    _handlePositionChange(xPosDelta, yPosDelta, blockId),
+                onMouseUp: (pointerId) =>
+                    onDragBoxMouseUp?.call(blockId, pointerId),
+                onClick: (pointerId) =>
+                    onDragBoxClick?.call(blockId, pointerId),
+                onDoubleClick: () => onDragBoxDoubleClick?.call(blockId),
+              ),
             ),
           ),
         ),

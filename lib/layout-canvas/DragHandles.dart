@@ -74,6 +74,7 @@ class DragHandles extends StatelessWidget {
       child: ResizeHandle(
         interactive: interactive,
         selected: selected,
+        cursor: SystemMouseCursors.resizeUpLeft,
         onDrag: _handleTopLeftDrag,
         onDragDone: _handleDragDone,
         onDragStart: (pointerId) =>
@@ -87,6 +88,7 @@ class DragHandles extends StatelessWidget {
         child: ResizeHandle(
           interactive: interactive,
           selected: selected,
+          cursor: SystemMouseCursors.resizeUpDown,
           onDrag: _handleTopCenterDrag,
           onDragDone: _handleDragDone,
           onDragStart: (pointerId) =>
@@ -99,6 +101,7 @@ class DragHandles extends StatelessWidget {
       child: ResizeHandle(
         interactive: interactive,
         selected: selected,
+        cursor: SystemMouseCursors.resizeUpRight,
         onDrag: _handleTopRightDrag,
         onDragDone: _handleDragDone,
         onDragStart: (pointerId) =>
@@ -112,6 +115,7 @@ class DragHandles extends StatelessWidget {
         child: ResizeHandle(
           interactive: interactive,
           selected: selected,
+          cursor: SystemMouseCursors.resizeLeftRight,
           onDrag: _handleMiddleRightDrag,
           onDragDone: _handleDragDone,
           onDragStart: (pointerId) =>
@@ -124,6 +128,7 @@ class DragHandles extends StatelessWidget {
       child: ResizeHandle(
         interactive: interactive,
         selected: selected,
+        cursor: SystemMouseCursors.resizeDownRight,
         onDrag: _handleBottomRightDrag,
         onDragDone: _handleDragDone,
         onDragStart: (pointerId) =>
@@ -137,6 +142,7 @@ class DragHandles extends StatelessWidget {
       child: ResizeHandle(
         interactive: interactive,
         selected: selected,
+        cursor: SystemMouseCursors.resizeUpDown,
         onDrag: _handleBottomCenterDrag,
         onDragDone: _handleDragDone,
         onDragStart: (pointerId) =>
@@ -150,6 +156,7 @@ class DragHandles extends StatelessWidget {
       child: ResizeHandle(
         interactive: interactive,
         selected: selected,
+        cursor: SystemMouseCursors.resizeDownLeft,
         onDrag: _handleBottomLeftDrag,
         onDragDone: _handleDragDone,
         onDragStart: (pointerId) =>
@@ -163,6 +170,7 @@ class DragHandles extends StatelessWidget {
       child: ResizeHandle(
         interactive: interactive,
         selected: selected,
+        cursor: SystemMouseCursors.resizeLeftRight,
         onDrag: _handleMiddleLeftDrag,
         onDragDone: _handleDragDone,
         onDragStart: (pointerId) =>

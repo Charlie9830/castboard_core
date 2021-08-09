@@ -17,14 +17,14 @@ class RotateHandle extends StatelessWidget {
   final OnRotateCallback? onDrag;
   final OnRotateDoneCallback? onDragDone;
 
-  const RotateHandle(
-      {Key? key,
-      this.onDrag,
-      this.interactive = true,
-      this.onDragStart,
-      this.selected = false,
-      this.onDragDone})
-      : super(key: key);
+  const RotateHandle({
+    Key? key,
+    this.onDrag,
+    this.interactive = true,
+    this.onDragStart,
+    this.selected = false,
+    this.onDragDone,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {

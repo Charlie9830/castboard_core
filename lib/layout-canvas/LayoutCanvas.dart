@@ -1,4 +1,5 @@
 import 'dart:math';
+import 'package:castboard_core/layout-canvas/BackstopListener.dart';
 import 'package:castboard_core/layout-canvas/DragBoxLayer.dart';
 import 'package:castboard_core/layout-canvas/DragHandles.dart';
 import 'package:castboard_core/layout-canvas/GridPainter.dart';
@@ -27,12 +28,14 @@ class LayoutCanvas extends StatefulWidget {
   final double gridSize;
   final Map<String, LayoutBlock> elements;
   final Set<String> selectedElements;
+  final String openElementId;
   final double renderScale;
   final bool placing;
   final OnSelectedElementsChangedCallback? onSelectedElementsChanged;
   final OnElementsChangedCallback? onElementsChanged;
   final OnPlaceCallback? onPlace;
   final OnElementDoubleClickedCallback? onElementDoubleClicked;
+  final OpenElementBuilder? openElementBuilder;
 
   LayoutCanvas({
     Key? key,
@@ -42,12 +45,14 @@ class LayoutCanvas extends StatefulWidget {
     this.gridSize = 10,
     this.elements = const {},
     this.selectedElements = const {},
+    this.openElementId = '',
     this.placing = false,
     this.renderScale = 1,
     this.onPlace,
     this.onSelectedElementsChanged,
     this.onElementsChanged,
     this.onElementDoubleClicked,
+    this.openElementBuilder,
   }) : super(key: key);
 
   @override
@@ -75,17 +80,11 @@ class _LayoutCanvasState extends State<LayoutCanvas> {
     final dragSelectRect =
         Rect.fromPoints(_dragSelectAnchorPoint!, _dragSelectMousePoint!);
     return Listener(
-      onPointerDown:
-          (widget.interactive && widget.deferHitTestingToChildren == false)
-              ? _handleRootPointerDown
-              : null,
+      // onPointerUp stays on this Listener so that we can detect the end of a DragSelection even when it ends on top of another
+      // element. Other handlers are assigned to the [BackstopListener].
       onPointerUp:
           (widget.interactive && widget.deferHitTestingToChildren == false)
               ? _handleRootPointerUp
-              : null,
-      onPointerMove:
-          (widget.interactive && widget.deferHitTestingToChildren == false)
-              ? _handleRootPointerMove
               : null,
       child: Container(
         color: Colors
@@ -98,10 +97,24 @@ class _LayoutCanvasState extends State<LayoutCanvas> {
                 )
               : null,
           child: Stack(
-            // TODO, This Stack may be Redundant Now.
             children: [
+              // The backstop listener only receives PointerDown or PointerMove events if they have been triggered by an
+              // unobscured press directly onto the canvas background. This is as opposed to the Parent listener up above
+              // that receives events from the background canvas AS WELL as objects visually in front of it.
+              BackstopListener(
+                onPointerMove: (widget.interactive &&
+                        widget.deferHitTestingToChildren == false)
+                    ? _handleBackstopPointerMove
+                    : null,
+                onPointerDown: (widget.interactive &&
+                        widget.deferHitTestingToChildren == false)
+                    ? _handleBackstopPointerDown
+                    : null,
+              ),
               DragBoxLayer(
                 interactive: widget.interactive,
+                openElementId: widget.openElementId,
+                openElementBuilder: widget.openElementBuilder,
                 deferHitTestingToChildren: widget.deferHitTestingToChildren,
                 selectedElementIds: Set<String?>.from(widget.selectedElements)
                   ..addAll(_dragSelectionPreviews),
@@ -139,24 +152,22 @@ class _LayoutCanvasState extends State<LayoutCanvas> {
     );
   }
 
-  _handleRootPointerMove(pointerEvent) {
+  _handleBackstopPointerMove(PointerMoveEvent pointerEvent) {
     if (widget.deferHitTestingToChildren == true) {
       return;
     }
 
-    if (_lastPointerId != null && pointerEvent.pointer > _lastPointerId) {
-      final currentPos = pointerEvent.localPosition;
-      final delta = pointerEvent.localDelta;
+    final currentPos = pointerEvent.localPosition;
+    final delta = pointerEvent.localDelta;
 
-      if (_isDragSelecting == false) {
-        _startDragSelection(currentPos, delta);
-      } else {
-        _updateDragSelection(currentPos);
-      }
+    if (_isDragSelecting == false) {
+      _startDragSelection(currentPos, delta);
+    } else {
+      _updateDragSelection(currentPos);
     }
   }
 
-  _handleRootPointerUp(pointerEvent) {
+  _handleRootPointerUp(PointerUpEvent pointerEvent) {
     if (widget.deferHitTestingToChildren == true) {
       return;
     }
@@ -173,24 +184,31 @@ class _LayoutCanvasState extends State<LayoutCanvas> {
     if (_isDragSelecting == true) {
       _finishDragSelection();
     }
+
+    if (widget.placing) {
+      _placeElement(pointerEvent);
+    }
   }
 
-  _handleRootPointerDown(pointerEvent) {
+  _handleBackstopPointerDown(PointerDownEvent pointerEvent) {
     if (widget.deferHitTestingToChildren == true) {
       return;
     }
 
-    if (_lastPointerId != null && pointerEvent.pointer > _lastPointerId) {
-      // Clear Selections.
-      widget.onSelectedElementsChanged?.call(<String>{});
-      setState(() {
-        _activeElements = <String, LayoutBlock>{};
-      });
-    }
+    // Clear Selections.
+    widget.onSelectedElementsChanged?.call(<String>{});
+    setState(() {
+      _activeElements = <String, LayoutBlock>{};
+    });
+
     if (widget.placing) {
-      widget.onPlace?.call(pointerEvent.localPosition.dx / widget.renderScale,
-          pointerEvent.localPosition.dy / widget.renderScale);
+      _placeElement(pointerEvent);
     }
+  }
+
+  void _placeElement(PointerEvent pointerEvent) {
+    widget.onPlace?.call(pointerEvent.localPosition.dx / widget.renderScale,
+        pointerEvent.localPosition.dy / widget.renderScale);
   }
 
   void _finishDragSelection() {

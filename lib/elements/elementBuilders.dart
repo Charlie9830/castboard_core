@@ -182,13 +182,16 @@ Widget _buildChild({
       ));
     }
 
-    return withPadding(ImageElement(
-      file: Storage.instance!.getHeadshotFile(actor.headshotRef),
-    ));
+    return withPadding(
+      ImageElement(
+        file: Storage.instance!.getHeadshotFile(actor.headshotRef),
+      ),
+    );
   }
 
   if (element is TextElementModel) {
     String? text = _lookupText(element, castChange, actors, tracks);
+
     return withPadding(
       TextElement(
         text: text,
@@ -216,7 +219,6 @@ Widget _buildChild({
   return SizedBox.fromSize(size: Size.zero);
 }
 
-
 EdgeInsets _buildEdgeInsets(LayoutElementModel element) {
   return EdgeInsets.fromLTRB(
     element.leftPadding.toDouble(),
@@ -225,7 +227,6 @@ EdgeInsets _buildEdgeInsets(LayoutElementModel element) {
     element.bottomPadding.toDouble(),
   );
 }
-
 
 bool _shouldBuild(LayoutElementModel element, CastChangeModel? castChange) {
   if (castChange == null) {

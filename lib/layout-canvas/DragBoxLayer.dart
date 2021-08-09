@@ -29,9 +29,12 @@ typedef void OnRotateDoneCallback(
   int pointerId,
 );
 
+typedef Widget OpenElementBuilder(BuildContext context, LayoutBlock block);
+
 class DragBoxLayer extends StatelessWidget {
   final bool interactive;
   final bool deferHitTestingToChildren;
+  final String openElementId;
   final Map<String, LayoutBlock>? blocks;
   final Set<String?>? selectedElementIds;
   final double renderScale;
@@ -50,11 +53,13 @@ class DragBoxLayer extends StatelessWidget {
   final OnRotateDoneCallback? onRotateDone;
   final OnDragBoxMouseUpCallback? onDragBoxMouseUp;
   final OnDragBoxDoubleClickCallback? onDragBoxDoubleClick;
+  final OpenElementBuilder? openElementBuilder;
 
   const DragBoxLayer({
     Key? key,
     this.interactive = true,
     this.deferHitTestingToChildren = false,
+    this.openElementId = '',
     this.blocks,
     required this.renderScale,
     this.selectedElementIds,
@@ -73,13 +78,14 @@ class DragBoxLayer extends StatelessWidget {
     this.onRotateDone,
     this.onDragBoxMouseUp,
     this.onDragBoxDoubleClick,
+    this.openElementBuilder,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return Stack(
       children: [
-        ..._positionBlocks(),
+        ..._positionBlocks(context),
         //..._drawDebugIndicators(),
         if (deferHitTestingToChildren == false) ..._drawDragBoxes(),
 
@@ -170,21 +176,24 @@ class DragBoxLayer extends StatelessWidget {
         top: (block.yPos * renderScale) - dragHandleHeight / 2,
         width: (block.width * renderScale) + dragHandleWidth,
         height: (block.height * renderScale) + dragHandleHeight,
-        child: Transform(
-          transform: Matrix4.rotationZ(block.rotation),
-          alignment: Alignment.center,
-          child: DragBox(
-            selected: selectedElementIds!.contains(blockId),
-            xPos: block.xPos * renderScale,
-            yPos: block.yPos * renderScale,
-            height: (block.height * renderScale) + dragHandleHeight,
-            width: (block.width * renderScale) + dragHandleWidth,
-            onPositionChange: (xPosDelta, yPosDelta) =>
-                _handlePositionChange(xPosDelta, yPosDelta, blockId),
-            onMouseUp: (pointerId) =>
-                onDragBoxMouseUp?.call(blockId, pointerId),
-            onClick: (pointerId) => onDragBoxClick?.call(blockId, pointerId),
-            onDoubleClick: () => onDragBoxDoubleClick?.call(blockId),
+        child: IgnorePointer(
+          ignoring: blockId == openElementId,
+          child: Transform(
+            transform: Matrix4.rotationZ(block.rotation),
+            alignment: Alignment.center,
+            child: DragBox(
+              selected: selectedElementIds!.contains(blockId),
+              xPos: block.xPos * renderScale,
+              yPos: block.yPos * renderScale,
+              height: (block.height * renderScale) + dragHandleHeight,
+              width: (block.width * renderScale) + dragHandleWidth,
+              onPositionChange: (xPosDelta, yPosDelta) =>
+                  _handlePositionChange(xPosDelta, yPosDelta, blockId),
+              onMouseUp: (pointerId) =>
+                  onDragBoxMouseUp?.call(blockId, pointerId),
+              onClick: (pointerId) => onDragBoxClick?.call(blockId, pointerId),
+              onDoubleClick: () => onDragBoxDoubleClick?.call(blockId),
+            ),
           ),
         ),
       );
@@ -196,13 +205,13 @@ class DragBoxLayer extends StatelessWidget {
     onPositionChange(xPosDelta, yPosDelta, blockId);
   }
 
-  List<Widget> _positionBlocks() {
+  List<Widget> _positionBlocks(BuildContext context) {
     return blocks!.values.map((block) {
-      return _positionBlock(block);
+      return _positionBlock(block, context);
     }).toList();
   }
 
-  Positioned _positionBlock(LayoutBlock block) {
+  Positioned _positionBlock(LayoutBlock block, BuildContext context) {
     return Positioned(
       left: block.xPos * renderScale,
       top: block.yPos * renderScale,
@@ -211,7 +220,9 @@ class DragBoxLayer extends StatelessWidget {
       child: Transform(
         alignment: Alignment.center,
         transform: Matrix4.rotationZ(block.rotation),
-        child: block.child,
+        child: openElementId == block.id && openElementBuilder != null
+            ? openElementBuilder!(context, block)
+            : block.child,
       ),
     );
   }

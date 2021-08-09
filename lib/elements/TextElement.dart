@@ -1,34 +1,24 @@
-
-
 import 'package:castboard_core/inherited/RenderScaleProvider.dart';
 import 'package:flutter/material.dart';
 
 class TextElement extends StatelessWidget {
   final String? text;
+  final bool open;
   final TextElementStyle style;
 
   const TextElement({
     Key? key,
     required this.text,
     required this.style,
+    this.open = false,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return Center(
-      child: Text(
-        text ?? '',
-        textAlign: style.alignment,
-        style: TextStyle(
-          color: style.color,
-          fontFamily: style.fontFamily,
-          fontSize: style.fontSize * RenderScale.of(context)!.scale!,
-          fontStyle: style.italics ? FontStyle.italic : FontStyle.normal,
-          fontWeight: style.bold ? FontWeight.bold : FontWeight.normal,
-          decoration:
-              style.underline ? TextDecoration.underline : TextDecoration.none,
-        ),
-      ),
+      child: Text(text ?? '',
+          textAlign: style.alignment,
+          style: style.asTextStyle(RenderScale.of(context)!.scale!)),
     );
   }
 }
@@ -51,4 +41,15 @@ class TextElementStyle {
     this.italics = false,
     this.underline = false,
   });
+
+  TextStyle asTextStyle(double renderScale) {
+    return TextStyle(
+      color: color,
+      fontFamily: fontFamily,
+      fontSize: fontSize * renderScale,
+      fontStyle: italics ? FontStyle.italic : FontStyle.normal,
+      fontWeight: bold ? FontWeight.bold : FontWeight.normal,
+      decoration: underline ? TextDecoration.underline : TextDecoration.none,
+    );
+  }
 }

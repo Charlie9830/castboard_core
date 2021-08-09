@@ -1,5 +1,4 @@
-
-
+import 'package:castboard_core/elements/TextElement.dart';
 import 'package:castboard_core/enum-converters/textAlignConverters.dart';
 import 'package:castboard_core/models/ColorModel.dart';
 import 'package:flutter/material.dart';
@@ -83,4 +82,14 @@ class TextElementModel extends LayoutElementChild {
   LayoutElementChild copy() {
     return copyWith();
   }
+
+  TextElementStyle get style => TextElementStyle(
+        fontFamily: fontFamily,
+        fontSize: fontSize,
+        bold: bold,
+        italics: italics,
+        underline: underline,
+        alignment: alignment,
+        color: color,
+      );
 }

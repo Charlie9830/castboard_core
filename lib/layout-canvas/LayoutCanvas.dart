@@ -63,7 +63,6 @@ class _LayoutCanvasState extends State<LayoutCanvas> {
   Map<String, LayoutBlock> _activeElements = const {};
 
   // State
-  int? _lastPointerId;
   ResizeHandleLocation? _logicalResizeHandle;
   Point? _pointerPosition;
   bool _isDragSelecting = false;
@@ -127,9 +126,6 @@ class _LayoutCanvasState extends State<LayoutCanvas> {
                 dragSelectWidth: dragSelectRect.width,
                 onDragBoxClick: (elementId, pointerId) {
                   _notifySelection(elementId);
-                  setState(() {
-                    _lastPointerId = pointerId;
-                  });
                 },
                 onDragBoxDoubleClick: (elementId) {
                   widget.onElementDoubleClicked?.call(elementId);
@@ -260,7 +256,6 @@ class _LayoutCanvasState extends State<LayoutCanvas> {
   void _handleResizeStart(
       ResizeHandleLocation position, int pointerId, String elementId) {
     setState(() {
-      _lastPointerId = pointerId;
       _pointerPosition = Point(100.0, 100.0);
     });
   }
@@ -296,7 +291,6 @@ class _LayoutCanvasState extends State<LayoutCanvas> {
         rotatedPoint.y + rectangle.center.dy);
 
     setState(() {
-      _lastPointerId = pointerId;
       _pointerPosition = screenSpacePoint;
     });
   }
@@ -339,7 +333,6 @@ class _LayoutCanvasState extends State<LayoutCanvas> {
 
     setState(() {
       _activeElements = updatedActiveElements;
-      _lastPointerId = pointerId;
       _pointerPosition = pointerPos;
     });
   }
@@ -483,7 +476,6 @@ class _LayoutCanvasState extends State<LayoutCanvas> {
           }));
           _logicalResizeHandle = _getOpposingResizeHandle(currentLogicalHandle,
               isFlippingLeftToRight, isFlippingTopToBottom);
-          _lastPointerId = pointerId;
         });
         break;
 
@@ -548,7 +540,6 @@ class _LayoutCanvasState extends State<LayoutCanvas> {
           _logicalResizeHandle = isFlippingTopToBottom
               ? opposingResizeHandles[currentLogicalHandle]
               : currentLogicalHandle;
-          _lastPointerId = pointerId;
         });
         break;
 
@@ -625,7 +616,6 @@ class _LayoutCanvasState extends State<LayoutCanvas> {
 
           _logicalResizeHandle = _getOpposingResizeHandle(currentLogicalHandle,
               isFlippingRightToLeft, isFlippingTopToBottom);
-          _lastPointerId = pointerId;
 
           _pointerPosition = Point(
               primaryElement.rectangle.topRight.dx + renderDeltaX,
@@ -697,7 +687,6 @@ class _LayoutCanvasState extends State<LayoutCanvas> {
           _logicalResizeHandle = isFlippingRightToLeft
               ? opposingResizeHandles[currentLogicalHandle]
               : currentLogicalHandle;
-          _lastPointerId = pointerId;
         });
         break;
 
@@ -773,7 +762,6 @@ class _LayoutCanvasState extends State<LayoutCanvas> {
           }));
           _logicalResizeHandle = _getOpposingResizeHandle(currentLogicalHandle,
               isFlippingRightToLeft, isFlippingBottomToTop);
-          _lastPointerId = pointerId;
         });
         break;
 
@@ -838,7 +826,6 @@ class _LayoutCanvasState extends State<LayoutCanvas> {
           _logicalResizeHandle = isFlippingBottomToTop
               ? opposingResizeHandles[currentLogicalHandle]
               : currentLogicalHandle;
-          _lastPointerId = pointerId;
         });
 
         break;
@@ -916,7 +903,6 @@ class _LayoutCanvasState extends State<LayoutCanvas> {
 
           _logicalResizeHandle = _getOpposingResizeHandle(currentLogicalHandle,
               isFlippingLeftToRight, isFlippingBottomToTop);
-          _lastPointerId = pointerId;
         });
         break;
 
@@ -981,7 +967,6 @@ class _LayoutCanvasState extends State<LayoutCanvas> {
           _logicalResizeHandle = isFlippingLeftToRight
               ? opposingResizeHandles[currentLogicalHandle]
               : currentLogicalHandle;
-          _lastPointerId = pointerId;
         });
         break;
     }

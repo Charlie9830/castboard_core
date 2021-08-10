@@ -78,6 +78,10 @@ class _LayoutCanvasState extends State<LayoutCanvas> {
   Widget build(BuildContext context) {
     final dragSelectRect =
         Rect.fromPoints(_dragSelectAnchorPoint!, _dragSelectMousePoint!);
+
+    // This top most Listener recives both unobscured events as well as events obscurred by other elements, ie: elements that are
+    // visually in front of the background. Further down you will find the [BackstopListener] which is placed to only receive events
+    // that are not obscured.
     return Listener(
       // onPointerUp stays on this Listener so that we can detect the end of a DragSelection even when it ends on top of another
       // element. Other handlers are assigned to the [BackstopListener].

@@ -46,6 +46,11 @@ const _fontsTempDirName = 'fonts';
 // Player Directory Names
 const _playerDirName = 'playerfiles';
 
+// Storage root names
+const editorStorageRootDirName = "com.charliehall.castboard-editor";
+const playerStorageRootDirName =
+    "com.charliehall.castboard_player"; // TODO: Why is this underscored but editor is hyphened?
+
 // Player Show File Name.
 const _playerCurrentShowFileName = 'currentshow.castboard';
 
@@ -88,13 +93,13 @@ class Storage {
     return _instance;
   }
 
-  Storage(
-      {Directory? appStorageRoot,
-      Directory? headshots,
-      Directory? backgrounds,
-      Directory? playerDir,
-      Directory? fontsDir})
-      : _appStorageRoot = appStorageRoot,
+  Storage({
+    Directory? appStorageRoot,
+    Directory? headshots,
+    Directory? backgrounds,
+    Directory? playerDir,
+    Directory? fontsDir,
+  })  : _appStorageRoot = appStorageRoot,
         _headshotsDir = headshots,
         _backgroundsDir = backgrounds,
         _playerDir = playerDir,
@@ -108,9 +113,9 @@ class Storage {
 
     String appStorageRootDirName = '';
     if (mode == StorageMode.editor) {
-      appStorageRootDirName = 'com.charliehall.castboard-editor';
+      appStorageRootDirName = editorStorageRootDirName;
     } else {
-      appStorageRootDirName = 'com.charliehall.castboard_player';
+      appStorageRootDirName = playerStorageRootDirName;
     }
 
     final appStorageRoot = mode == StorageMode.editor

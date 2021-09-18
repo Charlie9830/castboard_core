@@ -67,7 +67,7 @@ class LoggingManager {
 
   static LoggingManager get instance {
     if (_initialized == false) {
-      throw 'Logging() has not been initialized Yet. Ensure you are calling Storage.initalize() prior to making any other calls';
+      throw 'LoggingManager has not been initialized Yet. Ensure you are calling LoggingManager.initalize() prior to making any other calls';
     }
 
     return _instance;

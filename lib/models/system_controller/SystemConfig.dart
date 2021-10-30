@@ -1,7 +1,7 @@
 import 'package:castboard_core/models/system_controller/DeviceOrientation.dart';
 import 'package:castboard_core/models/system_controller/DeviceResolution.dart';
 
-/// Represents a device Agnostic Configuration. It is the responsability of the Platform Implementations to pick this apart and marshall the commands to the correct
+/// Represents a device Agnostic Configuration. It is the responsibility of the Platform Implementations to pick this apart and marshall the commands to the correct
 /// locations/actions.
 class SystemConfig {
   final DeviceOrientation? deviceOrientation;

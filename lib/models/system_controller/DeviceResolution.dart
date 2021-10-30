@@ -34,6 +34,8 @@ class DeviceResolution {
     );
   }
 
+  String get uid => '$width, $height, $auto';
+
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;

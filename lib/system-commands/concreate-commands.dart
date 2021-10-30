@@ -1,12 +1,6 @@
 import 'package:castboard_core/enum-converters/systemCommandConverters.dart';
 import 'package:castboard_core/system-commands/SystemCommands.dart';
 
-Map<String, dynamic> _noArgsToMapShim(SystemCommandType type) {
-  return <String, dynamic>{
-    'type': convertSystemCommandType(type),
-  };
-}
-
 class NoneSystemCommand extends SystemCommand {
   NoneSystemCommand() : super(SystemCommandType.none);
 
@@ -42,4 +36,10 @@ class RestartApplicationSystemCommand extends SystemCommand {
   Map<String, dynamic> toMap() {
     return _noArgsToMapShim(super.type);
   }
+}
+
+Map<String, dynamic> _noArgsToMapShim(SystemCommandType type) {
+  return <String, dynamic>{
+    'type': convertSystemCommandType(type),
+  };
 }

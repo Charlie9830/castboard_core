@@ -3,16 +3,16 @@ import 'package:castboard_core/models/system_controller/DeviceResolution.dart';
 
 /// Represents a device Agnostic Configuration. It is the responsability of the Platform Implementations to pick this apart and marshall the commands to the correct
 /// locations/actions.
-class DeviceConfig {
+class SystemConfig {
   final DeviceOrientation? deviceOrientation;
   final DeviceResolution? deviceResolution;
 
-  DeviceConfig({
+  SystemConfig({
     required this.deviceOrientation,
     required this.deviceResolution,
   });
 
-  DeviceConfig.defaults()
+  SystemConfig.defaults()
       : deviceResolution = DeviceResolution.defaults(),
         deviceOrientation = DeviceOrientation.landscape;
 
@@ -25,8 +25,8 @@ class DeviceConfig {
     };
   }
 
-  factory DeviceConfig.fromMap(Map<String, dynamic> map) {
-    return DeviceConfig(
+  factory SystemConfig.fromMap(Map<String, dynamic> map) {
+    return SystemConfig(
       deviceOrientation: _parseOrientation(map['deviceOrientation']),
       deviceResolution: DeviceResolution.fromMap(map['deviceResolution']),
     );

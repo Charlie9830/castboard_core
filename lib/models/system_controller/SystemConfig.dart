@@ -1,3 +1,4 @@
+import 'package:castboard_core/models/system_controller/AvailableResolutions.dart';
 import 'package:castboard_core/models/system_controller/DeviceOrientation.dart';
 import 'package:castboard_core/models/system_controller/DeviceResolution.dart';
 
@@ -6,15 +7,18 @@ import 'package:castboard_core/models/system_controller/DeviceResolution.dart';
 class SystemConfig {
   final DeviceOrientation? deviceOrientation;
   final DeviceResolution? deviceResolution;
+  final AvailableResolutions availableResolutions;
 
   SystemConfig({
     required this.deviceOrientation,
     required this.deviceResolution,
+    required this.availableResolutions,
   });
 
   SystemConfig.defaults()
       : deviceResolution = DeviceResolution.defaults(),
-        deviceOrientation = DeviceOrientation.landscape;
+        deviceOrientation = DeviceOrientation.landscape,
+        availableResolutions = AvailableResolutions.defaults();
 
   Map<String, dynamic> toMap() {
     return {
@@ -22,6 +26,7 @@ class SystemConfig {
           ? null
           : _convertOrientation(deviceOrientation!),
       'deviceResolution': deviceResolution?.toMap(),
+      'availableResolutions': availableResolutions.toMap(),
     };
   }
 
@@ -29,6 +34,8 @@ class SystemConfig {
     return SystemConfig(
       deviceOrientation: _parseOrientation(map['deviceOrientation']),
       deviceResolution: DeviceResolution.fromMap(map['deviceResolution']),
+      availableResolutions:
+          AvailableResolutions.fromMap(map['availableResolutions']),
     );
   }
 }

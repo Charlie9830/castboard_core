@@ -7,7 +7,8 @@ import 'package:castboard_core/models/system_controller/DeviceResolution.dart';
 class SystemConfig {
   final DeviceOrientation? deviceOrientation;
   final DeviceResolution? deviceResolution;
-  final AvailableResolutions availableResolutions;
+  final AvailableResolutions
+      availableResolutions; // Nominally only one way Player -> Remote.
 
   SystemConfig({
     required this.deviceOrientation,
@@ -16,7 +17,7 @@ class SystemConfig {
   });
 
   SystemConfig.defaults()
-      : deviceResolution = DeviceResolution.defaults(),
+      : deviceResolution = DeviceResolution.auto(),
         deviceOrientation = DeviceOrientation.landscape,
         availableResolutions = AvailableResolutions.defaults();
 
@@ -36,6 +37,19 @@ class SystemConfig {
       deviceResolution: DeviceResolution.fromMap(map['deviceResolution']),
       availableResolutions:
           AvailableResolutions.fromMap(map['availableResolutions']),
+    );
+  }
+
+  SystemConfig copyWith({
+    DeviceOrientation? deviceOrientation,
+    DeviceResolution? deviceResolution,
+    AvailableResolutions? availableResolutions,
+    bool? resumeFromIdle,
+  }) {
+    return SystemConfig(
+      deviceOrientation: deviceOrientation ?? this.deviceOrientation,
+      deviceResolution: deviceResolution ?? this.deviceResolution,
+      availableResolutions: availableResolutions ?? this.availableResolutions,
     );
   }
 }

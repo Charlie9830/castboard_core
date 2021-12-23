@@ -5,10 +5,11 @@ class DeviceResolution {
 
   const DeviceResolution(this.width, this.height) : auto = false;
 
-  const DeviceResolution.defaults()
-      : width = 1920,
-        height = 1080,
-        auto = false;
+
+  const DeviceResolution.auto()
+      : width = 0,
+        height = 0,
+        auto = true;
 
   Map<String, dynamic> toMap() {
     return {
@@ -17,11 +18,6 @@ class DeviceResolution {
       'auto': auto,
     };
   }
-
-  const DeviceResolution.auto()
-      : width = 0,
-        height = 0,
-        auto = true;
 
   factory DeviceResolution.fromMap(Map<String, dynamic> map) {
     if (map['auto'] == true) {

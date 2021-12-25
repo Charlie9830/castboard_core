@@ -37,12 +37,6 @@ import 'package:path_provider/path_provider.dart' as pathProvider;
 import 'package:archive/archive.dart';
 import 'package:archive/archive_io.dart';
 
-// Temp Directory Names.
-const _headshotsTempDirName = 'headshots';
-const _backgroundsTempDirName = 'backgrounds';
-const _slideThumbnails = 'slidethumbnails';
-const _fontsTempDirName = 'fonts';
-
 // Player Directory Names
 const _playerDirName = 'playerfiles';
 
@@ -58,13 +52,13 @@ const _playerCurrentShowFileName = 'currentshow.castboard';
 const _stagingDirName = 'castboard_file_staging';
 
 // Save File Names.
-const _headshotsSaveDirName = 'headshots';
-const _backgroundsSaveDirName = 'backgrounds';
-const _fontsSaveDirName = 'fonts';
-const _manifestSaveName = 'manifest.json';
-const _slideDataSaveName = 'slidedata.json';
-const _showDataSaveName = 'showdata.json';
-const _playbackStateSaveName = 'playback_state.json';
+const _headshotsDirName = 'headshots';
+const _backgroundsDirName = 'backgrounds';
+const _fontsDirName = 'fonts';
+const _manifestFileName = 'manifest.json';
+const _slideDataFileName = 'slidedata.json';
+const _showDataFileName = 'showdata.json';
+const _playbackStateFileName = 'playback_state.json';
 
 enum StorageMode {
   editor,
@@ -139,14 +133,14 @@ class Storage {
     await Future.wait([
       () async {
         headshots =
-            await Directory(p.join(appStorageRoot.path, _headshotsTempDirName))
+            await Directory(p.join(appStorageRoot.path, _headshotsDirName))
                 .create();
         return;
       }(),
       () async {
-        backgrounds = await Directory(
-                p.join(appStorageRoot.path, _backgroundsTempDirName))
-            .create();
+        backgrounds =
+            await Directory(p.join(appStorageRoot.path, _backgroundsDirName))
+                .create();
         return;
       }(),
       if (mode == StorageMode.player)
@@ -156,9 +150,8 @@ class Storage {
                   .create();
         }(),
       () async {
-        fontsDir =
-            await Directory(p.join(appStorageRoot.path, _fontsTempDirName))
-                .create();
+        fontsDir = await Directory(p.join(appStorageRoot.path, _fontsDirName))
+            .create();
       }()
     ]);
 
@@ -284,8 +277,7 @@ class Storage {
       return null;
     }
 
-    return File(
-        p.join(_appStorageRoot!.path, _headshotsTempDirName, ref.basename));
+    return File(p.join(_appStorageRoot!.path, _headshotsDirName, ref.basename));
   }
 
   File? getBackgroundFile(PhotoRef ref) {
@@ -294,12 +286,12 @@ class Storage {
     }
 
     return File(
-        p.join(_appStorageRoot!.path, _backgroundsTempDirName, ref.basename));
+        p.join(_appStorageRoot!.path, _backgroundsDirName, ref.basename));
   }
 
   File? getFontFile(FontRef ref) {
     return File(
-      p.join(_appStorageRoot!.path, _fontsTempDirName, ref.basename),
+      p.join(_appStorageRoot!.path, _fontsDirName, ref.basename),
     );
   }
 
@@ -324,28 +316,28 @@ class Storage {
   }
 
   Future<bool> updatePlayerShowData({
-    required Map<String, PresetModel> presets,
+    required ShowDataModel showData,
     required PlaybackStateData playbackState,
   }) async {
-    LoggingManager.instance.storage
-        .info("Updating player Show Data.. Reading current show from disk..");
-    final onDiskData = await readFromPlayerStorage();
+    LoggingManager.instance.storage.info("Updating player show data");
 
-    LoggingManager.instance.storage.info(
-        "Writing new show to storage with modified preset and playbackState");
-    await writeToPermanentStorage(
-        actors: onDiskData.actors,
-        tracks: onDiskData.tracks,
-        presets: presets,
-        slides: onDiskData.slides,
-        slideSizeId: onDiskData.slideSizeId,
-        slideOrientation: onDiskData.slideOrientation,
-        manifest: onDiskData.manifest,
-        targetFile: File(p.join(_playerDir!.path, _playerCurrentShowFileName)));
+    final showDataFile = File(p.join(_appStorageRoot!.path, _showDataFileName));
+    final playbackStateFile =
+        File(p.join(_appStorageRoot!.path, _playbackStateFileName));
 
-    LoggingManager.instance.storage.info("Show Data update complete");
+    final writeOperations = [
+      showDataFile.writeAsString(json.encode(showData.toMap())),
+      playbackStateFile.writeAsString(json.encode(playbackState.toMap()))
+    ];
 
-    return true;
+    try {
+      await Future.wait(writeOperations);
+      return true;
+    } catch (e) {
+      LoggingManager.instance.storage.severe(
+          "Something went wrong whilst during a call to updatePlayerShowData, \n ${e.toString()}");
+      return false;
+    }
   }
 
   File getPlayerStorageFile() {
@@ -373,7 +365,7 @@ class Storage {
 
     // Search for the Manifest.
     final manifestEntityHits =
-        archive.where((ArchiveFile entity) => entity.name == _manifestSaveName);
+        archive.where((ArchiveFile entity) => entity.name == _manifestFileName);
 
     if (manifestEntityHits.isEmpty) {
       return false;
@@ -429,50 +421,45 @@ class Storage {
       final parentDirectoryName =
           p.split(name).isNotEmpty ? p.split(name).first : '';
 
-      // TODO. To extract the files from the directory you compare the parentDirectoryName to the tempDirNames.
-      // is this correct? If this is a Save file being unzipped wouldn't it be the saveDirNames?
-      // Does this actually get used to decompress saved files or is it intended for the player to read from it's Temp Storage.
-      // Should it be made aware of that?
-
       if (entity.isFile) {
         final byteData = entity.content as List<int>?;
         // Headshots
-        if (parentDirectoryName == _headshotsTempDirName) {
+        if (parentDirectoryName == _headshotsDirName) {
           fileWriteRequests.add(
               File(p.join(_headshotsDir!.path, p.basename(name)))
                   .writeAsBytes(byteData!));
         }
 
         // Backgrounds
-        if (parentDirectoryName == _backgroundsTempDirName) {
+        if (parentDirectoryName == _backgroundsDirName) {
           fileWriteRequests.add(
               File(p.join(_backgroundsDir!.path, p.basename(name)))
                   .writeAsBytes(byteData!));
         }
 
         // Fonts
-        if (parentDirectoryName == _fontsTempDirName) {
+        if (parentDirectoryName == _fontsDirName) {
           fileWriteRequests.add(File(p.join(_fontsDir!.path, p.basename(name)))
               .writeAsBytes(byteData!));
         }
 
         // Manifest
-        if (name == _manifestSaveName) {
+        if (name == _manifestFileName) {
           rawManifest = json.decode(utf8.decode(byteData!));
         }
 
         // Show Data (Actors, Tracks, Presets)
-        if (name == _showDataSaveName) {
+        if (name == _showDataFileName) {
           rawShowData = json.decode(utf8.decode(byteData!));
         }
 
         // Slide Data (Slides, SlideSize, SlideOrientation)
-        if (name == _slideDataSaveName) {
+        if (name == _slideDataFileName) {
           rawSlideData = json.decode(utf8.decode(byteData!));
         }
 
         // Playback State (Currently displayed Cast Change etc)
-        if (name == _playbackStateSaveName) {
+        if (name == _playbackStateFileName) {
           rawPlaybackState = json.decode(utf8.decode(byteData!));
         }
       }
@@ -606,15 +593,14 @@ class Storage {
           compressFile,
           CompressFileParameters(
               targetFilePath: targetFile.path,
-              headshotsDirPath: p.join(stagingDir.path, _headshotsSaveDirName),
-              backgroundsDirPath:
-                  p.join(stagingDir.path, _backgroundsSaveDirName),
-              fontsDirPath: p.join(stagingDir.path, _fontsSaveDirName),
-              manifestFilePath: p.join(stagingDir.path, _manifestSaveName),
-              showDataFilePath: p.join(stagingDir.path, _showDataSaveName),
+              headshotsDirPath: p.join(stagingDir.path, _headshotsDirName),
+              backgroundsDirPath: p.join(stagingDir.path, _backgroundsDirName),
+              fontsDirPath: p.join(stagingDir.path, _fontsDirName),
+              manifestFilePath: p.join(stagingDir.path, _manifestFileName),
+              showDataFilePath: p.join(stagingDir.path, _showDataFileName),
               playbackStateFilePath:
-                  p.join(stagingDir.path, _playbackStateSaveName),
-              slideDataFilePath: p.join(stagingDir.path, _slideDataSaveName)),
+                  p.join(stagingDir.path, _playbackStateFileName),
+              slideDataFilePath: p.join(stagingDir.path, _slideDataFileName)),
           debugLabel: 'File Compression Isolate - compressFile()');
 
       LoggingManager.instance.storage
@@ -643,7 +629,7 @@ class Storage {
 
     final jsonData = json.encoder.convert(data);
     final targetFile =
-        await stagingDir.childFile(_playbackStateSaveName).create();
+        await stagingDir.childFile(_playbackStateFileName).create();
     await targetFile.writeAsString(jsonData);
     return;
   }
@@ -655,7 +641,7 @@ class Storage {
     final data = manifest.toMap();
 
     final jsonData = json.encoder.convert(data);
-    final targetFile = await stagingDir.childFile(_manifestSaveName).create();
+    final targetFile = await stagingDir.childFile(_manifestFileName).create();
     await targetFile.writeAsString(jsonData);
     return;
   }
@@ -672,7 +658,7 @@ class Storage {
     ).toMap();
 
     final jsonData = json.encoder.convert(data);
-    final targetFile = await stagingDir.childFile(_showDataSaveName).create();
+    final targetFile = await stagingDir.childFile(_showDataFileName).create();
     await targetFile.writeAsString(jsonData);
     return;
   }
@@ -683,7 +669,7 @@ class Storage {
 
     final jsonData = json.encoder.convert(data);
 
-    final targetFile = await stagingDir.childFile(_slideDataSaveName).create();
+    final targetFile = await stagingDir.childFile(_slideDataFileName).create();
 
     await targetFile.writeAsString(jsonData);
     return;
@@ -700,7 +686,7 @@ class Storage {
       return _copyToStagingDir(
           sourceFile,
           stagingDir
-              .childDirectory(_backgroundsSaveDirName)
+              .childDirectory(_backgroundsDirName)
               .childFile(ref.basename));
     });
 
@@ -716,7 +702,7 @@ class Storage {
     final requests = relativePaths.map((ref) {
       final sourceFile = getFontFile(ref)!;
       return _copyToStagingDir(sourceFile,
-          stagingDir.childDirectory(_fontsSaveDirName).childFile(ref.basename));
+          stagingDir.childDirectory(_fontsDirName).childFile(ref.basename));
     });
 
     await Future.wait(requests);
@@ -731,11 +717,8 @@ class Storage {
 
     final requests = refs.map((ref) {
       final sourceFile = getHeadshotFile(ref)!;
-      return _copyToStagingDir(
-          sourceFile,
-          stagingDir
-              .childDirectory(_headshotsSaveDirName)
-              .childFile(ref.basename));
+      return _copyToStagingDir(sourceFile,
+          stagingDir.childDirectory(_headshotsDirName).childFile(ref.basename));
     });
 
     await Future.wait(requests);
@@ -744,9 +727,9 @@ class Storage {
 
   Future<void> _stagePermStorageDirectories(fs.Directory dir) async {
     final requests = [
-      dir.childDirectory(_headshotsSaveDirName).create(),
-      dir.childDirectory(_backgroundsSaveDirName).create(),
-      dir.childDirectory(_fontsSaveDirName).create(),
+      dir.childDirectory(_headshotsDirName).create(),
+      dir.childDirectory(_backgroundsDirName).create(),
+      dir.childDirectory(_fontsDirName).create(),
     ];
     await Future.wait(requests);
     return;

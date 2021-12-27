@@ -20,6 +20,7 @@ import 'package:castboard_core/storage/ImportedShowData.dart';
 import 'package:castboard_core/models/ShowDataModel.dart';
 import 'package:castboard_core/storage/SlideDataModel.dart';
 import 'package:castboard_core/storage/compressFileWorker.dart';
+import 'package:castboard_core/storage/getParentDirectoryName.dart';
 import 'package:castboard_core/storage/validateManifest.dart';
 import 'package:file/local.dart'
     as localFs; // TODO: Do we need this package anymore?
@@ -414,6 +415,8 @@ class Storage {
   Future<bool> validateShowFile(List<int> byteData) async {
     // TODO: This could be done in a seperate Thread.
     if (byteData.isEmpty) {
+      LoggingManager.instance.storage
+          .warning('Showfile validation failed due to byteData being empty.');
       return false;
     }
 
@@ -425,18 +428,24 @@ class Storage {
         archive.where((ArchiveFile entity) => entity.name == _manifestFileName);
 
     if (manifestEntityHits.isEmpty) {
+      LoggingManager.instance.storage
+          .warning('Showfile validation failed due to no Manifest found.');
       return false;
     }
 
     final manifestByteData = manifestEntityHits.first.content as List<int>?;
 
     if (manifestByteData == null || manifestByteData.length == 0) {
+      LoggingManager.instance.storage.warning(
+          'Showfile validation failed due to manifestByteData being null or empty.');
       return false;
     }
 
     final rawManifest = json.decode(utf8.decode(manifestByteData));
 
     if (rawManifest == null) {
+      LoggingManager.instance.storage
+          .warning('Showfile validation failed due rawManifest being null.');
       return false;
     }
 
@@ -464,8 +473,7 @@ class Storage {
 
     for (var entity in archive) {
       final name = entity.name;
-      final parentDirectoryName =
-          p.split(name).isNotEmpty ? p.split(name).first : '';
+      final parentDirectoryName = getParentDirectoryName(name);
 
       if (entity.isFile) {
         final byteData = entity.content as List<int>?;
@@ -600,6 +608,8 @@ class Storage {
     final manifestFile = File(p.join(showfile.path, _manifestFileName));
 
     if (await manifestFile.exists() == false) {
+      LoggingManager.instance.storage.warning(
+          'Failed to retrieve showfile name from manifest. Using default.');
       return unknownFileName;
     }
 
@@ -607,10 +617,12 @@ class Storage {
       final rawData = json.decode(await manifestFile.readAsString());
       final manifest = ManifestModel.fromMap(rawData);
 
-      return manifest.fileName;
+      return '${manifest.fileName}.castboard';
     } catch (e, stacktrace) {
       LoggingManager.instance.storage.warning(
-          'Failed to retrieve showfile name from manifest.', e, stacktrace);
+          'Failed to retrieve showfile name from manifest. Using default.',
+          e,
+          stacktrace);
       return unknownFileName;
     }
   }

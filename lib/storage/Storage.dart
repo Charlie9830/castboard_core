@@ -1,8 +1,6 @@
 import 'dart:async';
 import 'dart:io';
 import 'dart:convert';
-import 'dart:isolate';
-import 'dart:typed_data';
 
 import 'package:castboard_core/classes/FontRef.dart';
 import 'package:castboard_core/enums.dart';
@@ -22,14 +20,13 @@ import 'package:castboard_core/storage/ImportedShowData.dart';
 import 'package:castboard_core/models/ShowDataModel.dart';
 import 'package:castboard_core/storage/SlideDataModel.dart';
 import 'package:castboard_core/storage/compressFileWorker.dart';
-import 'package:file/memory.dart' as memoryFs;
-import 'package:file/local.dart' as localFs;
+import 'package:file/local.dart'
+    as localFs; // TODO: Do we need this package anymore?
 import 'package:file/file.dart' as fs;
 
 import 'package:castboard_core/classes/PhotoRef.dart';
 import 'package:castboard_core/storage/StorageException.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
 
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart' as pathProvider;
@@ -65,32 +62,32 @@ class Storage {
   static Storage? _instance;
   static bool _initialized = false;
 
-  final Directory? _rootDir;
-  final Directory? _archiveDir;
-  final Directory? _activeShowDir;
-  final Directory? _headshotsDir;
-  final Directory? _backgroundsDir;
-  final Directory? _fontsDir;
+  final Directory _rootDir;
+  final Directory _archiveDir;
+  final Directory _activeShowDir;
+  final Directory _headshotsDir;
+  final Directory _backgroundsDir;
+  final Directory _fontsDir;
 
   bool isWriting = false;
   bool isReading = false;
 
-  static Storage? get instance {
-    if (_initialized == false) {
+  static Storage get instance {
+    if (_initialized == false || _instance == null) {
       throw StorageException(
           'Storage() has not been initialized Yet. Ensure you are calling Storage.initalize() prior to making any other calls');
     }
 
-    return _instance;
+    return _instance!;
   }
 
   Storage({
-    Directory? rootDir,
-    Directory? headshots,
-    Directory? backgrounds,
-    Directory? archiveDir,
-    Directory? fontsDir,
-    Directory? activeShowDir,
+    required Directory rootDir,
+    required Directory headshots,
+    required Directory backgrounds,
+    required Directory archiveDir,
+    required Directory fontsDir,
+    required Directory activeShowDir,
   })  : _rootDir = rootDir,
         _headshotsDir = headshots,
         _backgroundsDir = backgrounds,
@@ -161,35 +158,42 @@ class Storage {
     Directory? backgrounds;
     Directory? fontsDir;
 
-    await Future.wait([
-      // Headshots
-      () async {
-        headshots =
-            await Directory(p.join(activeShowDir.path, _headshotsDirName))
-                .create();
-        return;
-      }(),
-      // Backgrounds
-      () async {
-        backgrounds =
-            await Directory(p.join(activeShowDir.path, _backgroundsDirName))
-                .create();
-        return;
-      }(),
-      // Fonts
-      () async {
-        fontsDir =
-            await Directory(p.join(activeShowDir.path, _fontsDirName)).create();
-      }()
-    ]);
+    try {
+      await Future.wait([
+        // Headshots
+        () async {
+          headshots =
+              await Directory(p.join(activeShowDir.path, _headshotsDirName))
+                  .create();
+          return;
+        }(),
+        // Backgrounds
+        () async {
+          backgrounds =
+              await Directory(p.join(activeShowDir.path, _backgroundsDirName))
+                  .create();
+          return;
+        }(),
+        // Fonts
+        () async {
+          fontsDir = await Directory(p.join(activeShowDir.path, _fontsDirName))
+              .create();
+        }()
+      ]);
+    } catch (e, stacktrace) {
+      LoggingManager.instance.storage.severe(
+          'An error occured whilst creating one of the storage sub directories. ',
+          e,
+          stacktrace);
+    }
 
     _instance = Storage(
       rootDir: rootDir,
       activeShowDir: activeShowDir,
       archiveDir: archiveDir,
-      headshots: headshots,
-      backgrounds: backgrounds,
-      fontsDir: fontsDir,
+      headshots: headshots!,
+      backgrounds: backgrounds!,
+      fontsDir: fontsDir!,
     );
     _initialized = true;
 
@@ -239,7 +243,7 @@ class Storage {
 
   Future<void> deleteHeadshot(PhotoRef ref) async {
     LoggingManager.instance.storage.info("Deleting Headshot ${ref.uid}");
-    final Directory headshots = _headshotsDir!;
+    final Directory headshots = _headshotsDir;
     final File file = File(p.join(headshots.path, ref.basename));
 
     if (await file.exists()) {
@@ -252,7 +256,7 @@ class Storage {
 
   Future<void> deleteFont(FontRef ref) async {
     LoggingManager.instance.storage.info("Deleting Font ${ref.uid}");
-    final Directory fonts = _fontsDir!;
+    final Directory fonts = _fontsDir;
     final File file = File(p.join(fonts.path, ref.basename));
 
     if (await file.exists()) {
@@ -291,7 +295,7 @@ class Storage {
 
   Future<void> deleteBackground(PhotoRef ref) async {
     LoggingManager.instance.storage.info("Deleting background ${ref.uid}");
-    final Directory backgrounds = _backgroundsDir!;
+    final Directory backgrounds = _backgroundsDir;
     final File file = File(p.join(backgrounds.path, ref.basename));
 
     if (await file.exists()) {
@@ -307,7 +311,7 @@ class Storage {
       return null;
     }
 
-    return File(p.join(_rootDir!.path, _headshotsDirName, ref.basename));
+    return File(p.join(_headshotsDir.path, ref.basename));
   }
 
   File? getBackgroundFile(PhotoRef ref) {
@@ -315,30 +319,18 @@ class Storage {
       return null;
     }
 
-    return File(p.join(_rootDir!.path, _backgroundsDirName, ref.basename));
+    return File(p.join(_backgroundsDir.path, ref.basename));
   }
 
   File? getFontFile(FontRef ref) {
     return File(
-      p.join(_rootDir!.path, _fontsDirName, ref.basename),
+      p.join(_fontsDir.path, ref.basename),
     );
-  }
-
-  Future<File> writeCompressedShowfileIntoArchive(List<int> bytes) async {
-    // TODO: Save the show file with a human readable friendly name as opposed to ArchivedShowFile.
-    final targetFile =
-        File(p.join(_rootDir!.path, _archiveDir!.path, "ArchivedShowFile"));
-
-    LoggingManager.instance.storage
-        .info("Copying show file into Archived storage.");
-
-    await targetFile.writeAsBytes(bytes);
-    return targetFile;
   }
 
   /// Checks that a showfile Manifest file exists and it is not empty is the player storage directory (Not the Archive directory)
   Future<bool> isPlayerStoragePopulated() async {
-    final manifestFile = File(p.join(_rootDir!.path, _manifestFileName));
+    final manifestFile = File(p.join(_activeShowDir.path, _manifestFileName));
     return await manifestFile.exists() &&
         (await manifestFile.readAsString()).isNotEmpty;
   }
@@ -349,9 +341,9 @@ class Storage {
   }) async {
     LoggingManager.instance.storage.info("Updating player show data");
 
-    final showDataFile = File(p.join(_rootDir!.path, _showDataFileName));
+    final showDataFile = File(p.join(_activeShowDir.path, _showDataFileName));
     final playbackStateFile =
-        File(p.join(_rootDir!.path, _playbackStateFileName));
+        File(p.join(_activeShowDir.path, _playbackStateFileName));
 
     final writeOperations = [
       showDataFile.writeAsString(json.encode(showData.toMap())),
@@ -368,15 +360,16 @@ class Storage {
     }
   }
 
-  Future<ImportedShowData> readFromPlayerStorage() async {
-    LoggingManager.instance.storage.info('Reading show file from storage');
+  Future<ImportedShowData> readActiveShow() async {
+    LoggingManager.instance.storage
+        .info('Reading active show file from storage');
 
     Map<String, dynamic>? rawManifest;
     Map<String, dynamic>? rawShowData;
     Map<String, dynamic>? rawSlideData;
     Map<String, dynamic>? rawPlaybackState;
 
-    final baseDirPath = _rootDir!.path;
+    final baseDirPath = _activeShowDir.path;
     final readOperations = [
       // Manifest
       File(p.join(baseDirPath, _manifestFileName))
@@ -448,27 +441,18 @@ class Storage {
 
     final manifest = ManifestModel.fromMap(rawManifest);
 
-    // TODO: Check Manifest Version.
+    // TODO: Check Manifest Version and our manifest checksum parameter (to check that it is an actual manifest).
     return true;
   }
 
-  Future<ImportedShowData> readFromArchivedStorage({required File file}) async {
+  /// Unzips and loads the provided [bytes] into the active show directory, overwriting what is already there.
+  /// Returns an [ImportedShowData] object once the write has been completed.
+  Future<ImportedShowData> loadArchivedShowfile(List<int> bytes) async {
     isReading = true;
-    LoggingManager.instance.storage.info("Opening file ${file.path}");
-    if (await file.exists() == false) {
-      isReading = false;
-      throw FileDoesNotExistException();
-    }
+    // Delete current active show.
+    await deleteActiveShow();
 
-    if (p.extension(file.path) != '.castboard') {
-      isReading = false;
-      throw InvalidFileFormatException();
-    }
-
-    // Delete existing Temp Storage.
-    await clearStorage();
-
-    final bytes = await file.readAsBytes();
+    // Decode the Zip File
     final unzipper = ZipDecoder();
     final archive = unzipper.decodeBytes(bytes);
 
@@ -488,20 +472,20 @@ class Storage {
         // Headshots
         if (parentDirectoryName == _headshotsDirName) {
           fileWriteRequests.add(
-              File(p.join(_headshotsDir!.path, p.basename(name)))
+              File(p.join(_headshotsDir.path, p.basename(name)))
                   .writeAsBytes(byteData!));
         }
 
         // Backgrounds
         if (parentDirectoryName == _backgroundsDirName) {
           fileWriteRequests.add(
-              File(p.join(_backgroundsDir!.path, p.basename(name)))
+              File(p.join(_backgroundsDir.path, p.basename(name)))
                   .writeAsBytes(byteData!));
         }
 
         // Fonts
         if (parentDirectoryName == _fontsDirName) {
-          fileWriteRequests.add(File(p.join(_fontsDir!.path, p.basename(name)))
+          fileWriteRequests.add(File(p.join(_fontsDir.path, p.basename(name)))
               .writeAsBytes(byteData!));
         }
 
@@ -559,55 +543,89 @@ class Storage {
     );
   }
 
-  Future<void> clearStorage() async {
+  Future<void> deleteActiveShow() async {
     isWriting = true;
     LoggingManager.instance.storage.info("Clearing storage");
 
     final headshots = <FileSystemEntity>[];
     final backgrounds = <FileSystemEntity>[];
     final fonts = <FileSystemEntity>[];
+    final otherFiles = <FileSystemEntity>[];
 
     await Future.wait([
       // Headshots
-      _headshotsDir!.list().listen((entity) {
+      _headshotsDir.list().listen((entity) {
         if (entity is File) {
           headshots.add(entity);
         }
       }).asFuture(),
       // Backgrounds
-      _backgroundsDir!.list().listen((entity) {
+      _backgroundsDir.list().listen((entity) {
         if (entity is File) {
           backgrounds.add(entity);
         }
       }).asFuture(),
       // Fonts
-      _fontsDir!.list().listen((entity) {
+      _fontsDir.list().listen((entity) {
         if (entity is File) {
           fonts.add(entity);
         }
-      }).asFuture()
+      }).asFuture(),
+      // All other (Non-Directory) Files.
+      _activeShowDir.list().listen((entity) {
+        if (entity is File) {
+          otherFiles.add(entity);
+        }
+      }).asFuture(),
     ]);
 
     final headshotDeleteRequests = headshots.map((file) => file.delete());
     final backgroundDeleteRequests = backgrounds.map((file) => file.delete());
     final fontDeleteRequests = fonts.map((file) => file.delete());
+    final otherFilesDeleteRequests = otherFiles.map((file) => file.delete());
 
     await Future.wait([
       ...headshotDeleteRequests,
       ...backgroundDeleteRequests,
-      ...fontDeleteRequests
+      ...fontDeleteRequests,
+      ...otherFilesDeleteRequests,
     ]);
 
     isWriting = false;
     return;
   }
 
-  /// Packages the current contents of the show storage directory [_rootDir] into a archived file and returns a reference to that file.
-  Future<File> packageCurrentShowForDownload() async {
-    final targetFile =
-        await File(p.join(_exportDir!.path, 'export.castboard')).create();
+  Future<String> _getShowfileName(Directory showfile) async {
+    const unknownFileName = 'Show.castboard';
+    final manifestFile = File(p.join(showfile.path, _manifestFileName));
 
-    return await _archiveShow(_rootDir!, targetFile);
+    if (await manifestFile.exists() == false) {
+      return unknownFileName;
+    }
+
+    try {
+      final rawData = json.decode(await manifestFile.readAsString());
+      final manifest = ManifestModel.fromMap(rawData);
+
+      return manifest.fileName;
+    } catch (e, stacktrace) {
+      LoggingManager.instance.storage.warning(
+          'Failed to retrieve showfile name from manifest.', e, stacktrace);
+      return unknownFileName;
+    }
+  }
+
+  /// Packages the current contents of the active show directory [_activeShowDir] into an archived file
+  ///  and returns a reference to that file.
+  Future<File> archiveActiveShow() async {
+    // Retreive the showfile name from the manifest.
+    final filename = await _getShowfileName(_activeShowDir);
+
+    // Create the target file into the archive directory.
+    final targetFile = await File(p.join(_archiveDir.path, filename)).create();
+
+    // Archive/Compress the active show into our target file and return the result.
+    return await _archiveShow(_activeShowDir, targetFile);
   }
 
   /// Archives the show file provided by [source] to the file reference provided by [target]

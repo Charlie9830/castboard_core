@@ -184,7 +184,7 @@ Widget _buildChild({
 
     return withPadding(
       ImageElement(
-        file: Storage.instance!.getHeadshotFile(actor.headshotRef),
+        file: Storage.instance.getHeadshotFile(actor.headshotRef),
       ),
     );
   }

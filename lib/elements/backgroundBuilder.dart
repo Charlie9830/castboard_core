@@ -51,6 +51,6 @@ DecorationImage? _buildDecorationImage(PhotoRef backgroundRef) {
   return DecorationImage(
     alignment: Alignment.center,
     fit: BoxFit.contain,
-    image: FileImage(Storage.instance!.getBackgroundFile(backgroundRef)!),
+    image: FileImage(Storage.instance.getBackgroundFile(backgroundRef)!),
   );
 }

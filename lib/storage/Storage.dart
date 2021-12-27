@@ -37,14 +37,12 @@ import 'package:path_provider/path_provider.dart' as pathProvider;
 import 'package:archive/archive.dart';
 import 'package:archive/archive_io.dart';
 
-// Player Directory Names
-const _showfileArchiveDirName = 'showfileArchive';
-const _exportDirName = 'export';
-
 // Storage root names
 const editorStorageRootDirName = "com.charliehall.castboard-editor";
 const playerStorageRootDirName =
     "com.charliehall.castboard_player"; // TODO: Why is this underscored but editor is hyphened?
+const _archiveDirName = 'archive';
+const _activeShowDirName = 'active';
 
 // Staging Directory Base Name.
 const _stagingDirName = 'castboard_file_staging';
@@ -65,20 +63,20 @@ enum StorageMode {
 
 class Storage {
   static Storage? _instance;
-  static bool _initalized = false;
+  static bool _initialized = false;
 
-  final Directory? _appStorageRoot;
+  final Directory? _rootDir;
+  final Directory? _archiveDir;
+  final Directory? _activeShowDir;
   final Directory? _headshotsDir;
   final Directory? _backgroundsDir;
-  final Directory? _showfileArchiveDir;
   final Directory? _fontsDir;
-  final Directory? _exportDir;
 
   bool isWriting = false;
   bool isReading = false;
 
   static Storage? get instance {
-    if (_initalized == false) {
+    if (_initialized == false) {
       throw StorageException(
           'Storage() has not been initialized Yet. Ensure you are calling Storage.initalize() prior to making any other calls');
     }
@@ -87,91 +85,113 @@ class Storage {
   }
 
   Storage({
-    Directory? appStorageRoot,
+    Directory? rootDir,
     Directory? headshots,
     Directory? backgrounds,
-    Directory? showfileArchiveDir,
+    Directory? archiveDir,
     Directory? fontsDir,
-    Directory? exportDir,
-  })  : _appStorageRoot = appStorageRoot,
+    Directory? activeShowDir,
+  })  : _rootDir = rootDir,
         _headshotsDir = headshots,
         _backgroundsDir = backgrounds,
-        _showfileArchiveDir = showfileArchiveDir,
         _fontsDir = fontsDir,
-        _exportDir = exportDir;
+        _archiveDir = archiveDir,
+        _activeShowDir = activeShowDir;
 
-  static Future<void> initalize(StorageMode mode) async {
-    if (_initalized) {
+  static Future<void> initialize(StorageMode mode) async {
+    if (_initialized) {
       throw StorageException(
-          'Storage is already initalized. Ensure you are only calling Storage.initalize once');
+          'Storage is already initalized. Ensure you are only calling Storage.initialize once');
     }
 
-    String appStorageRootDirName = '';
-    if (mode == StorageMode.editor) {
-      appStorageRootDirName = editorStorageRootDirName;
-    } else {
-      appStorageRootDirName = playerStorageRootDirName;
-    }
+    // Create a the root storage directory. Use the correct App name based on if we are running inside the editor or the
+    // player.
+    late Directory rootDir;
+    try {
+      rootDir = mode == StorageMode.editor
+          ? await Directory(p.join(
+                  (await pathProvider.getTemporaryDirectory()).path,
+                  editorStorageRootDirName))
+              .create()
+          : await Directory(p.join(
+                  (await pathProvider.getApplicationDocumentsDirectory()).path,
+                  playerStorageRootDirName))
+              .create();
+    } catch (e, stacktrace) {
+      LoggingManager.instance.storage.severe(
+          'An error occurred whilst creating the app storage root directory.',
+          e,
+          stacktrace);
 
-    final appStorageRoot = mode == StorageMode.editor
-        ? await Directory(p.join(
-                (await pathProvider.getTemporaryDirectory()).path,
-                appStorageRootDirName))
-            .create()
-        : await Directory(p.join(
-                (await pathProvider.getApplicationDocumentsDirectory()).path,
-                appStorageRootDirName))
-            .create();
+      throw StorageException('The Storage directory could not be created');
+    }
 
     LoggingManager.instance.storage
-        .info("Storage initialized in $mode, path = ${appStorageRoot.path}");
+        .info("Storage root directory created as $mode at ${rootDir.path}");
 
-    // Build Directories.
-    Directory? headshots;
-    Directory? backgrounds;
-    Directory? showfileArchiveDir;
-    Directory? fontsDir;
-    Directory? exportDir;
-    await Future.wait([
-      () async {
-        headshots =
-            await Directory(p.join(appStorageRoot.path, _headshotsDirName))
-                .create();
-        return;
-      }(),
-      () async {
-        backgrounds =
-            await Directory(p.join(appStorageRoot.path, _backgroundsDirName))
-                .create();
-        return;
-      }(),
-      if (mode == StorageMode.player)
+    // Build the directories and assert their existence.
+    late Directory archiveDir;
+    late Directory activeShowDir;
+
+    try {
+      // Create the archive and activeShowDir first, these are the parents of all following directories.
+      await Future.wait([
+        // Active Show Directory.
         () async {
-          showfileArchiveDir = await Directory(
-                  p.join(appStorageRoot.path, _showfileArchiveDirName))
-              .create();
-        }(),
-      if (mode == StorageMode.player)
-        () async {
-          exportDir =
-              await Directory(p.join(appStorageRoot.path, _exportDirName))
+          activeShowDir =
+              await Directory(p.join(rootDir.path, _activeShowDirName))
                   .create();
         }(),
+
+        // Archived Show Directory.
+        () async {
+          archiveDir =
+              await Directory(p.join(rootDir.path, _archiveDirName)).create();
+        }()
+      ]);
+    } catch (e, stacktrace) {
+      LoggingManager.instance.storage.severe(
+          'An error occured whilst creating the Active Show Directory or the Archive Directory',
+          e,
+          stacktrace);
+    }
+
+    // Create the remaining sub directories.
+    Directory? headshots;
+    Directory? backgrounds;
+    Directory? fontsDir;
+
+    await Future.wait([
+      // Headshots
       () async {
-        fontsDir = await Directory(p.join(appStorageRoot.path, _fontsDirName))
-            .create();
+        headshots =
+            await Directory(p.join(activeShowDir.path, _headshotsDirName))
+                .create();
+        return;
+      }(),
+      // Backgrounds
+      () async {
+        backgrounds =
+            await Directory(p.join(activeShowDir.path, _backgroundsDirName))
+                .create();
+        return;
+      }(),
+      // Fonts
+      () async {
+        fontsDir =
+            await Directory(p.join(activeShowDir.path, _fontsDirName)).create();
       }()
     ]);
 
     _instance = Storage(
-      appStorageRoot: appStorageRoot,
+      rootDir: rootDir,
+      activeShowDir: activeShowDir,
+      archiveDir: archiveDir,
       headshots: headshots,
       backgrounds: backgrounds,
-      showfileArchiveDir: showfileArchiveDir,
       fontsDir: fontsDir,
-      exportDir: exportDir,
     );
-    _initalized = true;
+    _initialized = true;
 
     LoggingManager.instance.storage
         .info("Storage initialization completed succesfully");
@@ -287,7 +307,7 @@ class Storage {
       return null;
     }
 
-    return File(p.join(_appStorageRoot!.path, _headshotsDirName, ref.basename));
+    return File(p.join(_rootDir!.path, _headshotsDirName, ref.basename));
   }
 
   File? getBackgroundFile(PhotoRef ref) {
@@ -295,20 +315,19 @@ class Storage {
       return null;
     }
 
-    return File(
-        p.join(_appStorageRoot!.path, _backgroundsDirName, ref.basename));
+    return File(p.join(_rootDir!.path, _backgroundsDirName, ref.basename));
   }
 
   File? getFontFile(FontRef ref) {
     return File(
-      p.join(_appStorageRoot!.path, _fontsDirName, ref.basename),
+      p.join(_rootDir!.path, _fontsDirName, ref.basename),
     );
   }
 
   Future<File> writeCompressedShowfileIntoArchive(List<int> bytes) async {
     // TODO: Save the show file with a human readable friendly name as opposed to ArchivedShowFile.
-    final targetFile = File(p.join(
-        _appStorageRoot!.path, _showfileArchiveDir!.path, "ArchivedShowFile"));
+    final targetFile =
+        File(p.join(_rootDir!.path, _archiveDir!.path, "ArchivedShowFile"));
 
     LoggingManager.instance.storage
         .info("Copying show file into Archived storage.");
@@ -319,7 +338,7 @@ class Storage {
 
   /// Checks that a showfile Manifest file exists and it is not empty is the player storage directory (Not the Archive directory)
   Future<bool> isPlayerStoragePopulated() async {
-    final manifestFile = File(p.join(_appStorageRoot!.path, _manifestFileName));
+    final manifestFile = File(p.join(_rootDir!.path, _manifestFileName));
     return await manifestFile.exists() &&
         (await manifestFile.readAsString()).isNotEmpty;
   }
@@ -330,9 +349,9 @@ class Storage {
   }) async {
     LoggingManager.instance.storage.info("Updating player show data");
 
-    final showDataFile = File(p.join(_appStorageRoot!.path, _showDataFileName));
+    final showDataFile = File(p.join(_rootDir!.path, _showDataFileName));
     final playbackStateFile =
-        File(p.join(_appStorageRoot!.path, _playbackStateFileName));
+        File(p.join(_rootDir!.path, _playbackStateFileName));
 
     final writeOperations = [
       showDataFile.writeAsString(json.encode(showData.toMap())),
@@ -357,7 +376,7 @@ class Storage {
     Map<String, dynamic>? rawSlideData;
     Map<String, dynamic>? rawPlaybackState;
 
-    final baseDirPath = _appStorageRoot!.path;
+    final baseDirPath = _rootDir!.path;
     final readOperations = [
       // Manifest
       File(p.join(baseDirPath, _manifestFileName))
@@ -583,12 +602,12 @@ class Storage {
     return;
   }
 
-  /// Packages the current contents of the show storage directory [_appStorageRoot] into a archived file and returns a reference to that file.
+  /// Packages the current contents of the show storage directory [_rootDir] into a archived file and returns a reference to that file.
   Future<File> packageCurrentShowForDownload() async {
     final targetFile =
         await File(p.join(_exportDir!.path, 'export.castboard')).create();
 
-    return await _archiveShow(_appStorageRoot!, targetFile);
+    return await _archiveShow(_rootDir!, targetFile);
   }
 
   /// Archives the show file provided by [source] to the file reference provided by [target]

@@ -20,6 +20,7 @@ import 'package:castboard_core/storage/ImportedShowData.dart';
 import 'package:castboard_core/models/ShowDataModel.dart';
 import 'package:castboard_core/storage/SlideDataModel.dart';
 import 'package:castboard_core/storage/compressFileWorker.dart';
+import 'package:castboard_core/storage/validateManifest.dart';
 import 'package:file/local.dart'
     as localFs; // TODO: Do we need this package anymore?
 import 'package:file/file.dart' as fs;
@@ -441,8 +442,7 @@ class Storage {
 
     final manifest = ManifestModel.fromMap(rawManifest);
 
-    // TODO: Check Manifest Version and our manifest checksum parameter (to check that it is an actual manifest).
-    return true;
+    return validateManifest(manifest);
   }
 
   /// Unzips and loads the provided [bytes] into the active show directory, overwriting what is already there.

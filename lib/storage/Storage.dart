@@ -21,7 +21,7 @@ import 'package:castboard_core/storage/FileWriteResult.dart';
 import 'package:castboard_core/storage/ImportedShowData.dart';
 import 'package:castboard_core/models/ShowDataModel.dart';
 import 'package:castboard_core/storage/SlideDataModel.dart';
-import 'package:castboard_core/storage/compressFile.dart';
+import 'package:castboard_core/storage/compressFileWorker.dart';
 import 'package:file/memory.dart' as memoryFs;
 import 'package:file/local.dart' as localFs;
 import 'package:file/file.dart' as fs;
@@ -38,15 +38,13 @@ import 'package:archive/archive.dart';
 import 'package:archive/archive_io.dart';
 
 // Player Directory Names
-const _playerDirName = 'playerfiles';
+const _showfileArchiveDirName = 'showfileArchive';
+const _exportDirName = 'export';
 
 // Storage root names
 const editorStorageRootDirName = "com.charliehall.castboard-editor";
 const playerStorageRootDirName =
     "com.charliehall.castboard_player"; // TODO: Why is this underscored but editor is hyphened?
-
-// Player Show File Name.
-const _playerCurrentShowFileName = 'currentshow.castboard';
 
 // Staging Directory Base Name.
 const _stagingDirName = 'castboard_file_staging';
@@ -72,8 +70,9 @@ class Storage {
   final Directory? _appStorageRoot;
   final Directory? _headshotsDir;
   final Directory? _backgroundsDir;
-  final Directory? _playerDir;
+  final Directory? _showfileArchiveDir;
   final Directory? _fontsDir;
+  final Directory? _exportDir;
 
   bool isWriting = false;
   bool isReading = false;
@@ -91,13 +90,15 @@ class Storage {
     Directory? appStorageRoot,
     Directory? headshots,
     Directory? backgrounds,
-    Directory? playerDir,
+    Directory? showfileArchiveDir,
     Directory? fontsDir,
+    Directory? exportDir,
   })  : _appStorageRoot = appStorageRoot,
         _headshotsDir = headshots,
         _backgroundsDir = backgrounds,
-        _playerDir = playerDir,
-        _fontsDir = fontsDir;
+        _showfileArchiveDir = showfileArchiveDir,
+        _fontsDir = fontsDir,
+        _exportDir = exportDir;
 
   static Future<void> initalize(StorageMode mode) async {
     if (_initalized) {
@@ -128,8 +129,9 @@ class Storage {
     // Build Directories.
     Directory? headshots;
     Directory? backgrounds;
-    Directory? playerDir;
+    Directory? showfileArchiveDir;
     Directory? fontsDir;
+    Directory? exportDir;
     await Future.wait([
       () async {
         headshots =
@@ -145,8 +147,14 @@ class Storage {
       }(),
       if (mode == StorageMode.player)
         () async {
-          playerDir =
-              await Directory(p.join(appStorageRoot.path, _playerDirName))
+          showfileArchiveDir = await Directory(
+                  p.join(appStorageRoot.path, _showfileArchiveDirName))
+              .create();
+        }(),
+      if (mode == StorageMode.player)
+        () async {
+          exportDir =
+              await Directory(p.join(appStorageRoot.path, _exportDirName))
                   .create();
         }(),
       () async {
@@ -156,11 +164,13 @@ class Storage {
     ]);
 
     _instance = Storage(
-        appStorageRoot: appStorageRoot,
-        headshots: headshots,
-        backgrounds: backgrounds,
-        playerDir: playerDir,
-        fontsDir: fontsDir);
+      appStorageRoot: appStorageRoot,
+      headshots: headshots,
+      backgrounds: backgrounds,
+      showfileArchiveDir: showfileArchiveDir,
+      fontsDir: fontsDir,
+      exportDir: exportDir,
+    );
     _initalized = true;
 
     LoggingManager.instance.storage
@@ -295,24 +305,23 @@ class Storage {
     );
   }
 
-  Future<void> copyShowFileIntoPlayerStorage(List<int> bytes) async {
+  Future<File> writeCompressedShowfileIntoArchive(List<int> bytes) async {
+    // TODO: Save the show file with a human readable friendly name as opposed to ArchivedShowFile.
     final targetFile = File(p.join(
-        _appStorageRoot!.path, _playerDir!.path, _playerCurrentShowFileName));
+        _appStorageRoot!.path, _showfileArchiveDir!.path, "ArchivedShowFile"));
 
     LoggingManager.instance.storage
-        .info("Copying show file into player storage.");
+        .info("Copying show file into Archived storage.");
 
     await targetFile.writeAsBytes(bytes);
-    return;
+    return targetFile;
   }
 
+  /// Checks that a showfile Manifest file exists and it is not empty is the player storage directory (Not the Archive directory)
   Future<bool> isPlayerStoragePopulated() async {
-    if (await File(p.join(_playerDir!.path, _playerCurrentShowFileName))
-        .exists()) {
-      return true;
-    } else {
-      return false;
-    }
+    final manifestFile = File(p.join(_appStorageRoot!.path, _manifestFileName));
+    return await manifestFile.exists() &&
+        (await manifestFile.readAsString()).isNotEmpty;
   }
 
   Future<bool> updatePlayerShowData({
@@ -340,22 +349,57 @@ class Storage {
     }
   }
 
-  File getPlayerStorageFile() {
-    final file = File(p.join(_playerDir!.path, _playerCurrentShowFileName));
-
-    return file;
-  }
-
   Future<ImportedShowData> readFromPlayerStorage() async {
-    final file = File(p.join(_playerDir!.path, _playerCurrentShowFileName));
+    LoggingManager.instance.storage.info('Reading show file from storage');
 
-    LoggingManager.instance.storage
-        .info('Reading Player show file from storage. ${file.path}');
+    Map<String, dynamic>? rawManifest;
+    Map<String, dynamic>? rawShowData;
+    Map<String, dynamic>? rawSlideData;
+    Map<String, dynamic>? rawPlaybackState;
 
-    return readFromPermanentStorage(file: file);
+    final baseDirPath = _appStorageRoot!.path;
+    final readOperations = [
+      // Manifest
+      File(p.join(baseDirPath, _manifestFileName))
+          .readAsString()
+          .then((res) => rawManifest = json.decode(res)),
+      // Show Data
+      File(p.join(baseDirPath, _showDataFileName))
+          .readAsString()
+          .then((res) => rawShowData = json.decode(res)),
+      // Slide Data
+      File(p.join(baseDirPath, _slideDataFileName))
+          .readAsString()
+          .then((res) => rawSlideData = json.decode(res)),
+      // Playback State
+      File(p.join(baseDirPath, _playbackStateFileName))
+          .readAsString()
+          .then((res) => rawPlaybackState = json.decode(res)),
+    ];
+
+    await Future.wait(readOperations);
+
+    // TODO: We should actually verify the show file Manifest file more thoroughly here. Perhaps look into it for a particular checksum like property.
+
+    final manifest = ManifestModel.fromMap(rawManifest ?? {});
+    final showData = ShowDataModel.fromMap(rawShowData);
+    final slideData = SlideDataModel.fromMap(rawSlideData ?? {});
+    final playbackState = PlaybackStateData.fromMap(rawPlaybackState);
+
+    return ImportedShowData(
+      manifest: manifest,
+      actors: showData.actors,
+      tracks: showData.tracks,
+      presets: showData.presets,
+      playbackState: playbackState,
+      slides: slideData.slides,
+      slideOrientation: slideData.slideOrientation,
+      slideSizeId: slideData.slideSizeId,
+    );
   }
 
   Future<bool> validateShowFile(List<int> byteData) async {
+    // TODO: This could be done in a seperate Thread.
     if (byteData.isEmpty) {
       return false;
     }
@@ -389,8 +433,7 @@ class Storage {
     return true;
   }
 
-  Future<ImportedShowData> readFromPermanentStorage(
-      {required File file}) async {
+  Future<ImportedShowData> readFromArchivedStorage({required File file}) async {
     isReading = true;
     LoggingManager.instance.storage.info("Opening file ${file.path}");
     if (await file.exists() == false) {
@@ -540,10 +583,41 @@ class Storage {
     return;
   }
 
+  /// Packages the current contents of the show storage directory [_appStorageRoot] into a archived file and returns a reference to that file.
+  Future<File> packageCurrentShowForDownload() async {
+    final targetFile =
+        await File(p.join(_exportDir!.path, 'export.castboard')).create();
+
+    return await _archiveShow(_appStorageRoot!, targetFile);
+  }
+
+  /// Archives the show file provided by [source] to the file reference provided by [target]
+  Future<File> _archiveShow(Directory source, File target) async {
+    if (await source.exists() == false) {
+      throw ArgumentError('Source directory does not exist', 'source');
+    }
+
+    final basePath = source.path;
+    final joinWith = (String subDir) => p.join(basePath, subDir);
+
+    await _compressFile(CompressFileParameters(
+      backgroundsDirPath: joinWith(_backgroundsDirName),
+      fontsDirPath: joinWith(_fontsDirName),
+      headshotsDirPath: joinWith(_headshotsDirName),
+      manifestFilePath: joinWith(_manifestFileName),
+      playbackStateFilePath: joinWith(_playbackStateFileName),
+      showDataFilePath: joinWith(_showDataFileName),
+      slideDataFilePath: joinWith(_slideDataFileName),
+      targetFilePath: target.path,
+    ));
+
+    return target;
+  }
+
   ///
   /// Stages all required show data, compresses (Zips) it and saves it to the file referenced by the targetFile parameter.
   ///
-  Future<FileWriteResult> writeToPermanentStorage(
+  Future<FileWriteResult> writeCurrentShowToArchive(
       {required Map<ActorRef, ActorModel> actors,
       required Map<TrackRef, TrackModel> tracks,
       required Map<String, PresetModel> presets,
@@ -557,7 +631,7 @@ class Storage {
     isWriting = true;
 
     LoggingManager.instance.storage
-        .info("Preparing to write file to permanent storage");
+        .info("Preparing to write file to archived storage");
     final lfs = localFs.LocalFileSystem();
 
     // Stage Directories.
@@ -569,7 +643,7 @@ class Storage {
 
     await stagingDir.create();
 
-    await _stagePermStorageDirectories(stagingDir);
+    await _stageArchivedStorageDirectories(stagingDir);
     await Future.wait([
       _stagePlaybackState(stagingDir, playbackState),
       _stageManifest(stagingDir, manifest),
@@ -589,19 +663,16 @@ class Storage {
     try {
       LoggingManager.instance.storage
           .info("File staging complete. Beginning compression");
-      await compute(
-          compressFile,
-          CompressFileParameters(
-              targetFilePath: targetFile.path,
-              headshotsDirPath: p.join(stagingDir.path, _headshotsDirName),
-              backgroundsDirPath: p.join(stagingDir.path, _backgroundsDirName),
-              fontsDirPath: p.join(stagingDir.path, _fontsDirName),
-              manifestFilePath: p.join(stagingDir.path, _manifestFileName),
-              showDataFilePath: p.join(stagingDir.path, _showDataFileName),
-              playbackStateFilePath:
-                  p.join(stagingDir.path, _playbackStateFileName),
-              slideDataFilePath: p.join(stagingDir.path, _slideDataFileName)),
-          debugLabel: 'File Compression Isolate - compressFile()');
+      await _compressFile(CompressFileParameters(
+          targetFilePath: targetFile.path,
+          headshotsDirPath: p.join(stagingDir.path, _headshotsDirName),
+          backgroundsDirPath: p.join(stagingDir.path, _backgroundsDirName),
+          fontsDirPath: p.join(stagingDir.path, _fontsDirName),
+          manifestFilePath: p.join(stagingDir.path, _manifestFileName),
+          showDataFilePath: p.join(stagingDir.path, _showDataFileName),
+          playbackStateFilePath:
+              p.join(stagingDir.path, _playbackStateFileName),
+          slideDataFilePath: p.join(stagingDir.path, _slideDataFileName)));
 
       LoggingManager.instance.storage
           .info("Compression complete, cleaning up Staging directories");
@@ -618,6 +689,16 @@ class Storage {
       LoggingManager.instance.storage.warning("File compression failed.");
       isWriting = false;
       return FileWriteResult(false, message: 'File compression failed.');
+    }
+  }
+
+  Future<void> _compressFile(CompressFileParameters params) async {
+    try {
+      await compute(compressFileWorker, params,
+          debugLabel: 'File Compression Isolate - compressFile()');
+    } catch (e, stacktrace) {
+      LoggingManager.instance.storage
+          .severe('Failure during file compression/archival', e, stacktrace);
     }
   }
 
@@ -725,7 +806,7 @@ class Storage {
     return;
   }
 
-  Future<void> _stagePermStorageDirectories(fs.Directory dir) async {
+  Future<void> _stageArchivedStorageDirectories(fs.Directory dir) async {
     final requests = [
       dir.childDirectory(_headshotsDirName).create(),
       dir.childDirectory(_backgroundsDirName).create(),

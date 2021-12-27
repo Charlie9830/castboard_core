@@ -2,7 +2,7 @@ import 'dart:io';
 
 import 'package:archive/archive_io.dart';
 
-void compressFile(CompressFileParameters params) {
+void compressFileWorker(CompressFileParameters params) {
   final zipper = ZipFileEncoder();
   zipper.create(params.targetFilePath);
   zipper.addDirectory(Directory(params.headshotsDirPath));

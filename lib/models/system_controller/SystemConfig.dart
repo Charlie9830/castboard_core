@@ -40,7 +40,6 @@ class SystemConfig {
     );
   }
 
-
   // Make sure you also update mergeWith.
   SystemConfig copyWith({
     DeviceOrientation? deviceOrientation,
@@ -51,14 +50,6 @@ class SystemConfig {
       deviceOrientation: deviceOrientation ?? this.deviceOrientation,
       deviceResolution: deviceResolution ?? this.deviceResolution,
       availableResolutions: availableResolutions ?? this.availableResolutions,
-    );
-  }
-
-  SystemConfig mergeWith(SystemConfig other) {
-    return SystemConfig(
-      deviceOrientation: other.deviceOrientation ?? this.deviceOrientation,
-      deviceResolution: other.deviceResolution ?? this.deviceResolution,
-      availableResolutions: other.availableResolutions,
     );
   }
 }

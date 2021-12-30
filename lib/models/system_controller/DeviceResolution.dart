@@ -5,7 +5,6 @@ class DeviceResolution {
 
   const DeviceResolution(this.width, this.height) : auto = false;
 
-
   const DeviceResolution.auto()
       : width = 0,
         height = 0,
@@ -44,4 +43,9 @@ class DeviceResolution {
 
   @override
   int get hashCode => width.hashCode ^ height.hashCode ^ auto.hashCode;
+
+  @override
+  String toString() {
+    return '$width x $height $auto';
+  }
 }

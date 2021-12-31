@@ -7,6 +7,7 @@ import 'package:castboard_core/models/system_controller/DeviceResolution.dart';
 class SystemConfig {
   final DeviceOrientation? deviceOrientation;
   final DeviceResolution? deviceResolution;
+  final bool? playShowOnIdle;
   final AvailableResolutions
       availableResolutions; // Nominally only one way Player -> Remote.
 
@@ -14,12 +15,14 @@ class SystemConfig {
     required this.deviceOrientation,
     required this.deviceResolution,
     required this.availableResolutions,
+    required this.playShowOnIdle,
   });
 
   SystemConfig.defaults()
       : deviceResolution = DeviceResolution.auto(),
         deviceOrientation = DeviceOrientation.landscape,
-        availableResolutions = AvailableResolutions.defaults();
+        availableResolutions = AvailableResolutions.defaults(),
+        playShowOnIdle = true;
 
   Map<String, dynamic> toMap() {
     return {
@@ -28,6 +31,7 @@ class SystemConfig {
           : _convertOrientation(deviceOrientation!),
       'deviceResolution': deviceResolution?.toMap(),
       'availableResolutions': availableResolutions.toMap(),
+      'playShowOnIdle': playShowOnIdle,
     };
   }
 
@@ -37,19 +41,21 @@ class SystemConfig {
       deviceResolution: DeviceResolution.fromMap(map['deviceResolution']),
       availableResolutions:
           AvailableResolutions.fromMap(map['availableResolutions']),
+      playShowOnIdle: map['playShowOnIdle'],
     );
   }
 
-  // Make sure you also update mergeWith.
   SystemConfig copyWith({
     DeviceOrientation? deviceOrientation,
     DeviceResolution? deviceResolution,
     AvailableResolutions? availableResolutions,
+    bool? playShowOnIdle,
   }) {
     return SystemConfig(
       deviceOrientation: deviceOrientation ?? this.deviceOrientation,
       deviceResolution: deviceResolution ?? this.deviceResolution,
       availableResolutions: availableResolutions ?? this.availableResolutions,
+      playShowOnIdle: playShowOnIdle this.playShowOnIdle,
     );
   }
 }

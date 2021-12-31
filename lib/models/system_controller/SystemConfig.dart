@@ -55,7 +55,7 @@ class SystemConfig {
       deviceOrientation: deviceOrientation ?? this.deviceOrientation,
       deviceResolution: deviceResolution ?? this.deviceResolution,
       availableResolutions: availableResolutions ?? this.availableResolutions,
-      playShowOnIdle: playShowOnIdle this.playShowOnIdle,
+      playShowOnIdle: playShowOnIdle ?? this.playShowOnIdle,
     );
   }
 }

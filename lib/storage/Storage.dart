@@ -870,4 +870,8 @@ class Storage {
     final sourceFileBytes = await sourceFile.readAsBytes();
     return await targetFile.writeAsBytes(sourceFileBytes);
   }
+
+  String get appRootStoragePath {
+    return _rootDir.path;
+  }
 }

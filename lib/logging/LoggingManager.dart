@@ -16,6 +16,7 @@ class LoggingManager {
   static late LoggingManager _instance;
   static bool _initialized = false;
 
+  late Directory _logsDir;
   late File _logFile;
   late IOSink? _logFileSink;
 
@@ -40,11 +41,13 @@ class LoggingManager {
 
   LoggingManager({
     required String directoryName,
+    required Directory logsDir,
     required File logFile,
     required IOSink logFileSink,
     required bool runAsRelease,
   }) {
     _logFileDirName = directoryName;
+    _logsDir = logsDir;
     _logFile = logFile;
     _logFileSink = logFileSink;
     _runAsRelease = runAsRelease;
@@ -79,13 +82,15 @@ class LoggingManager {
 
   static Future<void> initialize(String directoryName,
       {bool runAsRelease = false}) async {
-    final file = await _getLogFile(directoryName);
+    final logsDir = await _getLogsDirectory(directoryName);
+    final file = await _getLogFile(logsDir);
 
     // ignore: close_sinks
     final sink = file.openWrite(mode: FileMode.append);
 
     _instance = LoggingManager(
       directoryName: directoryName,
+      logsDir: logsDir,
       logFile: file,
       logFileSink: sink,
       runAsRelease: runAsRelease,
@@ -221,8 +226,7 @@ class LoggingManager {
   /// Searches for the latest log file. Latest being the file with the geatest log file number. Also checks that the current size of this
   /// file is below the 1mb limit. If so returns an IOSink pointing to that file,
   ///  if not creates and returns an IOSink to a new file.
-  static Future<File> _getLogFile(String directoryName) async {
-    final logsDir = await _getLogsDirectory(directoryName);
+  static Future<File> _getLogFile(Directory logsDir) async {
     final currentLastFileNumber = await _getLastFileNumber(logsDir);
 
     final fileCandidate = await File(p.join(
@@ -296,4 +300,8 @@ class LoggingManager {
       return 0;
     }
   }
+
+  String get logsStoragePath => _logsDir.path;
+  
+  bool get runAsRelease => _runAsRelease;
 }

@@ -19,8 +19,9 @@ import 'package:castboard_core/storage/FileWriteResult.dart';
 import 'package:castboard_core/storage/ImportedShowData.dart';
 import 'package:castboard_core/models/ShowDataModel.dart';
 import 'package:castboard_core/storage/SlideDataModel.dart';
-import 'package:castboard_core/storage/compressFileWorker.dart';
+import 'package:castboard_core/storage/compressShowfile.dart';
 import 'package:castboard_core/storage/getParentDirectoryName.dart';
+import 'package:castboard_core/storage/nestShowfile.dart';
 import 'package:castboard_core/storage/validateManifest.dart';
 import 'package:file/local.dart'
     as localFs; // TODO: Do we need this package anymore?
@@ -42,6 +43,7 @@ const playerStorageRootDirName =
     "com.charliehall.castboard_player"; // TODO: Why is this underscored but editor is hyphened?
 const _archiveDirName = 'archive';
 const _activeShowDirName = 'active';
+const _showExportDirName = 'showExport';
 
 // Staging Directory Base Name.
 const _stagingDirName = 'castboard_file_staging';
@@ -66,6 +68,7 @@ class Storage {
 
   final Directory _rootDir;
   final Directory _archiveDir;
+  final Directory _showExportDir;
   final Directory _activeShowDir;
   final Directory _headshotsDir;
   final Directory _backgroundsDir;
@@ -90,12 +93,14 @@ class Storage {
     required Directory archiveDir,
     required Directory fontsDir,
     required Directory activeShowDir,
+    required Directory showExportDir,
   })  : _rootDir = rootDir,
         _headshotsDir = headshots,
         _backgroundsDir = backgrounds,
         _fontsDir = fontsDir,
         _archiveDir = archiveDir,
-        _activeShowDir = activeShowDir;
+        _activeShowDir = activeShowDir,
+        _showExportDir = showExportDir;
 
   static Future<void> initialize(StorageMode mode) async {
     if (_initialized) {
@@ -131,6 +136,7 @@ class Storage {
     // Build the directories and assert their existence.
     late Directory archiveDir;
     late Directory activeShowDir;
+    late Directory showExportDir;
 
     try {
       // Create the archive and activeShowDir first, these are the parents of all following directories.
@@ -146,7 +152,14 @@ class Storage {
         () async {
           archiveDir =
               await Directory(p.join(rootDir.path, _archiveDirName)).create();
-        }()
+        }(),
+
+        // Show Export Directory.
+        () async {
+          showExportDir =
+              await Directory(p.join(rootDir.path, _showExportDirName))
+                  .create();
+        }(),
       ]);
     } catch (e, stacktrace) {
       LoggingManager.instance.storage.severe(
@@ -193,6 +206,7 @@ class Storage {
       rootDir: rootDir,
       activeShowDir: activeShowDir,
       archiveDir: archiveDir,
+      showExportDir: showExportDir,
       headshots: headshots!,
       backgrounds: backgrounds!,
       fontsDir: fontsDir!,
@@ -654,15 +668,28 @@ class Storage {
 
   /// Packages the current contents of the active show directory [_activeShowDir] into an archived file
   ///  and returns a reference to that file.
-  Future<File> archiveActiveShow() async {
+  /// 
+  /// Note: **This will nest the .castboard file into a parent Zip archive.** This ensures improved compatiability with
+  /// browser downloads*.
+  Future<File> archiveActiveShowForExport() async {
     // Retreive the showfile name from the manifest.
     final filename = await _getShowfileName(_activeShowDir);
 
-    // Create the target file into the archive directory.
-    final targetFile = await File(p.join(_archiveDir.path, filename)).create();
+    // Create target .castboard showfile in a temporary staging directory.
+    final tmpDirPath = (await pathProvider.getTemporaryDirectory()).path;
+    final showfileTarget = await File(p.join(tmpDirPath, filename)).create();
 
     // Archive/Compress the active show into our target file and return the result.
-    return await _archiveShow(_activeShowDir, targetFile);
+    final innerFile = await _archiveShow(_activeShowDir, showfileTarget);
+
+    // Create the targetfile for our zip file.
+    final zipFileTarget = File(p.join(_showExportDir.path, 'showexport.zip'));
+    await zipFileTarget.create();
+
+    await nestShowfile(NestShowfileParameters(
+        inputFilePath: innerFile.path, outputFilePath: zipFileTarget.path));
+
+    return zipFileTarget; 
   }
 
   /// Archives the show file provided by [source] to the file reference provided by [target]
@@ -674,7 +701,7 @@ class Storage {
     final basePath = source.path;
     final joinWith = (String subDir) => p.join(basePath, subDir);
 
-    await _compressFile(CompressFileParameters(
+    await compressShowfile(CompressShowfileParameters(
       backgroundsDirPath: joinWith(_backgroundsDirName),
       fontsDirPath: joinWith(_fontsDirName),
       headshotsDirPath: joinWith(_headshotsDirName),
@@ -691,16 +718,17 @@ class Storage {
   ///
   /// Stages all required show data, compresses (Zips) it and saves it to the file referenced by the targetFile parameter.
   ///
-  Future<FileWriteResult> writeCurrentShowToArchive(
-      {required Map<ActorRef, ActorModel> actors,
-      required Map<TrackRef, TrackModel> tracks,
-      required Map<String, PresetModel> presets,
-      required Map<String, SlideModel> slides,
-      required String slideSizeId,
-      required SlideOrientation slideOrientation,
-      required ManifestModel manifest,
-      PlaybackStateData? playbackState,
-      required File targetFile}) async {
+  Future<FileWriteResult> writeCurrentShowToArchive({
+    required Map<ActorRef, ActorModel> actors,
+    required Map<TrackRef, TrackModel> tracks,
+    required Map<String, PresetModel> presets,
+    required Map<String, SlideModel> slides,
+    required String slideSizeId,
+    required SlideOrientation slideOrientation,
+    required ManifestModel manifest,
+    PlaybackStateData? playbackState,
+    required File targetFile,
+  }) async {
     // Flag that we are writing to storage.
     isWriting = true;
 
@@ -737,7 +765,7 @@ class Storage {
     try {
       LoggingManager.instance.storage
           .info("File staging complete. Beginning compression");
-      await _compressFile(CompressFileParameters(
+      await compressShowfile(CompressShowfileParameters(
           targetFilePath: targetFile.path,
           headshotsDirPath: p.join(stagingDir.path, _headshotsDirName),
           backgroundsDirPath: p.join(stagingDir.path, _backgroundsDirName),
@@ -763,16 +791,6 @@ class Storage {
       LoggingManager.instance.storage.warning("File compression failed.");
       isWriting = false;
       return FileWriteResult(false, message: 'File compression failed.');
-    }
-  }
-
-  Future<void> _compressFile(CompressFileParameters params) async {
-    try {
-      await compute(compressFileWorker, params,
-          debugLabel: 'File Compression Isolate - compressFile()');
-    } catch (e, stacktrace) {
-      LoggingManager.instance.storage
-          .severe('Failure during file compression/archival', e, stacktrace);
     }
   }
 

@@ -1,8 +1,14 @@
 import 'dart:io';
 
 import 'package:archive/archive_io.dart';
+import 'package:flutter/foundation.dart';
 
-void compressFileWorker(CompressFileParameters params) {
+Future<void> compressShowfile(CompressShowfileParameters params) async {
+  await compute(_compressShowfileWorker, params,
+      debugLabel: 'File Compression Isolate - compressShowfile()');
+}
+
+void _compressShowfileWorker(CompressShowfileParameters params) {
   final zipper = ZipFileEncoder();
   zipper.create(params.targetFilePath);
   zipper.addDirectory(Directory(params.headshotsDirPath));
@@ -15,7 +21,7 @@ void compressFileWorker(CompressFileParameters params) {
   zipper.close();
 }
 
-class CompressFileParameters {
+class CompressShowfileParameters {
   final String targetFilePath;
   final String headshotsDirPath;
   final String backgroundsDirPath;
@@ -25,7 +31,7 @@ class CompressFileParameters {
   final String slideDataFilePath;
   final String playbackStateFilePath;
 
-  CompressFileParameters({
+  CompressShowfileParameters({
     required this.targetFilePath,
     required this.backgroundsDirPath,
     required this.fontsDirPath,

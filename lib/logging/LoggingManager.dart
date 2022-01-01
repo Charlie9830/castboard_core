@@ -20,8 +20,6 @@ class LoggingManager {
   late File _logFile;
   late IOSink? _logFileSink;
 
-  late final _logFileDirName;
-
   // Forces the [LoggingManager] to run in release mode. Writing all [INFO] logs to file. Helpful for testing the LoggingManger
   // whilst in debug mode.
   late bool _runAsRelease;
@@ -40,13 +38,11 @@ class LoggingManager {
   int _sessionMessageCount = 0;
 
   LoggingManager({
-    required String directoryName,
     required Directory logsDir,
     required File logFile,
     required IOSink logFileSink,
     required bool runAsRelease,
   }) {
-    _logFileDirName = directoryName;
     _logsDir = logsDir;
     _logFile = logFile;
     _logFileSink = logFileSink;
@@ -89,7 +85,6 @@ class LoggingManager {
     final sink = file.openWrite(mode: FileMode.append);
 
     _instance = LoggingManager(
-      directoryName: directoryName,
       logsDir: logsDir,
       logFile: file,
       logFileSink: sink,
@@ -98,11 +93,13 @@ class LoggingManager {
     _initialized = true;
   }
 
-  void exportLogs(String targetPath) async {
-    final logsDir = await _getLogsDirectory(_logFileDirName);
+  Future<File> exportLogs() async {
+    final tmpDir = await pathProvider.getTemporaryDirectory();
+    final targetFile =
+        File(p.join(tmpDir.path, "castboard-log-export", 'logs.zip'));
 
     final List<String> logPaths = [];
-    await for (var file in logsDir.list().where((entity) => entity is File)) {
+    await for (var file in _logsDir.list().where((entity) => entity is File)) {
       logPaths.add(file.path);
     }
 
@@ -114,20 +111,22 @@ class LoggingManager {
         compressLogs,
         CompressLogsParameters(
           logPaths: logPaths,
-          targetFilePath: targetPath,
+          targetFilePath: targetFile.path,
         ),
         debugLabel: 'Logfile Compression Isolate - compressLogs()');
 
     // Reopen the log file sink. And Flush any messages to it that may have come through whilst we were compressing and exporting.
-    _logFile = await LoggingManager._getLogFile(_logFileDirName);
+    _logFile = await LoggingManager._getLogFile(_logsDir);
     _logFileSink = _logFile.openWrite(mode: FileMode.append);
     _flushMessageQueueToFile();
+
+    return targetFile;
   }
 
   Future<void> _maybeEnumerateLogFile() async {
     if (await _logFile.length() > _logFileSizeLimit) {
       await _closeSink();
-      _logFile = await LoggingManager._getLogFile(_logFileDirName);
+      _logFile = await LoggingManager._getLogFile(_logsDir);
       _logFileSink = _logFile.openWrite(mode: FileMode.append);
       _flushMessageQueueToFile();
     }
@@ -302,6 +301,6 @@ class LoggingManager {
   }
 
   String get logsStoragePath => _logsDir.path;
-  
+
   bool get runAsRelease => _runAsRelease;
 }

@@ -471,55 +471,79 @@ class Storage {
     Map<String, dynamic>? rawPlaybackState = {};
     final fileWriteRequests = <Future<File>>[];
 
+    // For files that are stored at the top level of showfile, which will be targeted to the _activeDir. We can use a file writer delegate for DRY purposes.
+    final topLevelFileWriterDelegate = (String name, List<int> byteData) =>
+        File(p.join(_activeShowDir.path, p.basename(name)))
+            .writeAsBytes(byteData);
+
+    String byteDataSkippedFiles = '';
+
     for (var entity in archive) {
       final name = entity.name;
       final parentDirectoryName = getParentDirectoryName(name);
 
       if (entity.isFile) {
         final byteData = entity.content as List<int>?;
+
+        if (byteData == null) {
+          // If byteData is null. Add the name to a string that we will log later and continue on.
+          byteDataSkippedFiles = '"${entity.name}", ';
+          continue;
+        }
+
         // Headshots
         if (parentDirectoryName == _headshotsDirName) {
           fileWriteRequests.add(
               File(p.join(_headshotsDir.path, p.basename(name)))
-                  .writeAsBytes(byteData!));
+                  .writeAsBytes(byteData));
         }
 
         // Backgrounds
         if (parentDirectoryName == _backgroundsDirName) {
           fileWriteRequests.add(
               File(p.join(_backgroundsDir.path, p.basename(name)))
-                  .writeAsBytes(byteData!));
+                  .writeAsBytes(byteData));
         }
 
         // Fonts
         if (parentDirectoryName == _fontsDirName) {
           fileWriteRequests.add(File(p.join(_fontsDir.path, p.basename(name)))
-              .writeAsBytes(byteData!));
+              .writeAsBytes(byteData));
         }
 
         // Manifest
         if (name == _manifestFileName) {
-          rawManifest = json.decode(utf8.decode(byteData!));
+          rawManifest = json.decode(utf8.decode(byteData));
+          fileWriteRequests.add(topLevelFileWriterDelegate(name, byteData));
         }
 
         // Show Data (Actors, Tracks, Presets)
         if (name == _showDataFileName) {
-          rawShowData = json.decode(utf8.decode(byteData!));
+          rawShowData = json.decode(utf8.decode(byteData));
+          fileWriteRequests.add(topLevelFileWriterDelegate(name, byteData));
         }
 
         // Slide Data (Slides, SlideSize, SlideOrientation)
         if (name == _slideDataFileName) {
-          rawSlideData = json.decode(utf8.decode(byteData!));
+          rawSlideData = json.decode(utf8.decode(byteData));
+          fileWriteRequests.add(topLevelFileWriterDelegate(name, byteData));
         }
 
         // Playback State (Currently displayed Cast Change etc)
         if (name == _playbackStateFileName) {
-          rawPlaybackState = json.decode(utf8.decode(byteData!));
+          rawPlaybackState = json.decode(utf8.decode(byteData));
+          fileWriteRequests.add(topLevelFileWriterDelegate(name, byteData));
         }
       }
     }
 
     await Future.wait(fileWriteRequests);
+
+    if (byteDataSkippedFiles.isNotEmpty) {
+      // We read over files that had null byteData. Log it, something could be wrong.
+      LoggingManager.instance.storage.warning(
+          'Found archived files with null byteData. Offending files names: ${byteDataSkippedFiles}');
+    }
 
     final manifestData = rawManifest == null
         ? ManifestModel()
@@ -619,6 +643,7 @@ class Storage {
 
       return '${manifest.fileName}.castboard';
     } catch (e, stacktrace) {
+      print(e);
       LoggingManager.instance.storage.warning(
           'Failed to retrieve showfile name from manifest. Using default.',
           e,

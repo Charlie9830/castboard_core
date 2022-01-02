@@ -5,7 +5,7 @@ import 'package:archive/archive_io.dart';
 import 'package:castboard_core/models/ManifestModel.dart';
 import 'package:flutter/foundation.dart';
 
-Future<ShowfileValidationResult> validateShowfileOffThread({
+Future<ShowfileValidationWorkerResult> validateShowfileOffThread({
   required List<int> byteData,
   required String manifestFileName,
   required int maxFileVersion,
@@ -23,7 +23,7 @@ Future<ShowfileValidationResult> validateShowfileOffThread({
   return result;
 }
 
-ShowfileValidationResult validateShowFileWorker(
+ShowfileValidationWorkerResult validateShowFileWorker(
     ShowfileValidationWorkerArgs args) {
   final unzipper = ZipDecoder();
   final archive = unzipper.decodeBytes(args.byteData);
@@ -33,7 +33,7 @@ ShowfileValidationResult validateShowFileWorker(
       .where((ArchiveFile entity) => entity.name == args.manifestFileName);
 
   if (manifestEntityHits.isEmpty) {
-    return ShowfileValidationResult(
+    return ShowfileValidationWorkerResult(
         false,
         ShowfileValidationFailReason.manifestMissing,
         'No file matching the manifest found in archive.');
@@ -42,7 +42,7 @@ ShowfileValidationResult validateShowFileWorker(
   final manifestByteData = manifestEntityHits.first.content as List<int>?;
 
   if (manifestByteData == null || manifestByteData.length == 0) {
-    return ShowfileValidationResult(
+    return ShowfileValidationWorkerResult(
         false,
         ShowfileValidationFailReason.manifestMissing,
         'Manifest file is empty.');
@@ -51,7 +51,7 @@ ShowfileValidationResult validateShowFileWorker(
   final rawManifest = json.decode(utf8.decode(manifestByteData));
 
   if (rawManifest == null) {
-    return ShowfileValidationResult(
+    return ShowfileValidationWorkerResult(
         false,
         ShowfileValidationFailReason.manifestInvalid,
         'Json decoding of the manifest file returned null.');
@@ -61,27 +61,27 @@ ShowfileValidationResult validateShowFileWorker(
   try {
     manifest = ManifestModel.fromMap(rawManifest);
   } catch (e) {
-    return ShowfileValidationResult(
+    return ShowfileValidationWorkerResult(
         false,
         ShowfileValidationFailReason.manifestInvalid,
         'Conversion from rawManifest map to ManifestModel threw an exception.');
   }
 
   if (manifest.validationKey != args.manifestValidationKey) {
-    return ShowfileValidationResult(
+    return ShowfileValidationWorkerResult(
         false,
         ShowfileValidationFailReason.manifestInvalid,
         'Manifest validation key is not correct. Expecting ${args.manifestValidationKey} got ${manifest.validationKey}');
   }
 
   if (manifest.fileVersion > args.maxFileVersion) {
-    return ShowfileValidationResult(
+    return ShowfileValidationWorkerResult(
         false,
         ShowfileValidationFailReason.incompatiableFileVersion,
         'Manifest file version is greater then Maximum allowed file version.');
   }
 
-  return ShowfileValidationResult(true, ShowfileValidationFailReason.none, '');
+  return ShowfileValidationWorkerResult(true, ShowfileValidationFailReason.none, '');
 }
 
 enum ShowfileValidationFailReason {
@@ -92,12 +92,12 @@ enum ShowfileValidationFailReason {
   contentsEmpty,
 }
 
-class ShowfileValidationResult {
+class ShowfileValidationWorkerResult {
   final bool isValid;
   final ShowfileValidationFailReason reason;
   final String message;
 
-  ShowfileValidationResult(this.isValid, this.reason, this.message);
+  ShowfileValidationWorkerResult(this.isValid, this.reason, this.message);
 }
 
 class ShowfileValidationWorkerArgs {

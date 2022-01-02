@@ -15,7 +15,7 @@ import 'package:castboard_core/models/TrackModel.dart';
 import 'package:castboard_core/models/SlideModel.dart';
 import 'package:castboard_core/models/TrackRef.dart';
 import 'package:castboard_core/storage/Exceptions.dart';
-import 'package:castboard_core/storage/FIleValidationResult.dart';
+import 'package:castboard_core/storage/ShowfIleValidationResult.dart';
 import 'package:castboard_core/storage/FileWriteResult.dart';
 import 'package:castboard_core/storage/ImportedShowData.dart';
 import 'package:castboard_core/models/ShowDataModel.dart';
@@ -924,7 +924,7 @@ class Storage {
     return _rootDir.path;
   }
 
-  Future<FileValidationResult> validateShowfile(
+  Future<ShowfileValidationResult> validateShowfile(
       List<int> byteData, int maxFileVersion) async {
     final computedResult = await validateShowfileOffThread(
         byteData: byteData,
@@ -934,7 +934,7 @@ class Storage {
 
     // File is Valid.
     if (computedResult.isValid) {
-      return FileValidationResult(true, true);
+      return ShowfileValidationResult(true, true);
     }
 
     // File is incompatiable version.
@@ -942,11 +942,11 @@ class Storage {
         ShowfileValidationFailReason.incompatiableFileVersion) {
       LoggingManager.instance.storage
           .warning('Rejecting showfile, reason: ${computedResult.message}');
-      return FileValidationResult(false, false);
+      return ShowfileValidationResult(false, false);
     }
 
     // File is invalid. Could be a number of other reasons.
     LoggingManager.instance.storage.warning("Rejecting showfile, reason : ${computedResult.message}");
-    return FileValidationResult(false, true);
+    return ShowfileValidationResult(false, true);
   }
 }

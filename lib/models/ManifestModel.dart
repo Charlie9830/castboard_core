@@ -9,8 +9,8 @@ class ManifestModel {
   final String fileName;
   final String created;
   final String modified;
-  final String createByVersion;
-  final String fileVersion;
+  final String createdByVersion;
+  final int fileVersion;
   final List<FontModel> requiredFonts;
 
   ManifestModel({
@@ -18,8 +18,8 @@ class ManifestModel {
     this.fileName = '',
     this.created = '',
     this.modified = '',
-    this.createByVersion = '',
-    this.fileVersion = '',
+    this.createdByVersion = '',
+    this.fileVersion = 1,
     this.requiredFonts = const <FontModel>[],
   });
 
@@ -29,7 +29,7 @@ class ManifestModel {
       'fileName': fileName,
       'created': created,
       'modified': modified,
-      'createByVersion': createByVersion,
+      'createdByVersion': createdByVersion,
       'fileVersion': fileVersion,
       'requiredFonts': requiredFonts.map((item) => item.toMap()).toList(),
     };
@@ -41,7 +41,7 @@ class ManifestModel {
       fileName: map['fileName'] ?? '',
       created: map['created'] ?? '',
       modified: map['modified'] ?? '',
-      createByVersion: map['createByVersion'] ?? '',
+      createdByVersion: map['createdByVersion'] ?? '',
       fileVersion: map['fileVersion'] ?? '',
       requiredFonts: ((map['requiredFonts'] ?? <dynamic>[]) as List<dynamic>)
           .map((font) => FontModel.fromMap(font))
@@ -53,8 +53,8 @@ class ManifestModel {
     String? fileName,
     String? created,
     String? modified,
-    String? createByVersion,
-    String? fileVersion,
+    String? createdByVersion,
+    int? fileVersion,
     List<FontModel>? requiredFonts,
   }) {
     return ManifestModel(
@@ -62,7 +62,7 @@ class ManifestModel {
       fileName: fileName ?? this.fileName,
       created: created ?? this.created,
       modified: modified ?? this.modified,
-      createByVersion: createByVersion ?? this.createByVersion,
+      createdByVersion: createdByVersion ?? this.createdByVersion,
       fileVersion: fileVersion ?? this.fileVersion,
       requiredFonts: requiredFonts ?? this.requiredFonts,
     );

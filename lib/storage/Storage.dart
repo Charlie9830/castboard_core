@@ -15,6 +15,7 @@ import 'package:castboard_core/models/TrackModel.dart';
 import 'package:castboard_core/models/SlideModel.dart';
 import 'package:castboard_core/models/TrackRef.dart';
 import 'package:castboard_core/storage/Exceptions.dart';
+import 'package:castboard_core/storage/FIleValidationResult.dart';
 import 'package:castboard_core/storage/FileWriteResult.dart';
 import 'package:castboard_core/storage/ImportedShowData.dart';
 import 'package:castboard_core/models/ShowDataModel.dart';
@@ -22,7 +23,7 @@ import 'package:castboard_core/storage/SlideDataModel.dart';
 import 'package:castboard_core/storage/compressShowfile.dart';
 import 'package:castboard_core/storage/getParentDirectoryName.dart';
 import 'package:castboard_core/storage/nestShowfile.dart';
-import 'package:castboard_core/storage/validateManifest.dart';
+import 'package:castboard_core/storage/validateShowfileOffThread.dart';
 import 'package:file/local.dart'
     as localFs; // TODO: Do we need this package anymore?
 import 'package:file/file.dart' as fs;
@@ -473,48 +474,6 @@ class Storage {
     );
   }
 
-  Future<bool> validateShowFile(List<int> byteData) async {
-    // TODO: This could be done in a seperate Thread.
-    if (byteData.isEmpty) {
-      LoggingManager.instance.storage
-          .warning('Showfile validation failed due to byteData being empty.');
-      return false;
-    }
-
-    final unzipper = ZipDecoder();
-    final archive = unzipper.decodeBytes(byteData);
-
-    // Search for the Manifest.
-    final manifestEntityHits =
-        archive.where((ArchiveFile entity) => entity.name == _manifestFileName);
-
-    if (manifestEntityHits.isEmpty) {
-      LoggingManager.instance.storage
-          .warning('Showfile validation failed due to no Manifest found.');
-      return false;
-    }
-
-    final manifestByteData = manifestEntityHits.first.content as List<int>?;
-
-    if (manifestByteData == null || manifestByteData.length == 0) {
-      LoggingManager.instance.storage.warning(
-          'Showfile validation failed due to manifestByteData being null or empty.');
-      return false;
-    }
-
-    final rawManifest = json.decode(utf8.decode(manifestByteData));
-
-    if (rawManifest == null) {
-      LoggingManager.instance.storage
-          .warning('Showfile validation failed due rawManifest being null.');
-      return false;
-    }
-
-    final manifest = ManifestModel.fromMap(rawManifest);
-
-    return validateManifest(manifest);
-  }
-
   /// Unzips and loads the provided [bytes] into the active show directory, overwriting what is already there.
   /// Returns an [ImportedShowData] object once the write has been completed.
   Future<ImportedShowData> loadArchivedShowfile(List<int> bytes) async {
@@ -963,5 +922,31 @@ class Storage {
 
   String get appRootStoragePath {
     return _rootDir.path;
+  }
+
+  Future<FileValidationResult> validateShowfile(
+      List<int> byteData, int maxFileVersion) async {
+    final computedResult = await validateShowfileOffThread(
+        byteData: byteData,
+        manifestFileName: _manifestFileName,
+        maxFileVersion: maxFileVersion,
+        manifestValidationKey: manifestModelValidationKeyValue);
+
+    // File is Valid.
+    if (computedResult.isValid) {
+      return FileValidationResult(true, true);
+    }
+
+    // File is incompatiable version.
+    if (computedResult.reason ==
+        ShowfileValidationFailReason.incompatiableFileVersion) {
+      LoggingManager.instance.storage
+          .warning('Rejecting showfile, reason: ${computedResult.message}');
+      return FileValidationResult(false, false);
+    }
+
+    // File is invalid. Could be a number of other reasons.
+    LoggingManager.instance.storage.warning("Rejecting showfile, reason : ${computedResult.message}");
+    return FileValidationResult(false, true);
   }
 }

@@ -10,19 +10,28 @@ class SystemConfig {
   final bool? playShowOnIdle;
   final AvailableResolutions
       availableResolutions; // Nominally only one way Player -> Remote.
+  final String playerVersion;
+  final String playerBuildNumber;
+  final String playerBuildSignature;
 
   SystemConfig({
     required this.deviceOrientation,
     required this.deviceResolution,
     required this.availableResolutions,
     required this.playShowOnIdle,
+    required this.playerBuildNumber,
+    required this.playerBuildSignature,
+    required this.playerVersion,
   });
 
   SystemConfig.defaults()
       : deviceResolution = DeviceResolution.auto(),
         deviceOrientation = DeviceOrientation.landscape,
         availableResolutions = AvailableResolutions.defaults(),
-        playShowOnIdle = true;
+        playShowOnIdle = true,
+        playerVersion = '',
+        playerBuildSignature = '',
+        playerBuildNumber = '';
 
   Map<String, dynamic> toMap() {
     return {
@@ -32,23 +41,31 @@ class SystemConfig {
       'deviceResolution': deviceResolution?.toMap(),
       'availableResolutions': availableResolutions.toMap(),
       'playShowOnIdle': playShowOnIdle,
+      'playerVersion': playerVersion,
+      'playerBuildNumber': playerBuildNumber,
+      'playerBuildSignature': playerBuildSignature,
     };
   }
 
   factory SystemConfig.fromMap(Map<String, dynamic> map) {
     return SystemConfig(
-      deviceOrientation: _parseOrientation(map['deviceOrientation']),
-      deviceResolution: DeviceResolution.fromMap(map['deviceResolution']),
-      availableResolutions:
-          AvailableResolutions.fromMap(map['availableResolutions']),
-      playShowOnIdle: map['playShowOnIdle'],
-    );
+        deviceOrientation: _parseOrientation(map['deviceOrientation']),
+        deviceResolution: DeviceResolution.fromMap(map['deviceResolution']),
+        availableResolutions:
+            AvailableResolutions.fromMap(map['availableResolutions']),
+        playShowOnIdle: map['playShowOnIdle'],
+        playerBuildNumber: map['playerBuildNumber'] ?? '',
+        playerVersion: map['playerVersion'] ?? '',
+        playerBuildSignature: map['playerBuildSignature'] ?? '');
   }
 
   SystemConfig copyWith({
     DeviceOrientation? deviceOrientation,
     DeviceResolution? deviceResolution,
     AvailableResolutions? availableResolutions,
+    String? playerVersion,
+    String? playerBuildNumber,
+    String? playerBuildSignature,
     bool? playShowOnIdle,
   }) {
     return SystemConfig(
@@ -56,6 +73,9 @@ class SystemConfig {
       deviceResolution: deviceResolution ?? this.deviceResolution,
       availableResolutions: availableResolutions ?? this.availableResolutions,
       playShowOnIdle: playShowOnIdle ?? this.playShowOnIdle,
+      playerVersion: playerVersion ?? this.playerBuildNumber,
+      playerBuildNumber: playerBuildNumber ?? this.playerBuildNumber,
+      playerBuildSignature: playerBuildSignature ?? this.playerBuildSignature,
     );
   }
 }

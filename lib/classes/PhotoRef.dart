@@ -2,13 +2,17 @@ import 'dart:convert';
 
 import 'package:quiver/core.dart';
 
-class PhotoRef {
+// TODO: Refactor the file name to ImageRef.
+
+// TODO: Explore making uid and ext non nullable.
+
+class ImageRef {
   final String? uid;
   final String? ext;
 
-  PhotoRef(this.uid, this.ext);
+  ImageRef(this.uid, this.ext);
 
-  const PhotoRef.none()
+  const ImageRef.none()
       : uid = '',
         ext = '';
 
@@ -19,7 +23,7 @@ class PhotoRef {
 
   @override
   bool operator ==(Object other) {
-    if (other is PhotoRef) {
+    if (other is ImageRef) {
       return this.uid == other.uid && this.ext == other.ext;
     }
     return false;
@@ -32,10 +36,10 @@ class PhotoRef {
     };
   }
 
-  factory PhotoRef.fromMap(Map<String, dynamic>? map) {
-    if (map == null) return PhotoRef.none();
+  factory ImageRef.fromMap(Map<String, dynamic>? map) {
+    if (map == null) return ImageRef.none();
 
-    return PhotoRef(
+    return ImageRef(
       map['uid'],
       map['ext'],
     );
@@ -43,6 +47,6 @@ class PhotoRef {
 
   String toJson() => json.encode(toMap());
 
-  factory PhotoRef.fromJson(String source) =>
-      PhotoRef.fromMap(json.decode(source));
+  factory ImageRef.fromJson(String source) =>
+      ImageRef.fromMap(json.decode(source));
 }

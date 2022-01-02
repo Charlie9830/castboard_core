@@ -28,12 +28,12 @@ BoxDecoration getBackground(Map<String, SlideModel> slides, String slideId) {
 
     return base.copyWith(
         color: hardValueSlide.backgroundColor,
-        image: hardValueSlide.backgroundRef != const PhotoRef.none()
+        image: hardValueSlide.backgroundRef != const ImageRef.none()
             ? _buildDecorationImage(hardValueSlide.backgroundRef)
             : null);
   }
 
-  if (currentSlide.backgroundRef != const PhotoRef.none()) {
+  if (currentSlide.backgroundRef != const ImageRef.none()) {
     // Photo
     return base.copyWith(
       image: _buildDecorationImage(currentSlide.backgroundRef),
@@ -43,8 +43,8 @@ BoxDecoration getBackground(Map<String, SlideModel> slides, String slideId) {
   return base;
 }
 
-DecorationImage? _buildDecorationImage(PhotoRef backgroundRef) {
-  if (backgroundRef == const PhotoRef.none()) {
+DecorationImage? _buildDecorationImage(ImageRef backgroundRef) {
+  if (backgroundRef == const ImageRef.none()) {
     return null;
   }
 

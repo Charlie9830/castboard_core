@@ -1,8 +1,10 @@
+import 'package:castboard_core/classes/PhotoRef.dart';
 import 'package:castboard_core/elements/ActorElementModel.dart';
 import 'package:castboard_core/elements/BlankElementModel.dart';
 import 'package:castboard_core/elements/ContainerElementModel.dart';
 import 'package:castboard_core/elements/GroupElementModel.dart';
 import 'package:castboard_core/elements/HeadshotElementModel.dart';
+import 'package:castboard_core/elements/ImageElementModel.dart';
 import 'package:castboard_core/elements/ShapeElementModel.dart';
 import 'package:castboard_core/elements/TextElementModel.dart';
 import 'package:castboard_core/elements/TrackElementModel.dart';
@@ -36,14 +38,12 @@ abstract class LayoutElementChild {
 
   factory LayoutElementChild.fromMap(Map<String, dynamic>? map) {
     if (map == null) {
-      print('\n Uh Oh, I just created a BlankElementModel \n');
       return BlankElementModel();
     }
 
     final String? elementType = map['elementType'];
 
     if (elementType == 'blank') {
-      print('\n Uh Oh, I just created a BlankElementModel \n');
       return BlankElementModel();
     }
 
@@ -114,6 +114,10 @@ abstract class LayoutElementChild {
         lineColor: ColorModel.fromMap(map['lineColor']).toColor(),
         lineWeight: map['lineWeight'],
       );
+    }
+
+    if (elementType == 'image') {
+      return ImageElementModel(ref: ImageRef.fromMap(map['ref']));
     }
 
     if (elementType == 'headshot') {

@@ -6,7 +6,7 @@ import 'package:castboard_core/classes/PhotoRef.dart';
 class ActorModel {
   final ActorRef ref;
   final String name;
-  final PhotoRef headshotRef;
+  final ImageRef headshotRef;
 
   // Static
   static const String cutTrackId = 'ACTOR-TRACK-CUT';
@@ -15,13 +15,13 @@ class ActorModel {
   ActorModel({
     required this.ref,
     this.name = '',
-    this.headshotRef = const PhotoRef.none(),
+    this.headshotRef = const ImageRef.none(),
   });
 
   ActorModel copyWith({
     ActorRef? ref,
     String? name,
-    PhotoRef? headshotRef,
+    ImageRef? headshotRef,
   }) {
     return ActorModel(
       ref: ref ?? this.ref,
@@ -42,7 +42,7 @@ class ActorModel {
     return ActorModel(
       ref: ActorRef.fromMap(map['ref']),
       name: map['name'] ?? '',
-      headshotRef: PhotoRef.fromMap(map['headshotRef']),
+      headshotRef: ImageRef.fromMap(map['headshotRef']),
     );
   }
 }

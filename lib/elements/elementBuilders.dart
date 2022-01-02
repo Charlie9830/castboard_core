@@ -4,6 +4,7 @@ import 'package:castboard_core/elements/ContainerElement.dart';
 import 'package:castboard_core/elements/ContainerElementModel.dart';
 import 'package:castboard_core/elements/ContainerItem.dart';
 import 'package:castboard_core/elements/ImageElement.dart';
+import 'package:castboard_core/elements/ImageElementModel.dart';
 import 'package:castboard_core/layout-canvas/MultiChildCanvasItem.dart';
 import 'package:castboard_core/elements/GroupElementModel.dart';
 import 'package:castboard_core/elements/HeadshotElementModel.dart';
@@ -213,6 +214,12 @@ Widget _buildChild({
       fill: element.fill,
       lineColor: element.lineColor,
       lineWeight: element.lineWeight,
+    ));
+  }
+
+  if (element is ImageElementModel) {
+    return withPadding(ImageElement(
+      file: Storage.instance.getImageFile(element.ref),
     ));
   }
 

@@ -51,6 +51,7 @@ const _stagingDirName = 'castboard_file_staging';
 // Save File Names.
 const _headshotsDirName = 'headshots';
 const _backgroundsDirName = 'backgrounds';
+const _imagesDirName = 'images';
 const _fontsDirName = 'fonts';
 const _manifestFileName = 'manifest.json';
 const _slideDataFileName = 'slidedata.json';
@@ -72,6 +73,7 @@ class Storage {
   final Directory _activeShowDir;
   final Directory _headshotsDir;
   final Directory _backgroundsDir;
+  final Directory _imagesDir;
   final Directory _fontsDir;
 
   bool isWriting = false;
@@ -94,13 +96,15 @@ class Storage {
     required Directory fontsDir,
     required Directory activeShowDir,
     required Directory showExportDir,
+    required Directory imagesDir,
   })  : _rootDir = rootDir,
         _headshotsDir = headshots,
         _backgroundsDir = backgrounds,
         _fontsDir = fontsDir,
         _archiveDir = archiveDir,
         _activeShowDir = activeShowDir,
-        _showExportDir = showExportDir;
+        _showExportDir = showExportDir,
+        _imagesDir = imagesDir;
 
   static Future<void> initialize(StorageMode mode) async {
     if (_initialized) {
@@ -166,12 +170,14 @@ class Storage {
           'An error occured whilst creating the Active Show Directory or the Archive Directory',
           e,
           stacktrace);
+      return;
     }
 
     // Create the remaining sub directories.
     Directory? headshots;
     Directory? backgrounds;
     Directory? fontsDir;
+    Directory? imagesDir;
 
     try {
       await Future.wait([
@@ -193,13 +199,20 @@ class Storage {
         () async {
           fontsDir = await Directory(p.join(activeShowDir.path, _fontsDirName))
               .create();
-        }()
+        }(),
+        // Images
+        () async {
+          imagesDir =
+              await Directory(p.join(activeShowDir.path, _imagesDirName))
+                  .create();
+        }(),
       ]);
     } catch (e, stacktrace) {
       LoggingManager.instance.storage.severe(
           'An error occured whilst creating one of the storage sub directories. ',
           e,
           stacktrace);
+      return;
     }
 
     _instance = Storage(
@@ -210,6 +223,7 @@ class Storage {
       headshots: headshots!,
       backgrounds: backgrounds!,
       fontsDir: fontsDir!,
+      imagesDir: imagesDir!,
     );
     _initialized = true;
 
@@ -248,7 +262,7 @@ class Storage {
   }
 
   Future<void> updateHeadshot(
-      PhotoRef current, String newId, File newHeadshot) async {
+      ImageRef current, String newId, File newHeadshot) async {
     LoggingManager.instance.storage
         .info("Updating headshot ${current.uid} to $newId");
     await addHeadshot(newId, newHeadshot.path);
@@ -257,7 +271,7 @@ class Storage {
     return;
   }
 
-  Future<void> deleteHeadshot(PhotoRef ref) async {
+  Future<void> deleteHeadshot(ImageRef ref) async {
     LoggingManager.instance.storage.info("Deleting Headshot ${ref.uid}");
     final Directory headshots = _headshotsDir;
     final File file = File(p.join(headshots.path, ref.basename));
@@ -285,13 +299,12 @@ class Storage {
 
   Future<File> addBackground(String uid, String path) async {
     LoggingManager.instance.storage.info("Adding background from $path");
-    final Directory? backgrounds = _backgroundsDir;
+    final image = File(path);
 
-    final photo = File(path);
-    if (await photo.exists()) {
+    if (await image.exists()) {
       final ext = p.extension(path);
       final targetFile =
-          await photo.copy(p.join(backgrounds!.path, '$uid$ext'));
+          await image.copy(p.join(_backgroundsDir.path, '$uid$ext'));
 
       return targetFile;
     } else {
@@ -299,8 +312,22 @@ class Storage {
     }
   }
 
+  Future<File> addImage(String uid, String path) async {
+    LoggingManager.instance.storage.info("Adding Image from $path");
+    final image = File(path);
+
+    if (await image.exists()) {
+      final ext = p.extension(path);
+      final targetFile = await image.copy(p.join(_imagesDir.path, '$uid$ext'));
+
+      return targetFile;
+    } else {
+      throw StorageException('Source Image File does not exist');
+    }
+  }
+
   Future<void> updateBackground(
-      PhotoRef current, String newId, File newBackground) async {
+      ImageRef current, String newId, File newBackground) async {
     LoggingManager.instance.storage
         .info("Updating background from ${current.uid} to $newId");
     await addBackground(newId, newBackground.path);
@@ -309,7 +336,7 @@ class Storage {
     return;
   }
 
-  Future<void> deleteBackground(PhotoRef ref) async {
+  Future<void> deleteBackground(ImageRef ref) async {
     LoggingManager.instance.storage.info("Deleting background ${ref.uid}");
     final Directory backgrounds = _backgroundsDir;
     final File file = File(p.join(backgrounds.path, ref.basename));
@@ -322,7 +349,19 @@ class Storage {
     return;
   }
 
-  File? getHeadshotFile(PhotoRef ref) {
+  Future<void> deleteImage(ImageRef ref) async {
+    LoggingManager.instance.storage.info("Deleting Image ${ref.uid}");
+    final File file = File(p.join(_imagesDir.path, ref.basename));
+
+    if (await file.exists()) {
+      await file.delete();
+      return;
+    }
+
+    return;
+  }
+
+  File? getHeadshotFile(ImageRef ref) {
     if (ref.uid == null || ref.uid!.isEmpty) {
       return null;
     }
@@ -330,12 +369,20 @@ class Storage {
     return File(p.join(_headshotsDir.path, ref.basename));
   }
 
-  File? getBackgroundFile(PhotoRef ref) {
+  File? getBackgroundFile(ImageRef ref) {
     if (ref.uid == null || ref.uid!.isEmpty) {
       return null;
     }
 
     return File(p.join(_backgroundsDir.path, ref.basename));
+  }
+
+  File? getImageFile(ImageRef ref) {
+    if (ref.uid == null || ref.uid!.isEmpty) {
+      return null;
+    }
+
+    return File(p.join(_imagesDir.path, ref.basename));
   }
 
   File? getFontFile(FontRef ref) {
@@ -668,7 +715,7 @@ class Storage {
 
   /// Packages the current contents of the active show directory [_activeShowDir] into an archived file
   ///  and returns a reference to that file.
-  /// 
+  ///
   /// Note: **This will nest the .castboard file into a parent Zip archive.** This ensures improved compatiability with
   /// browser downloads*.
   Future<File> archiveActiveShowForExport() async {
@@ -689,7 +736,7 @@ class Storage {
     await nestShowfile(NestShowfileParameters(
         inputFilePath: innerFile.path, outputFilePath: zipFileTarget.path));
 
-    return zipFileTarget; 
+    return zipFileTarget;
   }
 
   /// Archives the show file provided by [source] to the file reference provided by [target]
@@ -852,7 +899,7 @@ class Storage {
       fs.Directory stagingDir, Map<String, SlideModel> slides) async {
     final refs = slides.values
         .map((slide) => slide.backgroundRef)
-        .where((ref) => ref != PhotoRef.none());
+        .where((ref) => ref != ImageRef.none());
 
     final requests = refs.map((ref) {
       final sourceFile = getBackgroundFile(ref)!;
@@ -886,7 +933,7 @@ class Storage {
       fs.Directory stagingDir, Map<ActorRef, ActorModel> actors) async {
     final refs = actors.values
         .map((actor) => actor.headshotRef)
-        .where((ref) => ref != PhotoRef.none());
+        .where((ref) => ref != ImageRef.none());
 
     final requests = refs.map((ref) {
       final sourceFile = getHeadshotFile(ref)!;

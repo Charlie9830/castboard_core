@@ -10,7 +10,7 @@ class SlideModel {
   final String uid;
   final int index;
   final String name;
-  final PhotoRef backgroundRef;
+  final ImageRef backgroundRef;
   final String backgroundFileName;
   final Color backgroundColor;
   final bool usePreviousBackground;
@@ -21,7 +21,7 @@ class SlideModel {
     this.uid = '',
     this.index = 0,
     this.name = '',
-    this.backgroundRef = const PhotoRef.none(),
+    this.backgroundRef = const ImageRef.none(),
     this.backgroundFileName = '',
     this.backgroundColor = Colors.white,
     this.usePreviousBackground = false,
@@ -33,7 +33,7 @@ class SlideModel {
     String? uid,
     int? index,
     String? name,
-    PhotoRef? backgroundRef,
+    ImageRef? backgroundRef,
     String? backgroundFileName,
     Color? backgroundColor,
     bool? usePreviousBackground,
@@ -76,7 +76,7 @@ class SlideModel {
       uid: map['uid'] ?? '',
       index: map['index'] ?? 0,
       name: map['name'] ?? '',
-      backgroundRef: PhotoRef.fromMap(map['backgroundRef']),
+      backgroundRef: ImageRef.fromMap(map['backgroundRef']),
       backgroundFileName: map['backgroundFileName'] ?? '',
       backgroundColor: ColorModel.fromMap(map['backgroundColor']).toColor(),
       usePreviousBackground: map['usePreviousBackground'] ?? false,

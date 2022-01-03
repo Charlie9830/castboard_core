@@ -14,6 +14,7 @@ import 'package:castboard_core/models/RemoteCastChangeData.dart';
 import 'package:castboard_core/models/TrackModel.dart';
 import 'package:castboard_core/models/SlideModel.dart';
 import 'package:castboard_core/models/TrackRef.dart';
+import 'package:castboard_core/path_provider_shims.dart';
 import 'package:castboard_core/storage/Exceptions.dart';
 import 'package:castboard_core/storage/ShowfIleValidationResult.dart';
 import 'package:castboard_core/storage/FileWriteResult.dart';
@@ -33,7 +34,6 @@ import 'package:castboard_core/storage/StorageException.dart';
 import 'package:flutter/foundation.dart';
 
 import 'package:path/path.dart' as p;
-import 'package:path_provider/path_provider.dart' as pathProvider;
 
 import 'package:archive/archive.dart';
 import 'package:archive/archive_io.dart';
@@ -118,12 +118,11 @@ class Storage {
     late Directory rootDir;
     try {
       rootDir = mode == StorageMode.editor
-          ? await Directory(p.join(
-                  (await pathProvider.getTemporaryDirectory()).path,
+          ? await Directory(p.join((await getTemporaryDirectoryShim()).path,
                   editorStorageRootDirName))
               .create()
           : await Directory(p.join(
-                  (await pathProvider.getApplicationDocumentsDirectory()).path,
+                  (await getApplicationsDocumentDirectoryShim()).path,
                   playerStorageRootDirName))
               .create();
     } catch (e, stacktrace) {
@@ -682,7 +681,7 @@ class Storage {
     final filename = await _getShowfileName(_activeShowDir);
 
     // Create target .castboard showfile in a temporary staging directory.
-    final tmpDirPath = (await pathProvider.getTemporaryDirectory()).path;
+    final tmpDirPath = (await getTemporaryDirectoryShim()).path;
     final showfileTarget = await File(p.join(tmpDirPath, filename)).create();
 
     // Archive/Compress the active show into our target file and return the result.
@@ -946,7 +945,8 @@ class Storage {
     }
 
     // File is invalid. Could be a number of other reasons.
-    LoggingManager.instance.storage.warning("Rejecting showfile, reason : ${computedResult.message}");
+    LoggingManager.instance.storage
+        .warning("Rejecting showfile, reason : ${computedResult.message}");
     return ShowfileValidationResult(false, true);
   }
 }

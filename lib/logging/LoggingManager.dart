@@ -2,10 +2,10 @@ import 'dart:collection';
 import 'dart:io';
 
 import 'package:castboard_core/logging/compressLogs.dart';
+import 'package:castboard_core/path_provider_shims.dart';
 import 'package:flutter/foundation.dart';
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as p;
-import 'package:path_provider/path_provider.dart' as pathProvider;
 
 const String _logFileExtension = '.log';
 const String _logFileName = 'runlog';
@@ -94,7 +94,7 @@ class LoggingManager {
   }
 
   Future<File> exportLogs() async {
-    final tmpDir = await pathProvider.getTemporaryDirectory();
+    final tmpDir = await getTemporaryDirectoryShim();
     final targetFile =
         File(p.join(tmpDir.path, "castboard-log-export", 'logs.zip'));
 
@@ -213,7 +213,7 @@ class LoggingManager {
   }
 
   static Future<Directory> _getLogsDirectory(String directoryName) async {
-    final docsDir = await pathProvider.getApplicationDocumentsDirectory();
+    final docsDir = await getApplicationsDocumentDirectoryShim();
     final logsDir = await Directory(p.join(
       docsDir.path,
       directoryName,

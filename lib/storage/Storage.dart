@@ -397,6 +397,8 @@ class Storage {
     final manifestFile = File(p.join(_activeShowDir.path, _manifestFileName));
     return await manifestFile.exists() &&
         (await manifestFile.readAsString()).isNotEmpty;
+
+        // TODO: This should also validate the manifest.
   }
 
   Future<bool> updatePlayerShowData({

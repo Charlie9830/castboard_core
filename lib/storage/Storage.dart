@@ -22,6 +22,7 @@ import 'package:castboard_core/storage/ImportedShowData.dart';
 import 'package:castboard_core/models/ShowDataModel.dart';
 import 'package:castboard_core/storage/SlideDataModel.dart';
 import 'package:castboard_core/storage/compressShowfile.dart';
+import 'package:castboard_core/storage/decompressGenericZipInternal.dart';
 import 'package:castboard_core/storage/getParentDirectoryName.dart';
 import 'package:castboard_core/storage/nestShowfile.dart';
 import 'package:castboard_core/storage/validateShowfileOffThread.dart';
@@ -948,5 +949,10 @@ class Storage {
     LoggingManager.instance.storage
         .warning("Rejecting showfile, reason : ${computedResult.message}");
     return ShowfileValidationResult(false, true);
+  }
+
+  Future<Directory> decompressGenericZip(
+      List<int> byteData, Directory targetDir) async {
+    return decompressGenericZipInternal(byteData, targetDir);
   }
 }

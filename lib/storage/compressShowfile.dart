@@ -26,6 +26,7 @@ class CompressShowfileParameters {
   final String headshotsDirPath;
   final String backgroundsDirPath;
   final String fontsDirPath;
+  final String imagesDirPath;
   final String manifestFilePath;
   final String showDataFilePath;
   final String slideDataFilePath;
@@ -35,6 +36,7 @@ class CompressShowfileParameters {
     required this.targetFilePath,
     required this.backgroundsDirPath,
     required this.fontsDirPath,
+    required this.imagesDirPath,
     required this.headshotsDirPath,
     required this.manifestFilePath,
     required this.playbackStateFilePath,

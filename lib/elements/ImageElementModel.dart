@@ -23,6 +23,7 @@ class ImageElementModel extends LayoutElementChild {
 
   Map<String, dynamic> toMap() {
     return {
+      'elementType': 'image',
       'ref': ref.toMap(),
     };
   }

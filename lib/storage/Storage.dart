@@ -23,6 +23,7 @@ import 'package:castboard_core/models/ShowDataModel.dart';
 import 'package:castboard_core/storage/SlideDataModel.dart';
 import 'package:castboard_core/storage/compressShowfile.dart';
 import 'package:castboard_core/storage/decompressGenericZipInternal.dart';
+import 'package:castboard_core/storage/extractImageRefs.dart';
 import 'package:castboard_core/storage/getParentDirectoryName.dart';
 import 'package:castboard_core/storage/nestShowfile.dart';
 import 'package:castboard_core/storage/validateShowfileOffThread.dart';
@@ -398,7 +399,7 @@ class Storage {
     return await manifestFile.exists() &&
         (await manifestFile.readAsString()).isNotEmpty;
 
-        // TODO: This should also validate the manifest.
+    // TODO: This should also validate the manifest.
   }
 
   Future<bool> updatePlayerShowData({
@@ -533,6 +534,12 @@ class Storage {
               .writeAsBytes(byteData));
         }
 
+        // Images
+        if (parentDirectoryName == _imagesDirName) {
+          fileWriteRequests.add(File(p.join(_imagesDir.path, p.basename(name)))
+              .writeAsBytes(byteData));
+        }
+
         // Manifest
         if (name == _manifestFileName) {
           rawManifest = json.decode(utf8.decode(byteData));
@@ -604,6 +611,7 @@ class Storage {
     final headshots = <FileSystemEntity>[];
     final backgrounds = <FileSystemEntity>[];
     final fonts = <FileSystemEntity>[];
+    final images = <FileSystemEntity>[];
     final otherFiles = <FileSystemEntity>[];
 
     await Future.wait([
@@ -625,6 +633,12 @@ class Storage {
           fonts.add(entity);
         }
       }).asFuture(),
+      // Images
+      _imagesDir.list().listen((entity) {
+        if (entity is File) {
+          images.add(entity);
+        }
+      }).asFuture(),
       // All other (Non-Directory) Files.
       _activeShowDir.list().listen((entity) {
         if (entity is File) {
@@ -636,12 +650,14 @@ class Storage {
     final headshotDeleteRequests = headshots.map((file) => file.delete());
     final backgroundDeleteRequests = backgrounds.map((file) => file.delete());
     final fontDeleteRequests = fonts.map((file) => file.delete());
+    final imagesDeleteRequests = images.map((file) => file.delete());
     final otherFilesDeleteRequests = otherFiles.map((file) => file.delete());
 
     await Future.wait([
       ...headshotDeleteRequests,
       ...backgroundDeleteRequests,
       ...fontDeleteRequests,
+      ...imagesDeleteRequests,
       ...otherFilesDeleteRequests,
     ]);
 
@@ -710,9 +726,10 @@ class Storage {
     final joinWith = (String subDir) => p.join(basePath, subDir);
 
     await compressShowfile(CompressShowfileParameters(
+      headshotsDirPath: joinWith(_headshotsDirName),
       backgroundsDirPath: joinWith(_backgroundsDirName),
       fontsDirPath: joinWith(_fontsDirName),
-      headshotsDirPath: joinWith(_headshotsDirName),
+      imagesDirPath: joinWith(_imagesDirName),
       manifestFilePath: joinWith(_manifestFileName),
       playbackStateFilePath: joinWith(_playbackStateFileName),
       showDataFilePath: joinWith(_showDataFileName),
@@ -759,6 +776,7 @@ class Storage {
       _stageManifest(stagingDir, manifest),
       _stageHeadshots(stagingDir, actors),
       _stageBackgrounds(stagingDir, slides),
+      _stageImages(stagingDir, slides),
       _stageSlideData(
           stagingDir,
           SlideDataModel(
@@ -778,6 +796,7 @@ class Storage {
           headshotsDirPath: p.join(stagingDir.path, _headshotsDirName),
           backgroundsDirPath: p.join(stagingDir.path, _backgroundsDirName),
           fontsDirPath: p.join(stagingDir.path, _fontsDirName),
+          imagesDirPath: p.join(stagingDir.path, _imagesDirName),
           manifestFilePath: p.join(stagingDir.path, _manifestFileName),
           showDataFilePath: p.join(stagingDir.path, _showDataFileName),
           playbackStateFilePath:
@@ -869,6 +888,23 @@ class Storage {
           stagingDir
               .childDirectory(_backgroundsDirName)
               .childFile(ref.basename));
+    });
+
+    await Future.wait(requests);
+    return;
+  }
+
+  Future<void> _stageImages(
+      fs.Directory stagingDir, Map<String, SlideModel> slides) async {
+    final refs = slides.values
+        .map((slide) => extractImageRefs(slide))
+        .expand((iter) => iter)
+        .toList();
+
+    final requests = refs.map((ref) {
+      final sourceFile = getImageFile(ref)!;
+      return _copyToStagingDir(sourceFile,
+          stagingDir.childDirectory(_imagesDirName).childFile(ref.basename));
     });
 
     await Future.wait(requests);

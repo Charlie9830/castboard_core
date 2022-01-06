@@ -14,6 +14,7 @@ class TextElementModel extends LayoutElementChild {
   final bool underline;
   final TextAlign alignment;
   final Color color;
+  final bool needsInterpolation;
 
   TextElementModel({
     Set<PropertyUpdateContracts>? propertyUpdateContracts,
@@ -26,6 +27,7 @@ class TextElementModel extends LayoutElementChild {
     bool? underline,
     TextAlign? alignment,
     Color? color,
+    bool? needsInterpolation,
   })  : this.text = text ?? '',
         this.fontFamily = fontFamily ?? 'Arial',
         this.fontSize = fontSize ?? 48,
@@ -34,6 +36,7 @@ class TextElementModel extends LayoutElementChild {
         this.underline = underline ?? false,
         this.alignment = alignment ?? TextAlign.center,
         this.color = color ?? Colors.black,
+        this.needsInterpolation = _hasInterpolation(text),
         super(
             updateContracts: propertyUpdateContracts ??
                 <PropertyUpdateContracts>{
@@ -92,4 +95,15 @@ class TextElementModel extends LayoutElementChild {
         alignment: alignment,
         color: color,
       );
+
+  static bool _hasInterpolation(String? input) {
+    print('testing');
+    if (input == null) return false;
+
+    final regex = RegExp('{.+}');
+    return regex.hasMatch(input);
+  }
+
+  static RegExp matchInterpolationRegex = RegExp('{.+}');
+  static RegExp matchInterpolationOperatorsRegex = RegExp('[{|}]');
 }

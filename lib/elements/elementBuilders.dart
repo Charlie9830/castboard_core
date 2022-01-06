@@ -33,6 +33,7 @@ Map<String, LayoutBlock> buildElements({
   SlideModel? slide,
   CastChangeModel? castChange,
   Map<ActorRef, ActorModel>? actors,
+  Map<String, TrackRef> trackRefsByName = const {},
   Map<TrackRef, TrackModel>? tracks,
   OnContainerItemsReorder? onContainerItemsReorder,
   String editingContainerId = '',
@@ -62,6 +63,7 @@ Map<String, LayoutBlock> buildElements({
               element: element.child,
               castChange: castChange,
               actors: actors,
+              trackRefsByName: trackRefsByName,
               tracks: tracks,
               elementPadding: _buildEdgeInsets(element),
               isInSlideEditor: isInSlideEditor,
@@ -83,6 +85,7 @@ Widget _buildChild({
   LayoutElementChild? element,
   CastChangeModel? castChange,
   Map<ActorRef, ActorModel>? actors = const {},
+  required Map<String, TrackRef> trackRefsByName,
   Map<TrackRef, TrackModel>? tracks = const {},
   dynamic onContainerItemsReorder,
   bool isEditingContainer = false,
@@ -125,6 +128,7 @@ Widget _buildChild({
             element: child.child,
             castChange: castChange,
             actors: actors,
+            trackRefsByName: trackRefsByName,
             tracks: tracks,
             elementPadding: _buildEdgeInsets(child),
           ),
@@ -148,6 +152,7 @@ Widget _buildChild({
             child: _buildChild(
                 element: child.child,
                 actors: actors,
+                trackRefsByName: trackRefsByName,
                 tracks: tracks,
                 castChange: castChange),
           );
@@ -191,7 +196,8 @@ Widget _buildChild({
   }
 
   if (element is TextElementModel) {
-    String? text = _lookupText(element, castChange, actors, tracks);
+    String? text =
+        _lookupText(element, castChange, actors, tracks, trackRefsByName);
 
     return withPadding(
       TextElement(
@@ -274,14 +280,45 @@ bool _shouldBuild(LayoutElementModel element, CastChangeModel? castChange) {
   return true;
 }
 
-String? _lookupText(TextElementModel element, CastChangeModel? castChange,
-    Map<ActorRef, ActorModel>? actors, Map<TrackRef, TrackModel>? tracks) {
+String? _lookupText(
+  TextElementModel element,
+  CastChangeModel? castChange,
+  Map<ActorRef, ActorModel>? actors,
+  Map<TrackRef, TrackModel>? tracks,
+  Map<String, TrackRef> trackRefsByName,
+) {
   if (element is ActorElementModel) {
     return _lookupActorName(element.trackRef, castChange, actors, tracks);
   }
 
   if (element is TrackElementModel) {
     return _lookupTrackName(element.trackRef, castChange, actors, tracks);
+  }
+
+  if (element.needsInterpolation == true) {
+    if (TextElementModel.matchInterpolationRegex.hasMatch(element.text) ==
+        false) return 'NOT FOUND';
+
+    String interpolated = element.text
+        .replaceAllMapped(TextElementModel.matchInterpolationRegex, (match) {
+      final matchText = match.group(0);
+
+      if (matchText == null) return 'NOT FOUND';
+
+      final trackName = matchText.replaceAll(
+          TextElementModel.matchInterpolationOperatorsRegex, '');
+
+      final trackRef = trackRefsByName[trackName];
+
+      if (trackRef == null) {
+        return 'NOT FOUND';
+      }
+
+      return _lookupActorName(trackRef, castChange, actors, tracks) ??
+          'NOT FOUND';
+    });
+
+    return interpolated;
   }
 
   return element.text;

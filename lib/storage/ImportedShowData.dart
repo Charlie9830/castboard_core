@@ -16,6 +16,7 @@ class ImportedShowData {
   final String slideSizeId;
   final SlideOrientation slideOrientation;
   final Map<TrackRef, TrackModel> tracks;
+  final Map<String, TrackRef> trackRefsByName;
   final Map<ActorRef, ActorModel> actors;
   final Map<String, PresetModel> presets;
   final PlaybackStateData? playbackState;
@@ -26,6 +27,7 @@ class ImportedShowData {
     required this.slideSizeId,
     required this.slideOrientation,
     required this.tracks,
+    required this.trackRefsByName,
     required this.actors,
     required this.presets,
     required this.playbackState,

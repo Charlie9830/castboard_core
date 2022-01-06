@@ -11,17 +11,20 @@ import 'package:castboard_core/models/TrackRef.dart';
 ///
 class ShowDataModel {
   final Map<TrackRef, TrackModel> tracks;
+  final Map<String, TrackRef> trackRefsByName;
   final Map<ActorRef, ActorModel> actors;
   final Map<String, PresetModel> presets;
 
   const ShowDataModel({
     this.tracks = const {},
+    this.trackRefsByName = const {},
     this.actors = const {},
     this.presets = const {},
   });
 
   const ShowDataModel.initial()
       : tracks = const {},
+        trackRefsByName = const {},
         actors = const {},
         presets = const {};
 
@@ -29,6 +32,9 @@ class ShowDataModel {
     return <String, dynamic>{
       'tracks': Map<dynamic, dynamic>.fromEntries(tracks.values
           .map((track) => MapEntry(track.ref.toJsonKey(), track.toMap()))),
+      'trackRefsByName': Map<dynamic, dynamic>.fromEntries(trackRefsByName
+          .entries
+          .map((entry) => MapEntry(entry.key, entry.value.toJsonKey()))),
       'actors': Map<dynamic, dynamic>.fromEntries(actors.values
           .map((actor) => MapEntry(actor.ref.toJsonKey(), actor.toMap()))),
       'presets': Map<String?, dynamic>.fromEntries(
@@ -41,6 +47,8 @@ class ShowDataModel {
       return ShowDataModel.initial();
     }
     final rawTracksMap = map['tracks'] as Map<String, dynamic>;
+    final rawTrackRefsByNameMap =
+        map['trackRefsByName'] as Map<String, dynamic>;
     final rawActorsMap = map['actors'] as Map<String, dynamic>;
     final rawPresetsMap = map['presets'] as Map<String, dynamic>;
 
@@ -50,6 +58,14 @@ class ShowDataModel {
           (entry) => MapEntry(
             TrackRef.fromJsonKey(entry.key),
             TrackModel.fromMap(entry.value),
+          ),
+        ),
+      ),
+      trackRefsByName: Map<String, TrackRef>.fromEntries(
+        rawTrackRefsByNameMap.entries.map(
+          (entry) => MapEntry(
+            entry.key,
+            TrackRef.fromJsonKey(entry.value),
           ),
         ),
       ),

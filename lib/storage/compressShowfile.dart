@@ -13,6 +13,7 @@ void _compressShowfileWorker(CompressShowfileParameters params) {
   zipper.create(params.targetFilePath);
   zipper.addDirectory(Directory(params.headshotsDirPath));
   zipper.addDirectory(Directory(params.backgroundsDirPath));
+  zipper.addDirectory(Directory(params.imagesDirPath));
   zipper.addDirectory(Directory(params.fontsDirPath));
   zipper.addFile(File(params.manifestFilePath));
   zipper.addFile(File(params.showDataFilePath));

@@ -47,6 +47,7 @@ class ShowDataModel {
       return ShowDataModel.initial();
     }
     final rawTracksMap = map['tracks'] as Map<String, dynamic>;
+    
     final rawTrackRefsByNameMap =
         map['trackRefsByName'] as Map<String, dynamic>;
     final rawActorsMap = map['actors'] as Map<String, dynamic>;

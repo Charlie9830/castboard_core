@@ -746,6 +746,7 @@ class Storage {
   Future<FileWriteResult> writeCurrentShowToArchive({
     required Map<ActorRef, ActorModel> actors,
     required Map<TrackRef, TrackModel> tracks,
+    required Map<String, TrackRef> trackRefsByName,
     required Map<String, PresetModel> presets,
     required Map<String, SlideModel> slides,
     required SlideOrientation slideOrientation,
@@ -782,7 +783,7 @@ class Storage {
             slides: slides,
             slideOrientation: slideOrientation,
           )),
-      _stageShowData(stagingDir, tracks, actors, presets),
+      _stageShowData(stagingDir, tracks, trackRefsByName, actors, presets),
       _stageFonts(stagingDir, manifest.requiredFonts),
     ]);
 
@@ -847,11 +848,13 @@ class Storage {
   Future<void> _stageShowData(
       fs.Directory stagingDir,
       Map<TrackRef, TrackModel> tracks,
+      Map<String, TrackRef> trackRefsByName,
       Map<ActorRef, ActorModel> actors,
       Map<String, PresetModel> presets) async {
     final data = ShowDataModel(
       actors: actors,
       tracks: tracks,
+      trackRefsByName: trackRefsByName,
       presets: presets,
     ).toMap();
 

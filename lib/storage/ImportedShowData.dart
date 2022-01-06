@@ -13,7 +13,6 @@ import 'package:castboard_core/storage/SlideDataModel.dart';
 class ImportedShowData {
   final ManifestModel manifest;
   final Map<String, SlideModel> slides;
-  final String slideSizeId;
   final SlideOrientation slideOrientation;
   final Map<TrackRef, TrackModel> tracks;
   final Map<String, TrackRef> trackRefsByName;
@@ -24,7 +23,6 @@ class ImportedShowData {
   ImportedShowData({
     required this.manifest,
     required this.slides,
-    required this.slideSizeId,
     required this.slideOrientation,
     required this.tracks,
     required this.trackRefsByName,

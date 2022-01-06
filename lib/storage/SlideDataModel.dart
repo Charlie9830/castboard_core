@@ -7,12 +7,10 @@ import 'package:castboard_core/models/SlideModel.dart';
 ///
 class SlideDataModel {
   final Map<String, SlideModel> slides;
-  final String slideSizeId;
   final SlideOrientation slideOrientation;
 
   const SlideDataModel({
     this.slides = const <String, SlideModel>{},
-    this.slideSizeId = '',
     this.slideOrientation = SlideOrientation.landscape,
   });
 
@@ -26,7 +24,6 @@ class SlideDataModel {
           ),
         ),
       ),
-      'slideSizeId': slideSizeId,
       'slideOrientation': convertSlideOrientation(slideOrientation),
     };
   }
@@ -41,7 +38,6 @@ class SlideDataModel {
           ),
         ),
       ),
-      slideSizeId: map['slideSizeId'],
       slideOrientation: parseSlideOrientation(map['slideOrientation']),
     );
   }

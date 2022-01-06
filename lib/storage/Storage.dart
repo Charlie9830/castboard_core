@@ -474,7 +474,6 @@ class Storage {
       playbackState: playbackState,
       slides: slideData.slides,
       slideOrientation: slideData.slideOrientation,
-      slideSizeId: slideData.slideSizeId,
     );
   }
 
@@ -600,7 +599,6 @@ class Storage {
       trackRefsByName: showData.trackRefsByName,
       presets: showData.presets,
       slides: slideData.slides,
-      slideSizeId: slideData.slideSizeId,
       slideOrientation: slideData.slideOrientation,
       playbackState: playbackState,
     );
@@ -750,7 +748,6 @@ class Storage {
     required Map<TrackRef, TrackModel> tracks,
     required Map<String, PresetModel> presets,
     required Map<String, SlideModel> slides,
-    required String slideSizeId,
     required SlideOrientation slideOrientation,
     required ManifestModel manifest,
     PlaybackStateData? playbackState,
@@ -783,7 +780,6 @@ class Storage {
           stagingDir,
           SlideDataModel(
             slides: slides,
-            slideSizeId: slideSizeId,
             slideOrientation: slideOrientation,
           )),
       _stageShowData(stagingDir, tracks, actors, presets),

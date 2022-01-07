@@ -11,6 +11,9 @@ class PresetModel {
   final CastChangeModel castChange;
   final bool createdOnRemote;
 
+  // Static
+  static const String unnamed = "Untitled";
+
   PresetModel({
     required this.uid,
     this.name = '',

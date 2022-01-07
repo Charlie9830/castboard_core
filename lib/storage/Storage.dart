@@ -945,6 +945,9 @@ class Storage {
   }
 
   Future<void> _stageArchivedStorageDirectories(fs.Directory dir) async {
+    // TODO: Possible Refactor: You now use the same directory structure for the player storage, editor storage and show file (Showfile is active dir only).
+    // Perhaps you could create a commond function that generates all those directories, ensures they exist and returns them. Then you could use that here as well
+    // as in the constructor, just providing a different root dir to each call of it.
     final requests = [
       dir.childDirectory(_headshotsDirName).create(),
       dir.childDirectory(_backgroundsDirName).create(),

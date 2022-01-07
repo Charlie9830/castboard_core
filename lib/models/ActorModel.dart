@@ -11,6 +11,7 @@ class ActorModel {
   // Static
   static const String cutTrackId = 'ACTOR-TRACK-CUT';
   static const String unassignedTrackId = 'UNASSIGNED';
+  static const String unnamed = "Unnamed Artist";
 
   ActorModel({
     required this.ref,

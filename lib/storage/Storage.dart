@@ -814,6 +814,7 @@ class Storage {
       isWriting = false;
       return FileWriteResult(true);
     } catch (error) {
+      print(error);
       LoggingManager.instance.storage.warning("File compression failed.");
       isWriting = false;
       return FileWriteResult(false, message: 'File compression failed.');
@@ -948,6 +949,7 @@ class Storage {
       dir.childDirectory(_headshotsDirName).create(),
       dir.childDirectory(_backgroundsDirName).create(),
       dir.childDirectory(_fontsDirName).create(),
+      dir.childDirectory(_imagesDirName).create(),
     ];
     await Future.wait(requests);
     return;

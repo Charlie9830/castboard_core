@@ -97,7 +97,6 @@ class TextElementModel extends LayoutElementChild {
       );
 
   static bool _hasInterpolation(String? input) {
-    print('testing');
     if (input == null) return false;
 
     final regex = RegExp('{.+}');

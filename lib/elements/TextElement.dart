@@ -1,3 +1,4 @@
+import 'package:castboard_core/elements/TextAligner.dart';
 import 'package:castboard_core/inherited/RenderScaleProvider.dart';
 import 'package:flutter/material.dart';
 
@@ -15,7 +16,8 @@ class TextElement extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Center(
+    return TextAligner(
+      textAlign: style.alignment,
       child: Text(text ?? '',
           textAlign: style.alignment,
           style: style.asTextStyle(RenderScale.of(context)!.scale!)),

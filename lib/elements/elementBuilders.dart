@@ -200,16 +200,18 @@ Widget _buildChild({
         _lookupText(element, castChange, actors, tracks, trackRefsByName);
 
     return withPadding(
-      TextElement(
-        text: text,
-        style: TextElementStyle(
-            alignment: element.alignment,
-            color: element.color,
-            fontFamily: element.fontFamily,
-            fontSize: element.fontSize,
-            bold: element.bold,
-            italics: element.italics,
-            underline: element.underline),
+      Container(
+        child: TextElement(
+          text: text,
+          style: TextElementStyle(
+              alignment: element.alignment,
+              color: element.color,
+              fontFamily: element.fontFamily,
+              fontSize: element.fontSize,
+              bold: element.bold,
+              italics: element.italics,
+              underline: element.underline),
+        ),
       ),
     );
   }

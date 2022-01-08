@@ -43,6 +43,7 @@ class LoggingManager {
     required IOSink logFileSink,
     required bool runAsRelease,
   }) {
+    print('Logging Manager Constructing');
     _logsDir = logsDir;
     _logFile = logFile;
     _logFileSink = logFileSink;

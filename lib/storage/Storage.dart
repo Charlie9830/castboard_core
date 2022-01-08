@@ -27,6 +27,7 @@ import 'package:castboard_core/storage/extractImageRefs.dart';
 import 'package:castboard_core/storage/getParentDirectoryName.dart';
 import 'package:castboard_core/storage/nestShowfile.dart';
 import 'package:castboard_core/storage/validateShowfileOffThread.dart';
+import 'package:castboard_core/version/fileVersion.dart';
 import 'package:file/local.dart'
     as localFs; // TODO: Do we need this package anymore?
 import 'package:file/file.dart' as fs;
@@ -47,6 +48,7 @@ const playerStorageRootDirName =
 const _archiveDirName = 'archive';
 const _activeShowDirName = 'active';
 const _showExportDirName = 'showExport';
+const _backupDirName = 'backup';
 
 // Staging Directory Base Name.
 const _stagingDirName = 'castboard_file_staging';
@@ -60,6 +62,8 @@ const _manifestFileName = 'manifest.json';
 const _slideDataFileName = 'slidedata.json';
 const _showDataFileName = 'showdata.json';
 const _playbackStateFileName = 'playback_state.json';
+const _backupShowFileName = 'backup.castboard';
+const _backupStatusFileName = 'status';
 
 enum StorageMode {
   editor,
@@ -73,6 +77,7 @@ class Storage {
   final Directory _rootDir;
   final Directory _archiveDir;
   final Directory _showExportDir;
+  final Directory _backupDir;
   final Directory _activeShowDir;
   final Directory _headshotsDir;
   final Directory _backgroundsDir;
@@ -81,6 +86,8 @@ class Storage {
 
   bool isWriting = false;
   bool isReading = false;
+
+  static bool get initialized => _initialized;
 
   static Storage get instance {
     if (_initialized == false || _instance == null) {
@@ -96,6 +103,7 @@ class Storage {
     required Directory headshots,
     required Directory backgrounds,
     required Directory archiveDir,
+    required Directory backupDir,
     required Directory fontsDir,
     required Directory activeShowDir,
     required Directory showExportDir,
@@ -107,7 +115,8 @@ class Storage {
         _archiveDir = archiveDir,
         _activeShowDir = activeShowDir,
         _showExportDir = showExportDir,
-        _imagesDir = imagesDir;
+        _imagesDir = imagesDir,
+        _backupDir = backupDir;
 
   static Future<void> initialize(StorageMode mode) async {
     if (_initialized) {
@@ -143,9 +152,10 @@ class Storage {
     late Directory archiveDir;
     late Directory activeShowDir;
     late Directory showExportDir;
+    late Directory backupDir;
 
     try {
-      // Create the archive and activeShowDir first, these are the parents of all following directories.
+      // Create the first level of directories, these are the parents of all following directories.
       await Future.wait([
         // Active Show Directory.
         () async {
@@ -158,6 +168,12 @@ class Storage {
         () async {
           archiveDir =
               await Directory(p.join(rootDir.path, _archiveDirName)).create();
+        }(),
+
+        // Backup directory.
+        () async {
+          backupDir =
+              await Directory(p.join(rootDir.path, _backupDirName)).create();
         }(),
 
         // Show Export Directory.
@@ -176,10 +192,10 @@ class Storage {
     }
 
     // Create the remaining sub directories.
-    Directory? headshots;
-    Directory? backgrounds;
-    Directory? fontsDir;
-    Directory? imagesDir;
+    late Directory headshots;
+    late Directory backgrounds;
+    late Directory fontsDir;
+    late Directory imagesDir;
 
     try {
       await Future.wait([
@@ -221,16 +237,41 @@ class Storage {
       rootDir: rootDir,
       activeShowDir: activeShowDir,
       archiveDir: archiveDir,
+      backupDir: backupDir,
       showExportDir: showExportDir,
-      headshots: headshots!,
-      backgrounds: backgrounds!,
-      fontsDir: fontsDir!,
-      imagesDir: imagesDir!,
+      headshots: headshots,
+      backgrounds: backgrounds,
+      fontsDir: fontsDir,
+      imagesDir: imagesDir,
     );
     _initialized = true;
 
     LoggingManager.instance.storage
         .info("Storage initialization completed succesfully");
+  }
+
+  File getBackupFile() {
+    return File(p.join(_backupDir.path, _backupShowFileName));
+  }
+
+  File getBackupStatusFile() {
+    return File(p.join(_backupDir.path, _backupStatusFileName));
+  }
+
+  Future<ManifestModel?> getBackupFileManifest() async {
+    final backupFile = getBackupFile();
+
+    if (await backupFile.exists() == false) {
+      return null;
+    }
+
+    final byteData = await backupFile.readAsBytes();
+    final validateShowfileResult =
+        await validateShowfile(byteData, kMaxAllowedFileVersion);
+
+    if (validateShowfileResult.isValid == false) return null;
+
+    return validateShowfileResult.manifest;
   }
 
   Future<File> addFont(String uid, String path) async {
@@ -978,7 +1019,8 @@ class Storage {
 
     // File is Valid.
     if (computedResult.isValid) {
-      return ShowfileValidationResult(true, true);
+      return ShowfileValidationResult(true, true,
+          manifest: computedResult.manifest);
     }
 
     // File is incompatiable version.

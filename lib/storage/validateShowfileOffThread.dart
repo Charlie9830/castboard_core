@@ -81,7 +81,9 @@ ShowfileValidationWorkerResult validateShowFileWorker(
         'Manifest file version is greater then Maximum allowed file version.');
   }
 
-  return ShowfileValidationWorkerResult(true, ShowfileValidationFailReason.none, '');
+  return ShowfileValidationWorkerResult(
+      true, ShowfileValidationFailReason.none, '',
+      manifest: manifest);
 }
 
 enum ShowfileValidationFailReason {
@@ -96,8 +98,10 @@ class ShowfileValidationWorkerResult {
   final bool isValid;
   final ShowfileValidationFailReason reason;
   final String message;
+  final ManifestModel? manifest;
 
-  ShowfileValidationWorkerResult(this.isValid, this.reason, this.message);
+  ShowfileValidationWorkerResult(this.isValid, this.reason, this.message,
+      {this.manifest});
 }
 
 class ShowfileValidationWorkerArgs {

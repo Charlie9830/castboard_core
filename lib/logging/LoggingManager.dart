@@ -214,10 +214,11 @@ class LoggingManager {
   }
 
   static Future<Directory> _getLogsDirectory(String directoryName) async {
-    final docsDir = await getApplicationsDocumentDirectoryShim();
+    final docsDir = await getApplicationsSupportDirectoryShim();
     final logsDir = await Directory(p.join(
       docsDir.path,
       directoryName,
+      'runtime_logs'
     )).create();
 
     return logsDir;

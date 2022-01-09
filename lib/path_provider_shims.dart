@@ -11,7 +11,15 @@ Future<Directory> getApplicationsDocumentDirectoryShim() async {
   return pathProvider.getApplicationDocumentsDirectory();
 }
 
-Future<Directory> getApplicationsSupportDirectoryShim() async {
+Future<Directory> getApplicationSupportDirectoryShim() async {
+  if (Environment.isElinux) {
+    return Directory(Environment.eLinuxHomePath);
+  }
+
+  return pathProvider.getApplicationSupportDirectory();
+}
+
+Future<Directory> getLibraryDirectoryShim() async {
   if (Environment.isElinux) {
     return Directory(Environment.eLinuxHomePath);
   }

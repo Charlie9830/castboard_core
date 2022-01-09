@@ -43,7 +43,6 @@ class LoggingManager {
     required IOSink logFileSink,
     required bool runAsRelease,
   }) {
-    print('Logging Manager Constructing');
     _logsDir = logsDir;
     _logFile = logFile;
     _logFileSink = logFileSink;
@@ -214,12 +213,13 @@ class LoggingManager {
   }
 
   static Future<Directory> _getLogsDirectory(String directoryName) async {
-    final docsDir = await getApplicationsSupportDirectoryShim();
-    final logsDir = await Directory(p.join(
-      docsDir.path,
-      directoryName,
-      'runtime_logs'
-    )).create();
+    final docsDir = Platform.isMacOS
+        ? await getLibraryDirectoryShim()
+        : await getApplicationSupportDirectoryShim();
+
+    final logsDir =
+        await Directory(p.join(docsDir.path, directoryName, 'runtime_logs/'))
+            .create(recursive: true);
 
     return logsDir;
   }

@@ -18,7 +18,7 @@ const double _gridSnapDeadZoneRatio = 0.5;
 typedef void OnSelectedElementsChangedCallback(Set<String> selectedElements);
 typedef void OnElementsChangedCallback(
     Map<String, LayoutBlock> changedElements);
-typedef void OnPlaceCallback(double? xPos, double? yPos);
+typedef void OnPlaceCallback(double xPos, double yPos);
 typedef void OnElementDoubleClickedCallback(String elementId);
 
 class LayoutCanvas extends StatefulWidget {

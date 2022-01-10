@@ -71,11 +71,16 @@ class _SearchDropdownState extends State<SearchDropdown> {
     final offset = renderBox.localToGlobal(Offset.zero);
     final screenHeight = MediaQuery.of(context).size.height;
 
+    const minimumHeight = 200.0;
+
     _entry = OverlayEntry(builder: (overlayContext) {
       return Positioned(
           left: offset.dx,
-          top: offset.dy,
-          bottom: 0,
+          top: _ensureFit(
+              minimumHeight: minimumHeight,
+              screenHeight: screenHeight,
+              topOffset: offset.dy),
+          bottom: 16, // Padding
           child: _SearchDropdownContent(
             value: selectedItem,
             items: widget.itemsBuilder.call(context),
@@ -111,6 +116,21 @@ class _SearchDropdownState extends State<SearchDropdown> {
       _entry = null;
       _backdrop = null;
     }
+  }
+
+  double _ensureFit({
+    required double minimumHeight,
+    required double screenHeight,
+    required double topOffset,
+  }) {
+    final renderedHeight = screenHeight - topOffset;
+
+    if (renderedHeight < minimumHeight) {
+      // Popup isn't going to comfortably fit.
+      return topOffset - minimumHeight > 0 ? topOffset - minimumHeight : 0;
+    }
+
+    return topOffset;
   }
 
   @override
@@ -202,7 +222,9 @@ class __SearchDropdownContentState extends State<_SearchDropdownContent> {
             constraints: BoxConstraints(minHeight: 36, maxHeight: 48),
             key: ValueKey(item.value),
             child: Container(
-              padding: EdgeInsets.only(left: 8),
+              padding: isMobile(context)
+                  ? const EdgeInsets.only(left: 8)
+                  : EdgeInsets.zero,
               color: _highlightedItem?.value == item.value
                   ? Theme.of(context).highlightColor
                   : null,
@@ -400,10 +422,11 @@ class _AdaptiveContentLayout extends StatelessWidget {
         width: 400,
         child: Material(
             color: Theme.of(context).colorScheme.surface,
+            elevation: 16,
             child: Column(
               children: [
                 Padding(
-                  padding: EdgeInsets.only(left: 8, top: 8, right: 8),
+                  padding: EdgeInsets.only(left: 8, top: 8, right: 8,),
                   child: searchField,
                 ),
                 Expanded(child: listView)

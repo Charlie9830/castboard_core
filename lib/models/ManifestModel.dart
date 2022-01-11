@@ -8,7 +8,7 @@ class ManifestModel {
   // some other random json file.
   final String
       showId; // showId is only set when a show is saved for the first time. We will likely use it to assist
-  //  with on Player device preset mergers.
+  //  with on Performer device preset mergers.
   final String fileName;
   final String created;
   final String modified;

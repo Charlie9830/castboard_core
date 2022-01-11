@@ -57,11 +57,13 @@ class _SearchDropdownState extends State<SearchDropdown> {
       BuildContext context, SearchDropdownItem? selectedItem) async {
     await showModalBottomSheet(
         enableDrag: false,
+        isScrollControlled: true,
         context: context,
         builder: (_) => _SearchDropdownContent(
               value: selectedItem,
               items: widget.itemsBuilder(context),
               onChanged: _handleValueChanged,
+              onCloseButtonPressed: () => _handleClose(),
             ));
   }
 
@@ -146,12 +148,14 @@ class _SearchDropdownContent extends StatefulWidget {
   final List<SearchDropdownItem> items;
   final SearchDropdownItem? value;
   final void Function(dynamic value) onChanged;
+  final void Function()? onCloseButtonPressed;
 
   _SearchDropdownContent({
     Key? key,
     required this.value,
     required this.items,
     required this.onChanged,
+    this.onCloseButtonPressed,
   }) : super(key: key);
 
   @override
@@ -200,43 +204,49 @@ class __SearchDropdownContentState extends State<_SearchDropdownContent> {
 
   @override
   Widget build(BuildContext context) {
-    return _withKeyboardListener(
-        child: _AdaptiveContentLayout(
-      searchField: TextField(
-        controller: _controller,
-        focusNode: _textFieldFocusNode,
-        decoration: InputDecoration(
-          suffixIcon: Icon(Icons.search),
-          border: OutlineInputBorder(
-            borderSide: BorderSide(),
-          ),
-        ),
-        onEditingComplete: isMobile(context) ? () => _handleEnterPress() : null,
-      ),
-      listView: ListView.builder(
-        reverse: isMobile(context) ? true : false,
-        itemCount: _options.length,
-        itemBuilder: (context, index) {
-          final item = _options[index];
-          return ConstrainedBox(
-            constraints: BoxConstraints(minHeight: 36, maxHeight: 48),
-            key: ValueKey(item.value),
-            child: Container(
-              padding: isMobile(context)
-                  ? const EdgeInsets.only(left: 8)
-                  : EdgeInsets.zero,
-              color: _highlightedItem?.value == item.value
-                  ? Theme.of(context).highlightColor
-                  : null,
-              child: ListTile(
-                title: item.child,
-                onTap: () => widget.onChanged(item.value),
-              ),
+    return Padding(
+      padding:
+          EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+      child: _withKeyboardListener(
+          child: _AdaptiveContentLayout(
+        onDialogCloseButtonPressed: widget.onCloseButtonPressed,
+        searchField: TextField(
+          controller: _controller,
+          focusNode: _textFieldFocusNode,
+          decoration: InputDecoration(
+            suffixIcon: Icon(Icons.search),
+            border: OutlineInputBorder(
+              borderSide: BorderSide(),
             ),
-          );
-        },
-      ),
-    ));
+          ),
+          onEditingComplete:
+              isMobile(context) ? () => _handleEnterPress() : null,
+        ),
+        listView: ListView.builder(
+          reverse: isMobile(context) ? true : false,
+          itemCount: _options.length,
+          itemBuilder: (context, index) {
+            final item = _options[index];
+            return ConstrainedBox(
+              constraints: BoxConstraints(minHeight: 36, maxHeight: 48),
+              key: ValueKey(item.value),
+              child: Container(
+                padding: isMobile(context)
+                    ? const EdgeInsets.only(left: 8)
+                    : EdgeInsets.zero,
+                color: _highlightedItem?.value == item.value
+                    ? Theme.of(context).highlightColor
+                    : null,
+                child: ListTile(
+                  title: item.child,
+                  onTap: () => widget.onChanged(item.value),
+                ),
+              ),
+            );
+          },
+        ),
+      )),
+    );
   }
 
   Widget _withKeyboardListener({required Widget child}) {
@@ -392,10 +402,14 @@ class SearchDropdownItem {
 class _AdaptiveContentLayout extends StatelessWidget {
   final Widget listView;
   final Widget searchField;
+  final void Function()? onDialogCloseButtonPressed;
 
-  const _AdaptiveContentLayout(
-      {Key? key, required this.listView, required this.searchField})
-      : super(key: key);
+  const _AdaptiveContentLayout({
+    Key? key,
+    required this.listView,
+    required this.searchField,
+    this.onDialogCloseButtonPressed,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -405,9 +419,12 @@ class _AdaptiveContentLayout extends StatelessWidget {
         child: Material(
             color: Theme.of(context).colorScheme.surface,
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Padding(
-                    padding: EdgeInsets.all(8), child: Text('Select Artist')),
+                _DialogTitle(
+                  showCloseButton: isMobile(context),
+                  onCloseButtonPressed: onDialogCloseButtonPressed,
+                ),
                 Expanded(child: listView),
                 Padding(
                   padding: EdgeInsets.only(left: 8, top: 8, right: 8),
@@ -426,7 +443,11 @@ class _AdaptiveContentLayout extends StatelessWidget {
             child: Column(
               children: [
                 Padding(
-                  padding: EdgeInsets.only(left: 8, top: 8, right: 8,),
+                  padding: EdgeInsets.only(
+                    left: 8,
+                    top: 8,
+                    right: 8,
+                  ),
                   child: searchField,
                 ),
                 Expanded(child: listView)
@@ -434,5 +455,42 @@ class _AdaptiveContentLayout extends StatelessWidget {
             )),
       );
     }
+  }
+}
+
+class _DialogTitle extends StatelessWidget {
+  final bool showCloseButton;
+  final void Function()? onCloseButtonPressed;
+  const _DialogTitle({
+    Key? key,
+    required this.showCloseButton,
+    this.onCloseButtonPressed,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final title =
+        Padding(padding: EdgeInsets.all(8), child: Text('Select Artist'));
+
+    if (showCloseButton) {
+      // Wrap [title] with a stack to position the 'Close' button next to it.
+      return Stack(
+        alignment: Alignment.center,
+        children: [
+          Padding(padding: EdgeInsets.only(top: 12), child: title),
+          Positioned(
+            top: 8,
+            left: 8,
+            child: IconButton(
+              icon: Icon(Icons.close),
+              onPressed: () => onCloseButtonPressed?.call(),
+            ),
+          ),
+        ],
+      );
+    }
+
+    // Otherwise just return the title as is.
+    return title;
   }
 }

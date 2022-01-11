@@ -42,9 +42,8 @@ import 'package:archive/archive.dart';
 import 'package:archive/archive_io.dart';
 
 // Storage root names
-const editorStorageRootDirName = "com.charliehall.castboard-editor";
-const playerStorageRootDirName =
-    "com.charliehall.castboard_player"; // TODO: Why is this underscored but editor is hyphened?
+const editorStorageRootDirName = "com.charliehall.castboard-designer";
+const playerStorageRootDirName = "com.charliehall.castboard-performer";
 const _archiveDirName = 'archive';
 const _activeShowDirName = 'active';
 const _showExportDirName = 'showExport';

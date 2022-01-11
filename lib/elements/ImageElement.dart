@@ -11,6 +11,6 @@ class ImageElement extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(alignment: Alignment.center, child: Image.file(file!));
+    return Container(child: Image.file(file!, fit: BoxFit.contain));
   }
 }

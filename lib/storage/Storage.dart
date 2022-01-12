@@ -42,9 +42,8 @@ import 'package:archive/archive.dart';
 import 'package:archive/archive_io.dart';
 
 // Storage root names
-const editorStorageRootDirName = "com.charliehall.castboard-editor";
-const playerStorageRootDirName =
-    "com.charliehall.castboard_player"; // TODO: Why is this underscored but editor is hyphened?
+const editorStorageRootDirName = "com.charliehall.castboard-designer";
+const performerStorageRootDirName = "com.charliehall.castboard-performer";
 const _archiveDirName = 'archive';
 const _activeShowDirName = 'active';
 const _showExportDirName = 'showExport';
@@ -67,7 +66,7 @@ const _backupStatusFileName = 'status';
 
 enum StorageMode {
   editor,
-  player,
+  performer,
 }
 
 class Storage {
@@ -125,7 +124,7 @@ class Storage {
     }
 
     // Create a the root storage directory. Use the correct App name based on if we are running inside the editor or the
-    // player.
+    // performer.
     late Directory rootDir;
     try {
       rootDir = mode == StorageMode.editor
@@ -134,7 +133,7 @@ class Storage {
               .create()
           : await Directory(p.join(
                   (await getApplicationsDocumentDirectoryShim()).path,
-                  playerStorageRootDirName))
+                  performerStorageRootDirName))
               .create();
     } catch (e, stacktrace) {
       LoggingManager.instance.storage.severe(
@@ -434,8 +433,8 @@ class Storage {
     );
   }
 
-  /// Checks that a showfile Manifest file exists and it is not empty is the player storage directory (Not the Archive directory)
-  Future<bool> isPlayerStoragePopulated() async {
+  /// Checks that a showfile Manifest file exists and it is not empty is the Performer storage directory (Not the Archive directory)
+  Future<bool> isPerformerStoragePopulated() async {
     final manifestFile = File(p.join(_activeShowDir.path, _manifestFileName));
     return await manifestFile.exists() &&
         (await manifestFile.readAsString()).isNotEmpty;
@@ -443,11 +442,11 @@ class Storage {
     // TODO: This should also validate the manifest.
   }
 
-  Future<bool> updatePlayerShowData({
+  Future<bool> updatePerformerShowData({
     required ShowDataModel showData,
     required PlaybackStateData playbackState,
   }) async {
-    LoggingManager.instance.storage.info("Updating player show data");
+    LoggingManager.instance.storage.info("Updating Performer show data");
 
     final showDataFile = File(p.join(_activeShowDir.path, _showDataFileName));
     final playbackStateFile =
@@ -463,7 +462,7 @@ class Storage {
       return true;
     } catch (e) {
       LoggingManager.instance.storage.severe(
-          "Something went wrong whilst during a call to updatePlayerShowData, \n ${e.toString()}");
+          "Something went wrong whilst during a call to updatePerformerShowData, \n ${e.toString()}");
       return false;
     }
   }

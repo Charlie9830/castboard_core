@@ -367,7 +367,7 @@ class _Closed extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          concreteChild,
+          Expanded(child: concreteChild),
           if (enabled) Icon(Icons.arrow_drop_down, color: Colors.grey),
         ],
       ),

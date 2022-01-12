@@ -54,32 +54,41 @@ class CastChangeDetails extends StatelessWidget {
           key: Key(track.ref.uid),
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(track.internalTitle,
-                style: Theme.of(context).textTheme.bodyText2),
-            Row(
-              children: [
-                if (_fromLiveEdit(track.ref.uid, assignments) == true)
-                  TextButton(
-                    child: Text('Reset'),
-                    onPressed: () => onResetLiveEdit?.call(track.ref),
-                  ),
-                if (_fromNestedPreset(track.ref.uid, assignments) == true)
-                  Row(
-                    children: [
-                      Text(
-                          'From ${_lookupSourcePresetName(track.ref.uid, assignments)}',
-                          overflow: TextOverflow.ellipsis,
-                          style: Theme.of(context).textTheme.caption),
-                      SizedBox(width: 24),
-                    ],
-                  ),
-                Container(
-                  constraints: BoxConstraints.loose(Size.fromWidth(150)),
-                  child:
-                      _buildDropdownButton(allowNestedEditing, track, context),
+            // Track Title
+            Expanded(
+              child: Text(track.internalTitle,
+                  overflow: TextOverflow.ellipsis,
+                  softWrap: false,
+                  style: Theme.of(context).textTheme.bodyText2),
+            ),
+
+            // Source Nested Preset Indicator.
+            if (_fromNestedPreset(track.ref.uid, assignments) == true)
+              Tooltip(
+                  message: _lookupSourcePresetName(track.ref.uid, assignments),
+                  waitDuration: Duration(milliseconds: 250),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                    child: Icon(Icons.call_merge,
+                        color: Theme.of(context).disabledColor),
+                  )),
+
+            // Live Edit Reset Button
+            if (_fromLiveEdit(track.ref.uid, assignments) == true)
+              TextButton(
+                child: Text('Reset'),
+                onPressed: () => onResetLiveEdit?.call(track.ref),
+              ),
+
+            // Artist Selector
+            Container(
+              constraints: BoxConstraints.loose(Size.fromWidth(150)),
+              child: _buildDropdownButton(
+                allowNestedEditing,
+                track,
+                context,
                 ),
-              ],
-            )
+            ),
           ],
         );
       },
@@ -127,7 +136,10 @@ class CastChangeDetails extends StatelessWidget {
     return SearchDropdownItem(
       keyword: actor.name,
       value: actor.ref,
-      child: Text(actor.name),
+      child: Text(
+        actor.name,
+        overflow: TextOverflow.ellipsis,
+      ),
     );
   }
 
@@ -179,6 +191,7 @@ class CastChangeDetails extends StatelessWidget {
         .map((actor) => SearchDropdownItem(
               keyword: actor.name,
               child: Text(actor.name,
+                  overflow: TextOverflow.ellipsis,
                   style: Theme.of(context).textTheme.bodyText2),
               value: actor.ref,
             ))

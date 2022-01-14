@@ -3,6 +3,7 @@ import 'package:castboard_core/models/ActorRef.dart';
 import 'package:castboard_core/models/TrackModel.dart';
 import 'package:castboard_core/models/TrackRef.dart';
 import 'package:castboard_core/widgets/SearchDropdown.dart';
+import 'package:castboard_core/widgets/cast-change-details/NoTracksOrArtistsFallback.dart';
 import 'package:flutter/material.dart';
 
 class ActorTuple {
@@ -45,6 +46,11 @@ class CastChangeDetails extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (tracks.isEmpty && actors.isEmpty) {
+      return NoTracksOrArtistsFallback();
+    }
+
+
     return ListView.builder(
       shrinkWrap: !selfScrolling,
       itemCount: tracks.length,

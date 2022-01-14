@@ -1,12 +1,7 @@
+import 'package:castboard_core/utils/isMobile.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-
-final isMobile = (BuildContext context) {
-  return kIsWeb ||
-      Theme.of(context).platform == TargetPlatform.iOS ||
-      Theme.of(context).platform == TargetPlatform.android;
-};
 
 class SearchDropdown extends StatefulWidget {
   final List<SearchDropdownItem> Function(BuildContext context) itemsBuilder;

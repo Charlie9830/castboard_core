@@ -25,7 +25,7 @@ class SlideModel {
     this.backgroundFileName = '',
     this.backgroundColor = Colors.white,
     this.usePreviousBackground = false,
-    this.holdTime = 1,
+    this.holdTime = 5,
     this.elements = const {},
   });
 

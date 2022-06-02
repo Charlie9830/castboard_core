@@ -192,7 +192,15 @@ class __SearchDropdownContentState extends State<_SearchDropdownContent> {
     _highlightedItem = widget.value;
 
     _keyListenerFocusNode = FocusNode();
-    _textFieldFocusNode = FocusNode()..requestFocus();
+
+    _textFieldFocusNode = FocusNode();
+
+    // Don't autofocus the searchfield on Mobile. This is due to a bug when running on iOS, opening the keyboard more then 3 times seems to 
+    // case Safari to incorrectly report the Keyboard open property. Therefore when opening from the 4th attempt onwards, Flutter adds far to much
+    // padding to the bottom of the list, as if it's accounting for two keyboards stacked ontop of eachother.
+    if (isMobile(context) == false) {
+      _textFieldFocusNode.requestFocus();
+    }
 
     super.initState();
   }
@@ -331,6 +339,14 @@ class __SearchDropdownContentState extends State<_SearchDropdownContent> {
         .where((item) =>
             item.keyword.toLowerCase().contains(searchTerm.toLowerCase()))
         .toList();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    _keyListenerFocusNode.dispose();
+    _textFieldFocusNode.dispose();
+    super.dispose();
   }
 }
 

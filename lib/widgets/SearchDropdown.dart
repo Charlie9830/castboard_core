@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 
 class SearchDropdown extends StatefulWidget {
   final List<SearchDropdownItem> Function(BuildContext context) itemsBuilder;
+  
   final SearchDropdownItem? Function(BuildContext context) selectedItemBuilder;
   final bool enabled;
   final void Function(dynamic value) onChanged;

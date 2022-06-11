@@ -247,7 +247,9 @@ class __SearchDropdownContentState extends State<_SearchDropdownContent> {
                     : null,
                 child: ListTile(
                   title: item.child,
-                  onTap: () => widget.onChanged(item.value),
+                  onTap: item.interactive
+                      ? () => widget.onChanged(item.value)
+                      : null,
                 ),
               ),
             );

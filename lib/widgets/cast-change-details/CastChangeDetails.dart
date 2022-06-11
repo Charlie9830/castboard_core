@@ -24,6 +24,7 @@ class CastChangeDetails extends StatelessWidget {
   final bool selfScrolling;
   final bool allowNestedEditing;
   final Map<String, ActorTuple> assignments;
+  final Map<String, List<ActorRef>> categorizedActorRefs;
   final List<TrackModel> tracks;
   final Map<TrackRef, TrackModel> tracksByRef;
   final List<ActorModel> actors;
@@ -39,6 +40,7 @@ class CastChangeDetails extends StatelessWidget {
     this.tracks = const <TrackModel>[],
     required this.tracksByRef,
     this.actors = const <ActorModel>[],
+    this.categorizedActorRefs = const {},
     required this.actorsByRef,
     this.onAssignmentUpdated,
     this.onResetLiveEdit,
@@ -49,7 +51,6 @@ class CastChangeDetails extends StatelessWidget {
     if (tracks.isEmpty && actors.isEmpty) {
       return NoTracksOrArtistsFallback();
     }
-
 
     return ListView.builder(
       shrinkWrap: !selfScrolling,
@@ -93,7 +94,7 @@ class CastChangeDetails extends StatelessWidget {
                 allowNestedEditing,
                 track,
                 context,
-                ),
+              ),
             ),
           ],
         );
@@ -193,15 +194,49 @@ class CastChangeDetails extends StatelessWidget {
   }
 
   List<SearchDropdownItem> _mapActorOptions(BuildContext context) {
-    return actors
-        .map((actor) => SearchDropdownItem(
-              keyword: actor.name,
-              child: Text(actor.name,
-                  overflow: TextOverflow.ellipsis,
-                  style: Theme.of(context).textTheme.bodyText2),
-              value: actor.ref,
-            ))
-        .toList();
+    return categorizedActorRefs.entries.fold(
+        <SearchDropdownItem>[],
+        (existing, entry) => existing
+          ..addAll([
+            _buildCategoryTitleSearchDropdownItem(context, entry.key),
+            ...entry.value
+                .map((ref) =>
+                    _buildActorSearchDropdownItem(context, actorsByRef[ref]!))
+                .toList()
+          ]));
+
+    // return actors
+    //     .map((actor) => SearchDropdownItem(
+    //           keyword: actor.name,
+    //           child: Text(actor.name,
+    //               overflow: TextOverflow.ellipsis,
+    //               style: Theme.of(context).textTheme.bodyText2),
+    //           value: actor.ref,
+    //         ))
+    //     .toList();
+  }
+
+  SearchDropdownItem _buildActorSearchDropdownItem(
+      BuildContext context, ActorModel actor) {
+    return SearchDropdownItem(
+      keyword: actor.name,
+      child: Text(actor.name,
+          overflow: TextOverflow.ellipsis,
+          style: Theme.of(context).textTheme.bodyText2),
+      value: actor.ref,
+    );
+  }
+
+  SearchDropdownItem _buildCategoryTitleSearchDropdownItem(
+      BuildContext context, String title) {
+    return SearchDropdownItem(
+        child: Text(
+          title,
+          style: Theme.of(context).textTheme.caption,
+        ),
+        interactive: false,
+        keyword: '',
+        value: '');
   }
 
   ActorRef? _lookupValue(String? trackId, Map<String, ActorTuple> assignments) {

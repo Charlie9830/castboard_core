@@ -401,11 +401,13 @@ class _Hint extends StatelessWidget {
 class SearchDropdownItem {
   final String keyword;
   final Widget child;
+  final bool interactive;
   final dynamic value;
 
   SearchDropdownItem({
     required this.keyword,
     required this.child,
+    this.interactive = true,
     required this.value,
   });
 }

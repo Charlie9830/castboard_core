@@ -111,30 +111,19 @@ class CastChangeDetails extends StatelessWidget {
           _fromNestedPreset(track.ref.uid, assignments) == false,
       onChanged: (actorRef) =>
           onAssignmentUpdated?.call(track.ref, actorRef ?? ActorRef.blank()),
-      specialOptionsBuilder: isMobile(context)
-          ? (context, selectedItem, onSelectValue) => Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Row(
-                  children: [
-                    OutlinedButton(
-                        child: _TrackCutOption(),
-                        onPressed: () => onSelectValue(ActorRef.cut())),
-                    SizedBox(width: 8),
-                    OutlinedButton(
-                      child: _UnassignedOption(),
-                      onPressed: () => onSelectValue(ActorRef.unassigned()),
-                    )
-                  ],
-                ),
-              )
-          : null,
       itemsBuilder: (context) {
+        final onMobile = isMobile(context);
+        final onDesktop = !onMobile;
+
+        final specialOptions = [
+          _buildUnassignedOption(context),
+          _buildTrackCutOption(context),
+        ];
+
         return [
-          if (!isMobile(context)) ...[
-            _buildUnassignedOption(context),
-            _buildTrackCutOption(context),
-          ],
+          if (onMobile) ...specialOptions,
           ..._mapActorOptions(context),
+          if (onDesktop) ...specialOptions
         ];
       },
     );
@@ -172,13 +161,43 @@ class CastChangeDetails extends StatelessWidget {
 
   SearchDropdownItem _buildTrackCutOption(BuildContext context) {
     return SearchDropdownItem(
-        keyword: 'Track Cut', child: _TrackCutOption(), value: ActorRef.cut());
+        keyword: 'Track Cut',
+        child: Row(
+          children: [
+            Icon(
+              Icons.content_cut,
+              size: 16,
+              color: Theme.of(context).colorScheme.secondary,
+            ),
+            SizedBox(width: 8),
+            Text('Track Cut',
+                style: Theme.of(context)
+                    .textTheme
+                    .bodyText2!
+                    .copyWith(color: Theme.of(context).colorScheme.secondary)),
+          ],
+        ),
+        value: ActorRef.cut());
   }
 
   SearchDropdownItem _buildUnassignedOption(BuildContext context) {
     return SearchDropdownItem(
       keyword: 'Unassigned',
-      child: _UnassignedOption(),
+      child: Row(
+        children: [
+          Icon(
+            Icons.person_off,
+            size: 16,
+            color: Theme.of(context).colorScheme.secondary,
+          ),
+          SizedBox(width: 8),
+          Text('Unassigned',
+              style: Theme.of(context)
+                  .textTheme
+                  .bodyText2!
+                  .copyWith(color: Theme.of(context).colorScheme.secondary)),
+        ],
+      ),
       value: ActorRef.unassigned(),
     );
   }
@@ -195,15 +214,25 @@ class CastChangeDetails extends StatelessWidget {
     }
 
     // Otherwise build with Category titles embedded.
-    return categorizedActorRefs.entries.fold(<SearchDropdownItem>[],
-        (existing, entry) {
+    final onMobile = isMobile(context);
+    final onDesktop = !onMobile;
+
+    final entries = onMobile
+        ? categorizedActorRefs.entries.toList().reversed
+        : categorizedActorRefs.entries;
+
+    return entries.fold(<SearchDropdownItem>[], (existing, entry) {
+      final title = _buildCategoryTitleSearchDropdownItem(context, entry.key);
+      final refs = onMobile ? entry.value.reversed : entry.value;
+
       return existing
         ..addAll([
-          _buildCategoryTitleSearchDropdownItem(context, entry.key),
-          ...entry.value
+          if (onDesktop) title,
+          ...refs
               .map((ref) =>
                   _buildActorSearchDropdownItem(context, actorsByRef[ref]!))
               .toList(),
+          if (onMobile) title,
         ]);
     });
   }
@@ -261,55 +290,5 @@ class CastChangeDetails extends StatelessWidget {
   String _lookupSourcePresetName(
       String? trackId, Map<String, ActorTuple> assignments) {
     return assignments[trackId]?.sourcePresetName ?? '';
-  }
-}
-
-class _TrackCutOption extends StatelessWidget {
-  const _TrackCutOption({
-    Key? key,
-  }) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Icon(
-          Icons.content_cut,
-          size: 16,
-          color: Theme.of(context).colorScheme.secondary,
-        ),
-        SizedBox(width: 8),
-        Text('Track Cut',
-            style: Theme.of(context)
-                .textTheme
-                .bodyText2!
-                .copyWith(color: Theme.of(context).colorScheme.secondary)),
-      ],
-    );
-  }
-}
-
-class _UnassignedOption extends StatelessWidget {
-  const _UnassignedOption({
-    Key? key,
-  }) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Icon(
-          Icons.person_off,
-          size: 16,
-          color: Theme.of(context).colorScheme.secondary,
-        ),
-        SizedBox(width: 8),
-        Text('Unassigned',
-            style: Theme.of(context)
-                .textTheme
-                .bodyText2!
-                .copyWith(color: Theme.of(context).colorScheme.secondary)),
-      ],
-    );
   }
 }

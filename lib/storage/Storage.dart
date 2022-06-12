@@ -1014,6 +1014,7 @@ class Storage {
         maxFileVersion: maxFileVersion,
         manifestValidationKey: manifestModelValidationKeyValue);
 
+
     // File is Valid.
     if (computedResult.isValid) {
       return ShowfileValidationResult(true, true,
@@ -1025,6 +1026,13 @@ class Storage {
         ShowfileValidationFailReason.incompatiableFileVersion) {
       LoggingManager.instance.storage
           .warning('Rejecting showfile, reason: ${computedResult.message}');
+      return ShowfileValidationResult(false, false);
+    }
+
+    if (computedResult.reason ==
+        ShowfileValidationFailReason.incorrectEncoding) {
+      LoggingManager.instance.storage
+          .warning('Unzipper Rejected showfile, reason: ${computedResult.message}');
       return ShowfileValidationResult(false, false);
     }
 

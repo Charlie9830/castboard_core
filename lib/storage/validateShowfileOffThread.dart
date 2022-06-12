@@ -26,6 +26,7 @@ Future<ShowfileValidationWorkerResult> validateShowfileOffThread({
 ShowfileValidationWorkerResult validateShowFileWorker(
     ShowfileValidationWorkerArgs args) {
   final unzipper = ZipDecoder();
+  // TODO: This will throw an exception if it isn't given a Zip file, eg: it's handed a Jpeg instead.
   final archive = unzipper.decodeBytes(args.byteData);
 
   // Search for the Manifest.

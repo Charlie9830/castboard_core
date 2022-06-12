@@ -1028,13 +1028,6 @@ class Storage {
       return ShowfileValidationResult(false, false);
     }
 
-    if (computedResult.reason ==
-        ShowfileValidationFailReason.incorrectEncoding) {
-      LoggingManager.instance.storage
-          .warning('Unzipper Rejected showfile, reason: ${computedResult.message}');
-      return ShowfileValidationResult(false, false);
-    }
-
     // File is invalid. Could be a number of other reasons.
     LoggingManager.instance.storage
         .warning("Rejecting showfile, reason : ${computedResult.message}");

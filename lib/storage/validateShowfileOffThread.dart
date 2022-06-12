@@ -26,16 +26,8 @@ Future<ShowfileValidationWorkerResult> validateShowfileOffThread({
 ShowfileValidationWorkerResult validateShowFileWorker(
     ShowfileValidationWorkerArgs args) {
   final unzipper = ZipDecoder();
-  late Archive archive;
-
-  try {
-    archive = unzipper.decodeBytes(args.byteData);
-  } catch (e) {
-    return ShowfileValidationWorkerResult(
-        false,
-        ShowfileValidationFailReason.incorrectEncoding,
-        'File encoding does not match that of a Zip file. Exception Message: ${e}');
-  }
+  // TODO: This will throw an exception if it isn't given a Zip file, eg: it's handed a Jpeg instead.
+  final archive = unzipper.decodeBytes(args.byteData);
 
   // Search for the Manifest.
   final manifestEntityHits = archive
@@ -101,7 +93,6 @@ enum ShowfileValidationFailReason {
   manifestInvalid,
   incompatiableFileVersion,
   contentsEmpty,
-  incorrectEncoding,
 }
 
 class ShowfileValidationWorkerResult {

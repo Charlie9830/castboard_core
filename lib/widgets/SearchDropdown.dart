@@ -195,19 +195,14 @@ class __SearchDropdownContentState extends State<_SearchDropdownContent> {
 
     _textFieldFocusNode = FocusNode();
 
-    super.initState();
-  }
-
-  @override
-  void didChangeDependencies() {
-    // Don't autofocus the searchfield on Mobile. This is due to a bug when running on iOS, opening the keyboard more then 3 times seems to
+    // Don't autofocus the searchfield on Mobile. This is due to a bug when running on iOS, opening the keyboard more then 3 times seems to 
     // case Safari to incorrectly report the Keyboard open property. Therefore when opening from the 4th attempt onwards, Flutter adds far to much
     // padding to the bottom of the list, as if it's accounting for two keyboards stacked ontop of eachother.
-    // Also don't call isMobile in initState(), it depends on context which isnt' instantiated in time.
     if (isMobile(context) == false) {
       _textFieldFocusNode.requestFocus();
     }
-    super.didChangeDependencies();
+
+    super.initState();
   }
 
   @override

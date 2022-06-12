@@ -1,1 +1,1 @@
-const int kMaxAllowedFileVersion = 2;
+const int kMaxAllowedFileVersion = 1;

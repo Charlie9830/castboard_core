@@ -204,12 +204,22 @@ class CastChangeDetails extends StatelessWidget {
                     _buildActorSearchDropdownItem(context, actorsByRef[ref]!))
                 .toList()
           ]));
+
+    // return actors
+    //     .map((actor) => SearchDropdownItem(
+    //           keyword: actor.name,
+    //           child: Text(actor.name,
+    //               overflow: TextOverflow.ellipsis,
+    //               style: Theme.of(context).textTheme.bodyText2),
+    //           value: actor.ref,
+    //         ))
+    //     .toList();
   }
 
   SearchDropdownItem _buildActorSearchDropdownItem(
       BuildContext context, ActorModel actor) {
     return SearchDropdownItem(
-      keyword: '${actor.name} ${actor.category}',
+      keyword: actor.name,
       child: Text(actor.name,
           overflow: TextOverflow.ellipsis,
           style: Theme.of(context).textTheme.bodyText2),
@@ -222,10 +232,7 @@ class CastChangeDetails extends StatelessWidget {
     return SearchDropdownItem(
         child: Text(
           title,
-          style: Theme.of(context)
-              .textTheme
-              .subtitle2!
-              .copyWith(color: Colors.grey.shade400),
+          style: Theme.of(context).textTheme.caption,
         ),
         interactive: false,
         keyword: '',

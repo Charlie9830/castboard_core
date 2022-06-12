@@ -52,8 +52,9 @@ class ImportedShowData {
 
     return data._copyWith(
         showData: data.showData.copyWith(
-      actorIndex:
-          data.showData.actors.keys.map((ref) => ActorIndex(ref)).toList(),
+      actorIndex: data.showData.actors.keys.map((ref) {
+        return ActorIndex(ref);
+      }).toList(),
     ));
   }
 

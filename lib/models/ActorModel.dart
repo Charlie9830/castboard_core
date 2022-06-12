@@ -6,7 +6,6 @@ class ActorModel {
   final ActorRef ref;
   final String name;
   final ImageRef headshotRef;
-  final String category;
 
   // Static
   static const String cutTrackId = 'ACTOR-TRACK-CUT';
@@ -17,20 +16,17 @@ class ActorModel {
     required this.ref,
     this.name = '',
     this.headshotRef = const ImageRef.none(),
-    this.category = '',
   });
 
   ActorModel copyWith({
     ActorRef? ref,
     String? name,
     ImageRef? headshotRef,
-    String? category,
   }) {
     return ActorModel(
       ref: ref ?? this.ref,
       name: name ?? this.name,
       headshotRef: headshotRef ?? this.headshotRef,
-      category: category ?? this.category,
     );
   }
 
@@ -39,7 +35,6 @@ class ActorModel {
       'ref': ref.toMap(),
       'name': name,
       'headshotRef': headshotRef.toMap(),
-      'category': category,
     };
   }
 
@@ -48,7 +43,6 @@ class ActorModel {
       ref: ActorRef.fromMap(map['ref']),
       name: map['name'] ?? '',
       headshotRef: ImageRef.fromMap(map['headshotRef']),
-      category: map['category'] ?? '',
     );
   }
 }

@@ -9,7 +9,6 @@ import 'package:castboard_core/models/TrackModel.dart';
 import 'package:castboard_core/models/TrackRef.dart';
 import 'package:castboard_core/models/ShowDataModel.dart';
 import 'package:castboard_core/storage/SlideDataModel.dart';
-import 'package:castboard_core/utils/categorizeActorRefs.dart';
 
 class ImportedShowData {
   final ManifestModel manifest;
@@ -21,9 +20,6 @@ class ImportedShowData {
   final Map<String, PresetModel> presets;
   final PlaybackStateData? playbackState;
 
-  /// Computed from the value of [actors].
-  final Map<String, List<ActorRef>> categorizedActorRefs;
-
   ImportedShowData({
     required this.manifest,
     required this.slides,
@@ -33,5 +29,5 @@ class ImportedShowData {
     required this.actors,
     required this.presets,
     required this.playbackState,
-  }) : categorizedActorRefs = categorizeActorRefs(actors);
+  });
 }

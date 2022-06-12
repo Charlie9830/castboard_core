@@ -2,7 +2,6 @@ import 'package:castboard_core/models/ActorModel.dart';
 import 'package:castboard_core/models/ActorRef.dart';
 import 'package:castboard_core/models/TrackModel.dart';
 import 'package:castboard_core/models/TrackRef.dart';
-import 'package:castboard_core/utils/isMobile.dart';
 import 'package:castboard_core/widgets/SearchDropdown.dart';
 import 'package:castboard_core/widgets/cast-change-details/NoTracksOrArtistsFallback.dart';
 import 'package:flutter/material.dart';
@@ -112,18 +111,10 @@ class CastChangeDetails extends StatelessWidget {
       onChanged: (actorRef) =>
           onAssignmentUpdated?.call(track.ref, actorRef ?? ActorRef.blank()),
       itemsBuilder: (context) {
-        final onMobile = isMobile(context);
-        final onDesktop = !onMobile;
-
-        final specialOptions = [
+        return [
           _buildUnassignedOption(context),
           _buildTrackCutOption(context),
-        ];
-
-        return [
-          if (onMobile) ...specialOptions,
           ..._mapActorOptions(context),
-          if (onDesktop) ...specialOptions
         ];
       },
     );
@@ -203,38 +194,16 @@ class CastChangeDetails extends StatelessWidget {
   }
 
   List<SearchDropdownItem> _mapActorOptions(BuildContext context) {
-    if (categorizedActorRefs.keys.length == 1 &&
-        categorizedActorRefs.keys.first.isEmpty &&
-        categorizedActorRefs.values.isNotEmpty) {
-      // No Categories, don't build any Category Titles.
-      return categorizedActorRefs.values.first
-          .map((ref) =>
-              _buildActorSearchDropdownItem(context, actorsByRef[ref]!))
-          .toList();
-    }
-
-    // Otherwise build with Category titles embedded.
-    final onMobile = isMobile(context);
-    final onDesktop = !onMobile;
-
-    final entries = onMobile
-        ? categorizedActorRefs.entries.toList().reversed
-        : categorizedActorRefs.entries;
-
-    return entries.fold(<SearchDropdownItem>[], (existing, entry) {
-      final title = _buildCategoryTitleSearchDropdownItem(context, entry.key);
-      final refs = onMobile ? entry.value.reversed : entry.value;
-
-      return existing
-        ..addAll([
-          if (onDesktop) title,
-          ...refs
-              .map((ref) =>
-                  _buildActorSearchDropdownItem(context, actorsByRef[ref]!))
-              .toList(),
-          if (onMobile) title,
-        ]);
-    });
+    return categorizedActorRefs.entries.fold(
+        <SearchDropdownItem>[],
+        (existing, entry) => existing
+          ..addAll([
+            _buildCategoryTitleSearchDropdownItem(context, entry.key),
+            ...entry.value
+                .map((ref) =>
+                    _buildActorSearchDropdownItem(context, actorsByRef[ref]!))
+                .toList()
+          ]));
   }
 
   SearchDropdownItem _buildActorSearchDropdownItem(

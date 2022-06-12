@@ -505,13 +505,9 @@ class Storage {
 
     return ImportedShowData(
       manifest: manifest,
-      actors: showData.actors,
-      tracks: showData.tracks,
-      trackRefsByName: showData.trackRefsByName,
-      presets: showData.presets,
+      showData: showData,
+      slideData: slideData,
       playbackState: playbackState,
-      slides: slideData.slides,
-      slideOrientation: slideData.slideOrientation,
     );
   }
 
@@ -628,16 +624,13 @@ class Storage {
     isReading = false;
 
     // TODO: Verification and Coercion. Values or behaviour for ImportedShowData if properties are Null.
+    // TODO: Why are we unpacking the DataModels and repackaging them as ImportedShowData? Why not just pass the Models straight In.
     // -> Coerce a default Preset into existence if not already existing.
     // -> If the Manifest is null, something bad has probalby happened. Should notify the user.
     return ImportedShowData(
       manifest: manifestData,
-      actors: showData.actors,
-      tracks: showData.tracks,
-      trackRefsByName: showData.trackRefsByName,
-      presets: showData.presets,
-      slides: slideData.slides,
-      slideOrientation: slideData.slideOrientation,
+      showData: showData,
+      slideData: slideData,
       playbackState: playbackState,
     );
   }
@@ -1014,7 +1007,6 @@ class Storage {
         maxFileVersion: maxFileVersion,
         manifestValidationKey: manifestModelValidationKeyValue);
 
-
     // File is Valid.
     if (computedResult.isValid) {
       return ShowfileValidationResult(true, true,
@@ -1031,8 +1023,8 @@ class Storage {
 
     if (computedResult.reason ==
         ShowfileValidationFailReason.incorrectEncoding) {
-      LoggingManager.instance.storage
-          .warning('Unzipper Rejected showfile, reason: ${computedResult.message}');
+      LoggingManager.instance.storage.warning(
+          'Unzipper Rejected showfile, reason: ${computedResult.message}');
       return ShowfileValidationResult(false, false);
     }
 

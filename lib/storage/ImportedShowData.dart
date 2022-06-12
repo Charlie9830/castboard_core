@@ -4,30 +4,34 @@ import 'package:castboard_core/models/ActorRef.dart';
 import 'package:castboard_core/models/ManifestModel.dart';
 import 'package:castboard_core/models/PresetModel.dart';
 import 'package:castboard_core/models/RemoteCastChangeData.dart';
+import 'package:castboard_core/models/ShowDataModel.dart';
 import 'package:castboard_core/models/SlideModel.dart';
 import 'package:castboard_core/models/TrackModel.dart';
 import 'package:castboard_core/models/TrackRef.dart';
-import 'package:castboard_core/models/ShowDataModel.dart';
 import 'package:castboard_core/storage/SlideDataModel.dart';
+import 'package:castboard_core/version/fileVersion.dart';
 
 class ImportedShowData {
   final ManifestModel manifest;
-  final Map<String, SlideModel> slides;
-  final SlideOrientation slideOrientation;
-  final Map<TrackRef, TrackModel> tracks;
-  final Map<String, TrackRef> trackRefsByName;
-  final Map<ActorRef, ActorModel> actors;
-  final Map<String, PresetModel> presets;
+  final SlideDataModel slideData;
+  final ShowDataModel showData;
   final PlaybackStateData? playbackState;
 
   ImportedShowData({
     required this.manifest,
-    required this.slides,
-    required this.slideOrientation,
-    required this.tracks,
-    required this.trackRefsByName,
-    required this.actors,
-    required this.presets,
+    required this.slideData,
+    required this.showData,
     required this.playbackState,
   });
+
+  // ImportedShowData ensureMigrated() {
+  //   if (manifest.fileVersion == kMaxAllowedFileVersion) {
+  //     return this;
+  //   }
+  // }
+
+  // ImportedShowData _migrateV1toV2() {
+  //   // ActorIndex.
+  //   if (this.)
+  // }
 }

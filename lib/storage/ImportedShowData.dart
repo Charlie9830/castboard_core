@@ -50,11 +50,15 @@ class ImportedShowData {
       return data;
     }
 
+    /// We have to define our Map function here with an explicit [ActorIndexBase] class return value.
+    /// Otherwise, Dart will implicitly return a List<ActorIndex> list. This will break code in the reducers
+    /// at runtime because we will be adding/inserting elements of a List<ActorIndex> not a List<ActorIndexBase> (The base
+    /// class that ActorIndex and ActorIndexDivider) derive from.
+    ActorIndexBase Function(ActorRef ref) mapper = (ref) => ActorIndex(ref);
+
     return data._copyWith(
         showData: data.showData.copyWith(
-      actorIndex: data.showData.actors.keys.map((ref) {
-        return ActorIndex(ref);
-      }).toList(),
+      actorIndex: data.showData.actors.keys.map(mapper).toList(),
     ));
   }
 

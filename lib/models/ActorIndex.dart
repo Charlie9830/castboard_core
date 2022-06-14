@@ -2,6 +2,11 @@ import 'package:castboard_core/models/ActorModel.dart';
 import 'package:castboard_core/models/ActorOrDividerViewModel.dart';
 import 'package:castboard_core/models/ActorRef.dart';
 
+/// [ActorIndexBase] provides the base class for which [ActorIndex] and [ActorIndexDivider] derive from.
+/// [ActorIndex] and [ActorIndexDivider] are stored in state as a List and represent the position of each
+/// Actor Model and Divider within the collection of Actors. This allows for custom sort orders of Actors and
+/// the associated Dividers.
+
 const String _actorType = 'actor';
 const String _dividerType = 'divider';
 
@@ -12,7 +17,7 @@ abstract class ActorIndexBase {
 
   factory ActorIndexBase.fromMap(Map<String, dynamic> map) {
     final String type = map['type'];
-    
+
     if (type == _actorType) {
       return ActorIndex.fromMap(map);
     } else {

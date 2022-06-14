@@ -208,7 +208,8 @@ class CastChangeDetails extends StatelessWidget {
           final divider = actorVm.divider!;
 
           return SearchDropdownItem(
-              keyword: divider.title,
+              keyword: '',
+              interactive: false,
               child: Text(divider.title,
                   style: Theme.of(context).textTheme.caption),
               value: divider.uid);

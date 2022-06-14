@@ -12,7 +12,7 @@ abstract class ActorIndexBase {
 
   factory ActorIndexBase.fromMap(Map<String, dynamic> map) {
     final String type = map['type'];
-
+    
     if (type == _actorType) {
       return ActorIndex.fromMap(map);
     } else {
@@ -75,7 +75,6 @@ class ActorIndexDivider extends ActorIndexBase {
   ActorIndexDivider(this.uid, this.title) : super(_dividerType);
 
   factory ActorIndexDivider.fromMap(Map<String, dynamic> map) {
-    print('Returning Divider');
     return ActorIndexDivider(
       map['uid'] ?? '',
       map['title'] ?? '',

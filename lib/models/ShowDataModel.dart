@@ -59,7 +59,7 @@ class ShowDataModel {
     final rawPresetsMap = map['presets'] as Map<String, dynamic>;
     final rawActorIndex = map['actorIndex'] == null
         ? const <Map<String, dynamic>>[]
-        : map['actorIndex'] as List<Map<String, dynamic>>;
+        : map['actorIndex'] as List<dynamic>;
 
     return ShowDataModel(
         tracks: Map<TrackRef, TrackModel>.fromEntries(

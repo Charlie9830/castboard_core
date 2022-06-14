@@ -248,7 +248,9 @@ class __SearchDropdownContentState extends State<_SearchDropdownContent> {
                     : null,
                 child: ListTile(
                   title: item.child,
-                  onTap: () => widget.onChanged(item.value),
+                  onTap: item.interactive
+                      ? () => widget.onChanged(item.value)
+                      : null,
                 ),
               ),
             );
@@ -408,11 +410,13 @@ class SearchDropdownItem {
   final String keyword;
   final Widget child;
   final dynamic value;
+  final bool interactive;
 
   SearchDropdownItem({
     required this.keyword,
     required this.child,
     required this.value,
+    this.interactive = true,
   });
 }
 

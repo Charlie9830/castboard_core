@@ -1,4 +1,5 @@
 import 'package:castboard_core/models/ActorModel.dart';
+import 'package:castboard_core/models/ActorOrDividerViewModel.dart';
 import 'package:castboard_core/models/ActorRef.dart';
 import 'package:castboard_core/models/TrackModel.dart';
 import 'package:castboard_core/models/TrackRef.dart';
@@ -26,7 +27,7 @@ class CastChangeDetails extends StatelessWidget {
   final Map<String, ActorTuple> assignments;
   final List<TrackModel> tracks;
   final Map<TrackRef, TrackModel> tracksByRef;
-  final List<ActorModel> actors;
+  final List<ActorOrDividerViewModel> actorViewModels;
   final Map<ActorRef, ActorModel> actorsByRef;
   final void Function(TrackRef track, ActorRef actor)? onAssignmentUpdated;
   final void Function(TrackRef track)? onResetLiveEdit;
@@ -38,7 +39,7 @@ class CastChangeDetails extends StatelessWidget {
     this.allowNestedEditing = false,
     this.tracks = const <TrackModel>[],
     required this.tracksByRef,
-    this.actors = const <ActorModel>[],
+    this.actorViewModels = const <ActorOrDividerViewModel>[],
     required this.actorsByRef,
     this.onAssignmentUpdated,
     this.onResetLiveEdit,
@@ -46,10 +47,9 @@ class CastChangeDetails extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (tracks.isEmpty && actors.isEmpty) {
+    if (tracks.isEmpty && actorViewModels.isEmpty) {
       return NoTracksOrArtistsFallback();
     }
-
 
     return ListView.builder(
       shrinkWrap: !selfScrolling,
@@ -93,7 +93,7 @@ class CastChangeDetails extends StatelessWidget {
                 allowNestedEditing,
                 track,
                 context,
-                ),
+              ),
             ),
           ],
         );
@@ -193,15 +193,27 @@ class CastChangeDetails extends StatelessWidget {
   }
 
   List<SearchDropdownItem> _mapActorOptions(BuildContext context) {
-    return actors
-        .map((actor) => SearchDropdownItem(
-              keyword: actor.name,
-              child: Text(actor.name,
-                  overflow: TextOverflow.ellipsis,
-                  style: Theme.of(context).textTheme.bodyText2),
-              value: actor.ref,
-            ))
-        .toList();
+    return actorViewModels.map((actorVm) {
+      switch (actorVm.type) {
+        case ActorOrDividerViewModelType.actor:
+          final actor = actorVm.actorModel!;
+          return SearchDropdownItem(
+            keyword: actor.name,
+            child: Text(actor.name,
+                overflow: TextOverflow.ellipsis,
+                style: Theme.of(context).textTheme.bodyText2),
+            value: actor.ref,
+          );
+        case ActorOrDividerViewModelType.divider:
+          final divider = actorVm.divider!;
+
+          return SearchDropdownItem(
+              keyword: divider.title,
+              child: Text(divider.title,
+                  style: Theme.of(context).textTheme.caption),
+              value: divider.uid);
+      }
+    }).toList();
   }
 
   ActorRef? _lookupValue(String? trackId, Map<String, ActorTuple> assignments) {

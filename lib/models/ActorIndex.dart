@@ -21,6 +21,22 @@ abstract class ActorIndexBase {
   }
 
   Map<String, dynamic> toMap();
+
+  static List<ActorOrDividerViewModel> toViewModels(
+      Map<ActorRef, ActorModel> actors, List<ActorIndexBase> actorIndex) {
+    return actorIndex.map((item) {
+      if (item is ActorIndex) {
+        return item.toViewModel(actors[item.ref]!);
+      }
+
+      if (item is ActorIndexDivider) {
+        return item.toViewModel();
+      }
+
+      throw UnsupportedError(
+          'ActorIndexBase.toViewModels is missing handling for an ActorIndexBase item of type ${item.runtimeType}.');
+    }).toList();
+  }
 }
 
 class ActorIndex extends ActorIndexBase {

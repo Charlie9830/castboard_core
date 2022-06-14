@@ -508,7 +508,7 @@ class Storage {
       showData: showData,
       slideData: slideData,
       playbackState: playbackState,
-    );
+    ).ensureMigrated();
   }
 
   /// Unzips and loads the provided [bytes] into the active show directory, overwriting what is already there.
@@ -632,7 +632,7 @@ class Storage {
       showData: showData,
       slideData: slideData,
       playbackState: playbackState,
-    );
+    ).ensureMigrated();
   }
 
   Future<void> deleteActiveShow() async {

@@ -22,7 +22,7 @@ class ShowDataModel {
     this.trackRefsByName = const {},
     this.actors = const {},
     this.presets = const {},
-    this.actorIndex = const [],
+    this.actorIndex = const <ActorIndexBase>[],
   });
 
   const ShowDataModel.initial()
@@ -30,7 +30,7 @@ class ShowDataModel {
         trackRefsByName = const {},
         actors = const {},
         presets = const {},
-        this.actorIndex = const [];
+        this.actorIndex = const <ActorIndexBase>[];
 
   Map<String, dynamic> toMap() {
     return <String, dynamic>{

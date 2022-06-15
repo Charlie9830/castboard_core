@@ -5,6 +5,7 @@ import 'dart:convert';
 import 'package:castboard_core/classes/FontRef.dart';
 import 'package:castboard_core/enums.dart';
 import 'package:castboard_core/logging/LoggingManager.dart';
+import 'package:castboard_core/models/ActorIndex.dart';
 import 'package:castboard_core/models/ActorModel.dart';
 import 'package:castboard_core/models/ActorRef.dart';
 import 'package:castboard_core/models/FontModel.dart';
@@ -508,7 +509,7 @@ class Storage {
       showData: showData,
       slideData: slideData,
       playbackState: playbackState,
-    );
+    ).ensureMigrated();
   }
 
   /// Unzips and loads the provided [bytes] into the active show directory, overwriting what is already there.
@@ -612,7 +613,7 @@ class Storage {
         ? ManifestModel()
         : ManifestModel.fromMap(rawManifest);
     final showData = rawShowData == null
-        ? ShowDataModel()
+        ? ShowDataModel.initial()
         : ShowDataModel.fromMap(rawShowData);
     final slideData = rawSlideData == null
         ? SlideDataModel()
@@ -632,7 +633,7 @@ class Storage {
       showData: showData,
       slideData: slideData,
       playbackState: playbackState,
-    );
+    ).ensureMigrated();
   }
 
   Future<void> deleteActiveShow() async {
@@ -776,6 +777,7 @@ class Storage {
   ///
   Future<FileWriteResult> writeCurrentShowToArchive({
     required Map<ActorRef, ActorModel> actors,
+    required List<ActorIndexBase> actorIndex,
     required Map<TrackRef, TrackModel> tracks,
     required Map<String, TrackRef> trackRefsByName,
     required Map<String, PresetModel> presets,
@@ -814,7 +816,8 @@ class Storage {
             slides: slides,
             slideOrientation: slideOrientation,
           )),
-      _stageShowData(stagingDir, tracks, trackRefsByName, actors, presets),
+      _stageShowData(
+          stagingDir, tracks, trackRefsByName, actors, actorIndex, presets),
       _stageFonts(stagingDir, manifest.requiredFonts),
     ]);
 
@@ -882,9 +885,11 @@ class Storage {
       Map<TrackRef, TrackModel> tracks,
       Map<String, TrackRef> trackRefsByName,
       Map<ActorRef, ActorModel> actors,
+      List<ActorIndexBase> actorIndex,
       Map<String, PresetModel> presets) async {
     final data = ShowDataModel(
       actors: actors,
+      actorIndex: actorIndex,
       tracks: tracks,
       trackRefsByName: trackRefsByName,
       presets: presets,

@@ -1,7 +1,9 @@
 import 'package:castboard_core/models/ActorModel.dart';
+import 'package:castboard_core/models/ActorOrDividerViewModel.dart';
 import 'package:castboard_core/models/ActorRef.dart';
 import 'package:castboard_core/models/TrackModel.dart';
 import 'package:castboard_core/models/TrackRef.dart';
+import 'package:castboard_core/utils/isMobile.dart';
 import 'package:castboard_core/widgets/SearchDropdown.dart';
 import 'package:castboard_core/widgets/cast-change-details/NoTracksOrArtistsFallback.dart';
 import 'package:flutter/material.dart';
@@ -26,7 +28,7 @@ class CastChangeDetails extends StatelessWidget {
   final Map<String, ActorTuple> assignments;
   final List<TrackModel> tracks;
   final Map<TrackRef, TrackModel> tracksByRef;
-  final List<ActorModel> actors;
+  final List<ActorOrDividerViewModel> actorViewModels;
   final Map<ActorRef, ActorModel> actorsByRef;
   final void Function(TrackRef track, ActorRef actor)? onAssignmentUpdated;
   final void Function(TrackRef track)? onResetLiveEdit;
@@ -38,7 +40,7 @@ class CastChangeDetails extends StatelessWidget {
     this.allowNestedEditing = false,
     this.tracks = const <TrackModel>[],
     required this.tracksByRef,
-    this.actors = const <ActorModel>[],
+    this.actorViewModels = const <ActorOrDividerViewModel>[],
     required this.actorsByRef,
     this.onAssignmentUpdated,
     this.onResetLiveEdit,
@@ -46,10 +48,9 @@ class CastChangeDetails extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (tracks.isEmpty && actors.isEmpty) {
+    if (tracks.isEmpty && actorViewModels.isEmpty) {
       return NoTracksOrArtistsFallback();
     }
-
 
     return ListView.builder(
       shrinkWrap: !selfScrolling,
@@ -93,7 +94,7 @@ class CastChangeDetails extends StatelessWidget {
                 allowNestedEditing,
                 track,
                 context,
-                ),
+              ),
             ),
           ],
         );
@@ -111,11 +112,31 @@ class CastChangeDetails extends StatelessWidget {
           onAssignmentUpdated?.call(track.ref, actorRef ?? ActorRef.blank()),
       itemsBuilder: (context) {
         return [
-          _buildUnassignedOption(context),
-          _buildTrackCutOption(context),
+          if (isMobile(context) == false) ...<SearchDropdownItem>[
+            _buildUnassignedOption(context),
+            _buildTrackCutOption(context),
+          ],
           ..._mapActorOptions(context),
         ];
       },
+      specialOptionsBuilder: isMobile(context)
+          ? (context, onSelect) {
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 8.0, left: 8.0),
+                child: Row(
+                  children: [
+                    OutlinedButton(
+                        child: _TrackCutOption(),
+                        onPressed: () => onSelect(ActorRef.cut())),
+                    SizedBox(width: 8),
+                    OutlinedButton(
+                        child: _UnassignedOption(),
+                        onPressed: () => onSelect(ActorRef.unassigned()))
+                  ],
+                ),
+              );
+            }
+          : null,
     );
   }
 
@@ -151,57 +172,40 @@ class CastChangeDetails extends StatelessWidget {
 
   SearchDropdownItem _buildTrackCutOption(BuildContext context) {
     return SearchDropdownItem(
-        keyword: 'Track Cut',
-        child: Row(
-          children: [
-            Icon(
-              Icons.content_cut,
-              size: 16,
-              color: Theme.of(context).colorScheme.secondary,
-            ),
-            SizedBox(width: 8),
-            Text('Track Cut',
-                style: Theme.of(context)
-                    .textTheme
-                    .bodyText2!
-                    .copyWith(color: Theme.of(context).colorScheme.secondary)),
-          ],
-        ),
-        value: ActorRef.cut());
+        keyword: 'Track Cut', child: _TrackCutOption(), value: ActorRef.cut());
   }
 
   SearchDropdownItem _buildUnassignedOption(BuildContext context) {
     return SearchDropdownItem(
       keyword: 'Unassigned',
-      child: Row(
-        children: [
-          Icon(
-            Icons.person_off,
-            size: 16,
-            color: Theme.of(context).colorScheme.secondary,
-          ),
-          SizedBox(width: 8),
-          Text('Unassigned',
-              style: Theme.of(context)
-                  .textTheme
-                  .bodyText2!
-                  .copyWith(color: Theme.of(context).colorScheme.secondary)),
-        ],
-      ),
+      child: _UnassignedOption(),
       value: ActorRef.unassigned(),
     );
   }
 
   List<SearchDropdownItem> _mapActorOptions(BuildContext context) {
-    return actors
-        .map((actor) => SearchDropdownItem(
-              keyword: actor.name,
-              child: Text(actor.name,
-                  overflow: TextOverflow.ellipsis,
-                  style: Theme.of(context).textTheme.bodyText2),
-              value: actor.ref,
-            ))
-        .toList();
+    return actorViewModels.map((actorVm) {
+      switch (actorVm.type) {
+        case ActorOrDividerViewModelType.actor:
+          final actor = actorVm.actorModel!;
+          return SearchDropdownItem(
+            keyword: actor.name,
+            child: Text(actor.name,
+                overflow: TextOverflow.ellipsis,
+                style: Theme.of(context).textTheme.bodyText2),
+            value: actor.ref,
+          );
+        case ActorOrDividerViewModelType.divider:
+          final divider = actorVm.divider!;
+
+          return SearchDropdownItem(
+              keyword: '',
+              interactive: false,
+              child: Text(divider.title,
+                  style: Theme.of(context).textTheme.caption),
+              value: divider.uid);
+      }
+    }).toList();
   }
 
   ActorRef? _lookupValue(String? trackId, Map<String, ActorTuple> assignments) {
@@ -231,5 +235,55 @@ class CastChangeDetails extends StatelessWidget {
   String _lookupSourcePresetName(
       String? trackId, Map<String, ActorTuple> assignments) {
     return assignments[trackId]?.sourcePresetName ?? '';
+  }
+}
+
+class _UnassignedOption extends StatelessWidget {
+  const _UnassignedOption({
+    Key? key,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Icon(
+          Icons.person_off,
+          size: 16,
+          color: Theme.of(context).colorScheme.secondary,
+        ),
+        SizedBox(width: 8),
+        Text('Unassigned',
+            style: Theme.of(context)
+                .textTheme
+                .bodyText2!
+                .copyWith(color: Theme.of(context).colorScheme.secondary)),
+      ],
+    );
+  }
+}
+
+class _TrackCutOption extends StatelessWidget {
+  const _TrackCutOption({
+    Key? key,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Icon(
+          Icons.content_cut,
+          size: 16,
+          color: Theme.of(context).colorScheme.secondary,
+        ),
+        SizedBox(width: 8),
+        Text('Track Cut',
+            style: Theme.of(context)
+                .textTheme
+                .bodyText2!
+                .copyWith(color: Theme.of(context).colorScheme.secondary)),
+      ],
+    );
   }
 }

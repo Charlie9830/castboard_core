@@ -18,11 +18,11 @@ class ShowDataModel {
   final List<ActorIndexBase> actorIndex;
 
   const ShowDataModel({
-    this.tracks = const {},
-    this.trackRefsByName = const {},
-    this.actors = const {},
-    this.presets = const {},
-    this.actorIndex = const [],
+    required this.tracks,
+    required this.trackRefsByName,
+    required this.actors,
+    required this.presets,
+    required this.actorIndex,
   });
 
   const ShowDataModel.initial()
@@ -30,7 +30,7 @@ class ShowDataModel {
         trackRefsByName = const {},
         actors = const {},
         presets = const {},
-        this.actorIndex = const [];
+        this.actorIndex = const <ActorIndexBase>[];
 
   Map<String, dynamic> toMap() {
     return <String, dynamic>{
@@ -59,7 +59,7 @@ class ShowDataModel {
     final rawPresetsMap = map['presets'] as Map<String, dynamic>;
     final rawActorIndex = map['actorIndex'] == null
         ? const <Map<String, dynamic>>[]
-        : map['actorIndex'] as List<Map<String, dynamic>>;
+        : map['actorIndex'] as List<dynamic>;
 
     return ShowDataModel(
         tracks: Map<TrackRef, TrackModel>.fromEntries(

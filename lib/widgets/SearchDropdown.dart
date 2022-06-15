@@ -6,6 +6,9 @@ import 'package:flutter/services.dart';
 class SearchDropdown extends StatefulWidget {
   final List<SearchDropdownItem> Function(BuildContext context) itemsBuilder;
   final SearchDropdownItem? Function(BuildContext context) selectedItemBuilder;
+  final Widget Function(
+          BuildContext context, void Function(dynamic value) onSelect)?
+      specialOptionsBuilder;
   final bool enabled;
   final void Function(dynamic value) onChanged;
 
@@ -14,6 +17,7 @@ class SearchDropdown extends StatefulWidget {
     required this.itemsBuilder,
     required this.selectedItemBuilder,
     required this.onChanged,
+    this.specialOptionsBuilder,
     this.enabled = true,
   }) : super(key: key);
 
@@ -59,6 +63,8 @@ class _SearchDropdownState extends State<SearchDropdown> {
               items: widget.itemsBuilder(context),
               onChanged: _handleValueChanged,
               onCloseButtonPressed: () => _handleClose(),
+              specialOptions: widget.specialOptionsBuilder
+                  ?.call(context, (value) => _handleValueChanged(value)),
             ));
   }
 
@@ -82,6 +88,8 @@ class _SearchDropdownState extends State<SearchDropdown> {
             value: selectedItem,
             items: widget.itemsBuilder.call(context),
             onChanged: _handleValueChanged,
+            specialOptions: widget.specialOptionsBuilder
+                ?.call(context, (value) => _handleValueChanged(value)),
           ));
     });
 
@@ -144,6 +152,7 @@ class _SearchDropdownContent extends StatefulWidget {
   final SearchDropdownItem? value;
   final void Function(dynamic value) onChanged;
   final void Function()? onCloseButtonPressed;
+  final Widget? specialOptions;
 
   _SearchDropdownContent({
     Key? key,
@@ -151,6 +160,7 @@ class _SearchDropdownContent extends StatefulWidget {
     required this.items,
     required this.onChanged,
     this.onCloseButtonPressed,
+    this.specialOptions,
   }) : super(key: key);
 
   @override
@@ -166,14 +176,11 @@ class __SearchDropdownContentState extends State<_SearchDropdownContent> {
 
   // Non Flutter Tracked State.
   bool _initalizing = true;
+  TextEditingValue? _fullTextSelectionCache;
 
   @override
   void initState() {
-    _controller = TextEditingController()
-      ..value = TextEditingValue(
-          text: widget.value?.keyword ?? '',
-          selection: TextSelection(
-              baseOffset: 0, extentOffset: widget.value?.keyword.length ?? 0));
+    _controller = TextEditingController()..value = _getFullTextSelection();
 
     _controller.addListener(() {
       // Requesting Focus to the textField Triggers this callback. Which messes things up if it runs before any text
@@ -193,9 +200,21 @@ class __SearchDropdownContentState extends State<_SearchDropdownContent> {
 
     _keyListenerFocusNode = FocusNode();
 
-    _textFieldFocusNode = FocusNode();
+    _textFieldFocusNode = FocusNode()
+      ..addListener(() {
+        if (_textFieldFocusNode.hasPrimaryFocus) {
+          _controller.value = _getFullTextSelection();
+        }
+      });
 
     super.initState();
+  }
+
+  TextEditingValue _getFullTextSelection() {
+    return TextEditingValue(
+        text: widget.value?.keyword ?? '',
+        selection: TextSelection(
+            baseOffset: 0, extentOffset: widget.value?.keyword.length ?? 0));
   }
 
   @override
@@ -219,20 +238,24 @@ class __SearchDropdownContentState extends State<_SearchDropdownContent> {
       child: _withKeyboardListener(
           child: _AdaptiveContentLayout(
         onDialogCloseButtonPressed: widget.onCloseButtonPressed,
-        searchField: TextField(
-          controller: _controller,
-          focusNode: _textFieldFocusNode,
-          decoration: InputDecoration(
-            suffixIcon: Icon(Icons.search),
-            border: OutlineInputBorder(
-              borderSide: BorderSide(),
+        searchField: Column(
+          children: [
+            if (widget.specialOptions != null) widget.specialOptions!,
+            TextField(
+              controller: _controller,
+              focusNode: _textFieldFocusNode,
+              decoration: InputDecoration(
+                suffixIcon: Icon(Icons.search),
+                border: OutlineInputBorder(
+                  borderSide: BorderSide(),
+                ),
+              ),
+              onEditingComplete:
+                  isMobile(context) ? () => _handleEnterPress() : null,
             ),
-          ),
-          onEditingComplete:
-              isMobile(context) ? () => _handleEnterPress() : null,
+          ],
         ),
         listView: ListView.builder(
-          reverse: isMobile(context) ? true : false,
           itemCount: _options.length,
           itemBuilder: (context, index) {
             final item = _options[index];
@@ -248,7 +271,9 @@ class __SearchDropdownContentState extends State<_SearchDropdownContent> {
                     : null,
                 child: ListTile(
                   title: item.child,
-                  onTap: () => widget.onChanged(item.value),
+                  onTap: item.interactive
+                      ? () => widget.onChanged(item.value)
+                      : null,
                 ),
               ),
             );
@@ -409,11 +434,13 @@ class SearchDropdownItem {
   final String keyword;
   final Widget child;
   final dynamic value;
+  final bool interactive;
 
   SearchDropdownItem({
     required this.keyword,
     required this.child,
     required this.value,
+    this.interactive = true,
   });
 }
 

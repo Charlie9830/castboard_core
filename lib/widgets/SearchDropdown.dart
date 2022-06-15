@@ -63,8 +63,8 @@ class _SearchDropdownState extends State<SearchDropdown> {
               items: widget.itemsBuilder(context),
               onChanged: _handleValueChanged,
               onCloseButtonPressed: () => _handleClose(),
-              specialOptions: widget.specialOptionsBuilder?.call(context,
-                  (value) => _handleValueChanged(value)),
+              specialOptions: widget.specialOptionsBuilder
+                  ?.call(context, (value) => _handleValueChanged(value)),
             ));
   }
 
@@ -88,8 +88,8 @@ class _SearchDropdownState extends State<SearchDropdown> {
             value: selectedItem,
             items: widget.itemsBuilder.call(context),
             onChanged: _handleValueChanged,
-            specialOptions: widget.specialOptionsBuilder?.call(context,
-                (value) => _handleValueChanged(value)),
+            specialOptions: widget.specialOptionsBuilder
+                ?.call(context, (value) => _handleValueChanged(value)),
           ));
     });
 
@@ -176,14 +176,11 @@ class __SearchDropdownContentState extends State<_SearchDropdownContent> {
 
   // Non Flutter Tracked State.
   bool _initalizing = true;
+  TextEditingValue? _fullTextSelectionCache;
 
   @override
   void initState() {
-    _controller = TextEditingController()
-      ..value = TextEditingValue(
-          text: widget.value?.keyword ?? '',
-          selection: TextSelection(
-              baseOffset: 0, extentOffset: widget.value?.keyword.length ?? 0));
+    _controller = TextEditingController()..value = _getFullTextSelection();
 
     _controller.addListener(() {
       // Requesting Focus to the textField Triggers this callback. Which messes things up if it runs before any text
@@ -203,9 +200,21 @@ class __SearchDropdownContentState extends State<_SearchDropdownContent> {
 
     _keyListenerFocusNode = FocusNode();
 
-    _textFieldFocusNode = FocusNode();
+    _textFieldFocusNode = FocusNode()
+      ..addListener(() {
+        if (_textFieldFocusNode.hasPrimaryFocus) {
+          _controller.value = _getFullTextSelection();
+        }
+      });
 
     super.initState();
+  }
+
+  TextEditingValue _getFullTextSelection() {
+    return TextEditingValue(
+        text: widget.value?.keyword ?? '',
+        selection: TextSelection(
+            baseOffset: 0, extentOffset: widget.value?.keyword.length ?? 0));
   }
 
   @override

@@ -3,6 +3,7 @@ import 'package:castboard_core/models/ActorOrDividerViewModel.dart';
 import 'package:castboard_core/models/ActorRef.dart';
 import 'package:castboard_core/models/TrackModel.dart';
 import 'package:castboard_core/models/TrackRef.dart';
+import 'package:castboard_core/utils/isMobile.dart';
 import 'package:castboard_core/widgets/SearchDropdown.dart';
 import 'package:castboard_core/widgets/cast-change-details/NoTracksOrArtistsFallback.dart';
 import 'package:flutter/material.dart';
@@ -111,11 +112,31 @@ class CastChangeDetails extends StatelessWidget {
           onAssignmentUpdated?.call(track.ref, actorRef ?? ActorRef.blank()),
       itemsBuilder: (context) {
         return [
-          _buildUnassignedOption(context),
-          _buildTrackCutOption(context),
+          if (isMobile(context) == false) ...<SearchDropdownItem>[
+            _buildUnassignedOption(context),
+            _buildTrackCutOption(context),
+          ],
           ..._mapActorOptions(context),
         ];
       },
+      specialOptionsBuilder: isMobile(context)
+          ? (context, onSelect) {
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 8.0, left: 8.0),
+                child: Row(
+                  children: [
+                    OutlinedButton(
+                        child: _TrackCutOption(),
+                        onPressed: () => onSelect(ActorRef.cut())),
+                    SizedBox(width: 8),
+                    OutlinedButton(
+                        child: _UnassignedOption(),
+                        onPressed: () => onSelect(ActorRef.unassigned()))
+                  ],
+                ),
+              );
+            }
+          : null,
     );
   }
 
@@ -151,43 +172,13 @@ class CastChangeDetails extends StatelessWidget {
 
   SearchDropdownItem _buildTrackCutOption(BuildContext context) {
     return SearchDropdownItem(
-        keyword: 'Track Cut',
-        child: Row(
-          children: [
-            Icon(
-              Icons.content_cut,
-              size: 16,
-              color: Theme.of(context).colorScheme.secondary,
-            ),
-            SizedBox(width: 8),
-            Text('Track Cut',
-                style: Theme.of(context)
-                    .textTheme
-                    .bodyText2!
-                    .copyWith(color: Theme.of(context).colorScheme.secondary)),
-          ],
-        ),
-        value: ActorRef.cut());
+        keyword: 'Track Cut', child: _TrackCutOption(), value: ActorRef.cut());
   }
 
   SearchDropdownItem _buildUnassignedOption(BuildContext context) {
     return SearchDropdownItem(
       keyword: 'Unassigned',
-      child: Row(
-        children: [
-          Icon(
-            Icons.person_off,
-            size: 16,
-            color: Theme.of(context).colorScheme.secondary,
-          ),
-          SizedBox(width: 8),
-          Text('Unassigned',
-              style: Theme.of(context)
-                  .textTheme
-                  .bodyText2!
-                  .copyWith(color: Theme.of(context).colorScheme.secondary)),
-        ],
-      ),
+      child: _UnassignedOption(),
       value: ActorRef.unassigned(),
     );
   }
@@ -244,5 +235,55 @@ class CastChangeDetails extends StatelessWidget {
   String _lookupSourcePresetName(
       String? trackId, Map<String, ActorTuple> assignments) {
     return assignments[trackId]?.sourcePresetName ?? '';
+  }
+}
+
+class _UnassignedOption extends StatelessWidget {
+  const _UnassignedOption({
+    Key? key,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Icon(
+          Icons.person_off,
+          size: 16,
+          color: Theme.of(context).colorScheme.secondary,
+        ),
+        SizedBox(width: 8),
+        Text('Unassigned',
+            style: Theme.of(context)
+                .textTheme
+                .bodyText2!
+                .copyWith(color: Theme.of(context).colorScheme.secondary)),
+      ],
+    );
+  }
+}
+
+class _TrackCutOption extends StatelessWidget {
+  const _TrackCutOption({
+    Key? key,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Icon(
+          Icons.content_cut,
+          size: 16,
+          color: Theme.of(context).colorScheme.secondary,
+        ),
+        SizedBox(width: 8),
+        Text('Track Cut',
+            style: Theme.of(context)
+                .textTheme
+                .bodyText2!
+                .copyWith(color: Theme.of(context).colorScheme.secondary)),
+      ],
+    );
   }
 }

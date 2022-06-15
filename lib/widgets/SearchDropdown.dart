@@ -328,6 +328,7 @@ class __SearchDropdownContentState extends State<_SearchDropdownContent> {
     // If only a single Option Left.
     if (_options.length == 1) {
       widget.onChanged(_options.first.value);
+      return;
     }
 
     // If an option is Highlighted and still appears within the List.

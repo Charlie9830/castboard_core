@@ -7,10 +7,13 @@ import 'package:castboard_core/models/PresetModel.dart';
 import 'package:castboard_core/models/RemoteCastChangeData.dart';
 import 'package:castboard_core/models/ShowDataModel.dart';
 import 'package:castboard_core/models/SlideModel.dart';
+import 'package:castboard_core/models/TrackIndex.dart';
 import 'package:castboard_core/models/TrackModel.dart';
 import 'package:castboard_core/models/TrackRef.dart';
 import 'package:castboard_core/storage/SlideDataModel.dart';
 import 'package:castboard_core/version/fileVersion.dart';
+
+typedef ImportedShowData DataMigrator(ImportedShowData data);
 
 class ImportedShowData {
   final ManifestModel manifest;
@@ -43,25 +46,6 @@ class ImportedShowData {
     }
   }
 
-  static ImportedShowData _migrateToV2(ImportedShowData data) {
-    // ActorIndex.
-    if (data.showData.actorIndex.length >= data.showData.actors.length) {
-      // No migration required.
-      return data;
-    }
-
-    /// We have to define our Map function here with an explicit [ActorIndexBase] class return value.
-    /// Otherwise, Dart will implicitly return a List<ActorIndex> list. This will break code in the reducers
-    /// at runtime because we will be adding/inserting elements of a List<ActorIndex> not a List<ActorIndexBase> (The base
-    /// class that ActorIndex and ActorIndexDivider) derive from.
-    ActorIndexBase Function(ActorRef ref) mapper = (ref) => ActorIndex(ref);
-
-    return data._copyWith(
-        showData: data.showData.copyWith(
-      actorIndex: data.showData.actors.keys.map(mapper).toList(),
-    ));
-  }
-
   ImportedShowData _copyWith({
     ManifestModel? manifest,
     SlideDataModel? slideData,
@@ -74,5 +58,48 @@ class ImportedShowData {
       showData: showData ?? this.showData,
       playbackState: playbackState ?? this.playbackState,
     );
+  }
+
+  static ImportedShowData _migrateToV2(ImportedShowData data) {
+    final DataMigrator migrateActorIndex = (ImportedShowData data) {
+      // ActorIndex Migration.
+      if (data.showData.actorIndex.length >= data.showData.actors.length) {
+        // No migration required.
+        return data;
+      }
+
+      /// We have to define our Map function here with an explicit [ActorIndexBase] class return value.
+      /// Otherwise, Dart will implicitly return a List<ActorIndex> list. This will break code in the reducers
+      /// at runtime because we will be adding/inserting elements of a List<ActorIndex> not a List<ActorIndexBase> (The base
+      /// class that ActorIndex and ActorIndexDivider) derive from.
+      ActorIndexBase Function(ActorRef ref) mapper = (ref) => ActorIndex(ref);
+
+      return data._copyWith(
+          showData: data.showData.copyWith(
+        actorIndex: data.showData.actors.keys.map(mapper).toList(),
+      ));
+    };
+
+    final DataMigrator migrateTrackIndex = (ImportedShowData data) {
+      // ActorIndex Migration.
+      if (data.showData.trackIndex.length >= data.showData.tracks.length) {
+        // No migration required.
+        return data;
+      }
+
+      /// We have to define our Map function here with an explicit [TrackIndexBase] class return value.
+      /// Otherwise, Dart will implicitly return a List<TrackIndex> list. This will break code in the reducers
+      /// at runtime because we will be adding/inserting elements of a List<TrackIndex> not a List<TrackIndexBase> (The base
+      /// class that TrackIndex and TrackIndexDivider) derive from.
+      TrackIndexBase Function(TrackRef ref) mapper = (ref) => TrackIndex(ref);
+
+      return data._copyWith(
+          showData: data.showData.copyWith(
+        trackIndex: data.showData.tracks.keys.map(mapper).toList(),
+      ));
+    };
+
+    return [migrateActorIndex, migrateTrackIndex]
+        .fold(data, (previousValue, migrator) => migrator(previousValue));
   }
 }

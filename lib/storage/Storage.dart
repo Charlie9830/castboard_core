@@ -12,6 +12,7 @@ import 'package:castboard_core/models/FontModel.dart';
 import 'package:castboard_core/models/ManifestModel.dart';
 import 'package:castboard_core/models/PresetModel.dart';
 import 'package:castboard_core/models/RemoteCastChangeData.dart';
+import 'package:castboard_core/models/TrackIndex.dart';
 import 'package:castboard_core/models/TrackModel.dart';
 import 'package:castboard_core/models/SlideModel.dart';
 import 'package:castboard_core/models/TrackRef.dart';
@@ -779,6 +780,7 @@ class Storage {
     required Map<ActorRef, ActorModel> actors,
     required List<ActorIndexBase> actorIndex,
     required Map<TrackRef, TrackModel> tracks,
+    required List<TrackIndexBase> trackIndex,
     required Map<String, TrackRef> trackRefsByName,
     required Map<String, PresetModel> presets,
     required Map<String, SlideModel> slides,
@@ -817,7 +819,7 @@ class Storage {
             slideOrientation: slideOrientation,
           )),
       _stageShowData(
-          stagingDir, tracks, trackRefsByName, actors, actorIndex, presets),
+          stagingDir, tracks, trackRefsByName, actors, actorIndex, trackIndex, presets),
       _stageFonts(stagingDir, manifest.requiredFonts),
     ]);
 
@@ -886,10 +888,12 @@ class Storage {
       Map<String, TrackRef> trackRefsByName,
       Map<ActorRef, ActorModel> actors,
       List<ActorIndexBase> actorIndex,
+      List<TrackIndexBase> trackIndex,
       Map<String, PresetModel> presets) async {
     final data = ShowDataModel(
       actors: actors,
       actorIndex: actorIndex,
+      trackIndex: trackIndex,
       tracks: tracks,
       trackRefsByName: trackRefsByName,
       presets: presets,

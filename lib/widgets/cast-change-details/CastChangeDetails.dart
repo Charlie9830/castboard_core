@@ -1,7 +1,9 @@
 import 'package:castboard_core/models/ActorModel.dart';
 import 'package:castboard_core/models/ActorOrDividerViewModel.dart';
 import 'package:castboard_core/models/ActorRef.dart';
+import 'package:castboard_core/models/TrackIndex.dart';
 import 'package:castboard_core/models/TrackModel.dart';
+import 'package:castboard_core/models/TrackOrIndexViewModel.dart';
 import 'package:castboard_core/models/TrackRef.dart';
 import 'package:castboard_core/utils/isMobile.dart';
 import 'package:castboard_core/widgets/SearchDropdown.dart';
@@ -26,7 +28,7 @@ class CastChangeDetails extends StatelessWidget {
   final bool selfScrolling;
   final bool allowNestedEditing;
   final Map<String, ActorTuple> assignments;
-  final List<TrackModel> tracks;
+  final List<TrackOrDividerViewModel> trackViewModels;
   final Map<TrackRef, TrackModel> tracksByRef;
   final List<ActorOrDividerViewModel> actorViewModels;
   final Map<ActorRef, ActorModel> actorsByRef;
@@ -38,7 +40,7 @@ class CastChangeDetails extends StatelessWidget {
     this.assignments = const <String, ActorTuple>{},
     this.selfScrolling = true,
     this.allowNestedEditing = false,
-    this.tracks = const <TrackModel>[],
+    this.trackViewModels = const <TrackOrDividerViewModel>[],
     required this.tracksByRef,
     this.actorViewModels = const <ActorOrDividerViewModel>[],
     required this.actorsByRef,
@@ -48,57 +50,74 @@ class CastChangeDetails extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (tracks.isEmpty && actorViewModels.isEmpty) {
+    if (trackViewModels.isEmpty && actorViewModels.isEmpty) {
       return NoTracksOrArtistsFallback();
     }
 
     return ListView.builder(
       shrinkWrap: !selfScrolling,
-      itemCount: tracks.length,
+      itemCount: trackViewModels.length,
       itemBuilder: (context, index) {
-        final track = tracks[index];
-        return Row(
-          key: Key(track.ref.uid),
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            // Track Title
-            Expanded(
-              child: Text(track.internalTitle,
-                  overflow: TextOverflow.ellipsis,
-                  softWrap: false,
-                  style: Theme.of(context).textTheme.bodyText2),
-            ),
-
-            // Source Nested Preset Indicator.
-            if (_fromNestedPreset(track.ref.uid, assignments) == true)
-              Tooltip(
-                  message: _lookupSourcePresetName(track.ref.uid, assignments),
-                  waitDuration: Duration(milliseconds: 250),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                    child: Icon(Icons.call_merge,
-                        color: Theme.of(context).disabledColor),
-                  )),
-
-            // Live Edit Reset Button
-            if (_fromLiveEdit(track.ref.uid, assignments) == true)
-              TextButton(
-                child: Text('Reset'),
-                onPressed: () => onResetLiveEdit?.call(track.ref),
-              ),
-
-            // Artist Selector
-            Container(
-              constraints: BoxConstraints.loose(Size.fromWidth(150)),
-              child: _buildDropdownButton(
-                allowNestedEditing,
-                track,
-                context,
-              ),
-            ),
-          ],
-        );
+        final trackViewModel = trackViewModels[index];
+        if (trackViewModel.type == TrackOrDividerViewModelType.track) {
+          return _buildTrackRow(context, trackViewModel.trackModel!);
+        } else {
+          return _buildDivider(context, trackViewModel.divider!);
+        }
       },
+    );
+  }
+
+  Widget _buildTrackRow(BuildContext context, TrackModel track) {
+    return Row(
+      key: Key(track.ref.uid),
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        // Track Title
+        Expanded(
+          child: Text(track.internalTitle,
+              overflow: TextOverflow.ellipsis,
+              softWrap: false,
+              style: Theme.of(context).textTheme.bodyText2),
+        ),
+
+        // Source Nested Preset Indicator.
+        if (_fromNestedPreset(track.ref.uid, assignments) == true)
+          Tooltip(
+              message: _lookupSourcePresetName(track.ref.uid, assignments),
+              waitDuration: Duration(milliseconds: 250),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                child: Icon(Icons.call_merge,
+                    color: Theme.of(context).disabledColor),
+              )),
+
+        // Live Edit Reset Button
+        if (_fromLiveEdit(track.ref.uid, assignments) == true)
+          TextButton(
+            child: Text('Reset'),
+            onPressed: () => onResetLiveEdit?.call(track.ref),
+          ),
+
+        // Artist Selector
+        Container(
+          constraints: BoxConstraints.loose(Size.fromWidth(150)),
+          child: _buildDropdownButton(
+            allowNestedEditing,
+            track,
+            context,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDivider(BuildContext context, TrackIndexDivider divider) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: Center(
+          child:
+              Text(divider.title, style: Theme.of(context).textTheme.bodyText2)),
     );
   }
 

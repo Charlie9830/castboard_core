@@ -4,6 +4,7 @@ import 'package:castboard_core/models/ActorIndex.dart';
 import 'package:castboard_core/models/ActorModel.dart';
 import 'package:castboard_core/models/ActorRef.dart';
 import 'package:castboard_core/models/PresetModel.dart';
+import 'package:castboard_core/models/TrackIndex.dart';
 import 'package:castboard_core/models/TrackModel.dart';
 import 'package:castboard_core/models/TrackRef.dart';
 
@@ -16,6 +17,7 @@ class ShowDataModel {
   final Map<ActorRef, ActorModel> actors;
   final Map<String, PresetModel> presets;
   final List<ActorIndexBase> actorIndex;
+  final List<TrackIndexBase> trackIndex;
 
   const ShowDataModel({
     required this.tracks,
@@ -23,6 +25,7 @@ class ShowDataModel {
     required this.actors,
     required this.presets,
     required this.actorIndex,
+    required this.trackIndex,
   });
 
   const ShowDataModel.initial()
@@ -30,7 +33,8 @@ class ShowDataModel {
         trackRefsByName = const {},
         actors = const {},
         presets = const {},
-        this.actorIndex = const <ActorIndexBase>[];
+        actorIndex = const <ActorIndexBase>[],
+        trackIndex = const <TrackIndexBase>[];
 
   Map<String, dynamic> toMap() {
     return <String, dynamic>{
@@ -43,7 +47,8 @@ class ShowDataModel {
           .map((actor) => MapEntry(actor.ref.toJsonKey(), actor.toMap()))),
       'presets': Map<String?, dynamic>.fromEntries(
           presets.values.map((preset) => MapEntry(preset.uid, preset.toMap()))),
-      'actorIndex': actorIndex.map((item) => item.toMap()).toList()
+      'actorIndex': actorIndex.map((item) => item.toMap()).toList(),
+      'trackIndex': trackIndex.map((item) => item.toMap()).toList()
     };
   }
 
@@ -60,6 +65,9 @@ class ShowDataModel {
     final rawActorIndex = map['actorIndex'] == null
         ? const <Map<String, dynamic>>[]
         : map['actorIndex'] as List<dynamic>;
+    final rawTrackIndex = map['trackIndex'] == null
+        ? const <Map<String, dynamic>>[]
+        : map['trackIndex'] as List<dynamic>;
 
     return ShowDataModel(
         tracks: Map<TrackRef, TrackModel>.fromEntries(
@@ -95,7 +103,9 @@ class ShowDataModel {
           ),
         ),
         actorIndex:
-            rawActorIndex.map((map) => ActorIndexBase.fromMap(map)).toList());
+            rawActorIndex.map((map) => ActorIndexBase.fromMap(map)).toList(),
+        trackIndex:
+            rawTrackIndex.map((map) => TrackIndexBase.fromMap(map)).toList());
   }
 
   ShowDataModel copyWith({
@@ -104,6 +114,7 @@ class ShowDataModel {
     Map<ActorRef, ActorModel>? actors,
     Map<String, PresetModel>? presets,
     List<ActorIndexBase>? actorIndex,
+    List<TrackIndexBase>? trackIndex,
   }) {
     return ShowDataModel(
       tracks: tracks ?? this.tracks,
@@ -111,6 +122,7 @@ class ShowDataModel {
       actors: actors ?? this.actors,
       presets: presets ?? this.presets,
       actorIndex: actorIndex ?? this.actorIndex,
+      trackIndex: trackIndex ?? this.trackIndex,
     );
   }
 }

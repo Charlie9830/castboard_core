@@ -176,7 +176,6 @@ class __SearchDropdownContentState extends State<_SearchDropdownContent> {
 
   // Non Flutter Tracked State.
   bool _initalizing = true;
-  TextEditingValue? _fullTextSelectionCache;
 
   @override
   void initState() {

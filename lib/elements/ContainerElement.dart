@@ -1,5 +1,6 @@
 import 'package:castboard_core/elements/ContainerItem.dart';
 import 'package:castboard_core/elements/Dragger.dart';
+import 'package:castboard_core/enums.dart';
 import 'package:castboard_core/inherited/RenderScaleProvider.dart';
 import 'package:castboard_core/layout-canvas/MultiChildCanvasItem.dart';
 import 'package:flutter/material.dart';
@@ -26,6 +27,7 @@ class ContainerElement extends StatefulWidget {
   final CrossAxisAlignment? crossAxisAlignment;
   final WrapAlignment? runAlignment;
   final Axis axis;
+  final ContainerRunLoading runLoading;
   final List<ContainerItem>? items;
   final OnOrderChanged? onOrderChanged;
   final dynamic onItemClick;
@@ -38,6 +40,7 @@ class ContainerElement extends StatefulWidget {
     this.mainAxisAlignment,
     this.crossAxisAlignment,
     this.runAlignment,
+    this.runLoading = ContainerRunLoading.topOrLeftHeavy,
     this.allowWrap = false,
     this.axis = Axis.horizontal,
     this.items,
@@ -94,6 +97,7 @@ class _ContainerElementState extends State<ContainerElement> {
           crossAxisAlignment: widget.crossAxisAlignment,
           allowWrap: widget.allowWrap,
           runAlignment: widget.runAlignment,
+          runLoading: widget.runLoading,
           children: items!.map((item) {
             final scaledItemSize = item.size * renderScale!;
             return _wrapVisibility(
@@ -122,6 +126,7 @@ class _ContainerElementState extends State<ContainerElement> {
           crossAxisAlignment: widget.crossAxisAlignment,
           allowWrap: widget.allowWrap,
           runAlignment: widget.runAlignment,
+          runLoading: widget.runLoading,
           children: items!.map((item) {
             final scaledItemSize = item.size * renderScale!;
             return _wrapVisibility(
@@ -490,6 +495,7 @@ class _HorizontalContainer extends StatelessWidget {
   final MainAxisAlignment? mainAxisAlignment;
   final CrossAxisAlignment? crossAxisAlignment;
   final WrapAlignment? runAlignment;
+  final ContainerRunLoading? runLoading;
   final bool allowWrap;
 
   final List<Widget> children;
@@ -499,6 +505,7 @@ class _HorizontalContainer extends StatelessWidget {
     this.mainAxisAlignment,
     this.crossAxisAlignment,
     this.runAlignment,
+    this.runLoading,
     this.allowWrap = false,
     this.children = const <Widget>[],
   }) : super(key: key);
@@ -506,10 +513,15 @@ class _HorizontalContainer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (allowWrap) {
+      final concreteRunLoading =
+          runLoading ?? ContainerRunLoading.bottomOrRightHeavy;
+
       return Wrap(
         alignment: _alignmentMapping[mainAxisAlignment!]!,
         runAlignment: runAlignment ?? WrapAlignment.start,
         direction: Axis.horizontal,
+        verticalDirection: getVerticalDirection(concreteRunLoading),
+        textDirection: getTextDirection(concreteRunLoading),
         children: children,
       );
     }
@@ -527,6 +539,7 @@ class _VerticalContainer extends StatelessWidget {
   final CrossAxisAlignment? crossAxisAlignment;
   final List<Widget?>? children;
   final WrapAlignment? runAlignment;
+  final ContainerRunLoading? runLoading;
   final bool allowWrap;
 
   const _VerticalContainer(
@@ -535,17 +548,23 @@ class _VerticalContainer extends StatelessWidget {
       this.crossAxisAlignment,
       this.runAlignment,
       this.allowWrap = false,
+      this.runLoading,
       this.children})
       : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     if (allowWrap) {
+      final concreteRunLoading =
+          runLoading ?? ContainerRunLoading.bottomOrRightHeavy;
+
       return Wrap(
         alignment: _alignmentMapping[mainAxisAlignment!]!,
         runAlignment: runAlignment ?? WrapAlignment.start,
         direction: Axis.vertical,
         children: children as List<Widget>? ?? const [],
+        verticalDirection: getVerticalDirection(concreteRunLoading),
+        textDirection: getTextDirection(concreteRunLoading),
       );
     }
 
@@ -554,5 +573,23 @@ class _VerticalContainer extends StatelessWidget {
       crossAxisAlignment: crossAxisAlignment ?? CrossAxisAlignment.center,
       children: children as List<Widget>? ?? const [],
     );
+  }
+}
+
+VerticalDirection getVerticalDirection(ContainerRunLoading runLoading) {
+  switch (runLoading) {
+    case ContainerRunLoading.topOrLeftHeavy:
+      return VerticalDirection.down;
+    case ContainerRunLoading.bottomOrRightHeavy:
+      return VerticalDirection.up;
+  }
+}
+
+TextDirection getTextDirection(ContainerRunLoading runLoading) {
+  switch (runLoading) {
+    case ContainerRunLoading.topOrLeftHeavy:
+      return TextDirection.ltr;
+    case ContainerRunLoading.bottomOrRightHeavy:
+      return TextDirection.rtl;
   }
 }

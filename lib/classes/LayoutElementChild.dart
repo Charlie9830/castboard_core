@@ -9,11 +9,13 @@ import 'package:castboard_core/elements/ShapeElementModel.dart';
 import 'package:castboard_core/elements/TextElementModel.dart';
 import 'package:castboard_core/elements/TrackElementModel.dart';
 import 'package:castboard_core/enum-converters/axisConverters.dart';
+import 'package:castboard_core/enum-converters/containerRunLoadingConverters.dart';
 import 'package:castboard_core/enum-converters/mainAxisAlignmentConverters.dart';
 import 'package:castboard_core/enum-converters/runAlignmentConverters.dart';
 import 'package:castboard_core/enum-converters/shapeElementTypeConverters.dart';
 import 'package:castboard_core/enum-converters/textAlignConverters.dart';
 import 'package:castboard_core/enum-converters/crossAxisAlignmentConverters.dart';
+import 'package:castboard_core/enums.dart';
 import 'package:castboard_core/models/ColorModel.dart';
 import 'package:castboard_core/models/LayoutElementModel.dart';
 import 'package:castboard_core/models/TrackRef.dart';
@@ -57,6 +59,8 @@ abstract class LayoutElementChild {
         children: (map['children'] as List<dynamic>)
             .map((child) => LayoutElementModel.fromMap(child))
             .toList(),
+        runLoading:
+            parseContainerRunLoading(map['runLoading'] ?? 'topOrLeftHeavy'),
       );
     }
 

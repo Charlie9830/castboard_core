@@ -5,6 +5,7 @@ import 'package:castboard_core/elements/ContainerElementModel.dart';
 import 'package:castboard_core/elements/ContainerItem.dart';
 import 'package:castboard_core/elements/ImageElement.dart';
 import 'package:castboard_core/elements/ImageElementModel.dart';
+import 'package:castboard_core/enums.dart';
 import 'package:castboard_core/layout-canvas/MultiChildCanvasItem.dart';
 import 'package:castboard_core/elements/GroupElementModel.dart';
 import 'package:castboard_core/elements/HeadshotElementModel.dart';
@@ -103,6 +104,11 @@ Widget _buildChild({
   if (element is ContainerElementModel) {
     int index = 0;
 
+    final containerItems =
+        element.runLoading == ContainerRunLoading.bottomOrRightHeavy
+            ? element.children.reversed
+            : element.children;
+
     return withPadding(ContainerElement(
       isEditing: isEditingContainer,
       showBorder: isInSlideEditor,
@@ -110,12 +116,13 @@ Widget _buildChild({
       mainAxisAlignment: element.mainAxisAlignment,
       crossAxisAlignment: element.crossAxisAlignment,
       runAlignment: element.runAlignment,
+      runLoading: element.runLoading,
       allowWrap: element.wrapEnabled,
       axis: element.axis,
       onOrderChanged: (id, oldIndex, newIndex) =>
           onContainerItemsReorder?.call(id, oldIndex, newIndex),
       onItemClick: onItemClick,
-      items: element.children
+      items: containerItems
           .where((child) => _shouldBuild(child, castChange))
           .map((child) {
         return ContainerItem(

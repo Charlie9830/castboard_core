@@ -1,9 +1,11 @@
 import 'package:castboard_core/enum-converters/axisConverters.dart';
 
 import 'package:castboard_core/classes/LayoutElementChild.dart';
+import 'package:castboard_core/enum-converters/containerRunLoadingConverters.dart';
 import 'package:castboard_core/enum-converters/crossAxisAlignmentConverters.dart';
 import 'package:castboard_core/enum-converters/mainAxisAlignmentConverters.dart';
 import 'package:castboard_core/enum-converters/runAlignmentConverters.dart';
+import 'package:castboard_core/enums.dart';
 import 'package:castboard_core/models/LayoutElementModel.dart';
 import 'package:castboard_core/utils/getUid.dart';
 import 'package:flutter/widgets.dart';
@@ -15,6 +17,7 @@ class ContainerElementModel extends LayoutElementChild {
   final bool wrapEnabled;
   final Axis axis;
   final List<LayoutElementModel> children;
+  final ContainerRunLoading runLoading;
 
   ContainerElementModel({
     MainAxisAlignment? mainAxisAlignment,
@@ -23,6 +26,7 @@ class ContainerElementModel extends LayoutElementChild {
     bool? wrapEnabled,
     List<LayoutElementModel>? children,
     Axis? axis,
+    ContainerRunLoading? runLoading,
   })  : this.children = children ?? <LayoutElementModel>[],
         this.mainAxisAlignment = mainAxisAlignment ?? MainAxisAlignment.center,
         this.crossAxisAlignment =
@@ -30,6 +34,7 @@ class ContainerElementModel extends LayoutElementChild {
         this.axis = axis ?? Axis.horizontal,
         this.runAlignment = runAlignment ?? WrapAlignment.start,
         this.wrapEnabled = wrapEnabled ?? false,
+        this.runLoading = runLoading ?? ContainerRunLoading.topOrLeftHeavy,
         super(updateContracts: <PropertyUpdateContracts>{
           PropertyUpdateContracts.container
         }, canConditionallyRender: false);
@@ -43,25 +48,28 @@ class ContainerElementModel extends LayoutElementChild {
       'crossAxisAlignment': convertCrossAxisAlignment(this.crossAxisAlignment),
       'runAlignment': convertRunAlignment(this.runAlignment),
       'wrapEnabled': wrapEnabled,
-      'children': children.map((item) => item.toMap()).toList()
+      'children': children.map((item) => item.toMap()).toList(),
+      'runLoading': convertContainerRunLoading(this.runLoading),
     };
   }
 
-  ContainerElementModel copyWith({
-    Axis? axis,
-    MainAxisAlignment? mainAxisAlignment,
-    CrossAxisAlignment? crossAxisAlignment,
-    WrapAlignment? runAlignment,
-    bool? wrapEnabled,
-    List<LayoutElementModel>? children,
-  }) {
+  ContainerElementModel copyWith(
+      {Axis? axis,
+      MainAxisAlignment? mainAxisAlignment,
+      CrossAxisAlignment? crossAxisAlignment,
+      WrapAlignment? runAlignment,
+      bool? wrapEnabled,
+      List<LayoutElementModel>? children,
+      ContainerRunLoading? runLoading}) {
     return ContainerElementModel(
-        mainAxisAlignment: mainAxisAlignment ?? this.mainAxisAlignment,
-        crossAxisAlignment: crossAxisAlignment ?? this.crossAxisAlignment,
-        runAlignment: runAlignment ?? this.runAlignment,
-        wrapEnabled: wrapEnabled ?? this.wrapEnabled,
-        axis: axis ?? this.axis,
-        children: children ?? this.children);
+      mainAxisAlignment: mainAxisAlignment ?? this.mainAxisAlignment,
+      crossAxisAlignment: crossAxisAlignment ?? this.crossAxisAlignment,
+      runAlignment: runAlignment ?? this.runAlignment,
+      wrapEnabled: wrapEnabled ?? this.wrapEnabled,
+      axis: axis ?? this.axis,
+      children: children ?? this.children,
+      runLoading: runLoading ?? this.runLoading,
+    );
   }
 
   @override

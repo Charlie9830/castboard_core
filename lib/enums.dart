@@ -8,3 +8,8 @@ enum SlideOrientation {
   portrait,
   portraitInverted,
 }
+
+enum ContainerRunLoading {
+  topOrLeftHeavy,
+  bottomOrRightHeavy,
+}

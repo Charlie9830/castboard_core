@@ -1,8 +1,4 @@
-
-
 import 'package:castboard_core/layout-canvas/LayoutBlock.dart';
-import 'package:castboard_core/layout-canvas/MultiChildCanvasItem.dart';
-import 'package:flutter/material.dart';
 
 //
 // Top
@@ -16,7 +12,7 @@ LayoutBlock applyTopNormalUpdate(LayoutBlock existing, double deltaY) {
 }
 
 LayoutBlock applyTopCrossoverUpdate(LayoutBlock existing, double deltaY) {
-  final pointerPos = existing.topEdge+ deltaY;
+  final pointerPos = existing.topEdge + deltaY;
   final difference = pointerPos - existing.bottomEdge;
   final updatedElement = existing.copyWith(
     height: difference,
@@ -38,7 +34,7 @@ LayoutBlock applyLeftNormalUpdate(LayoutBlock existing, double deltaX) {
 }
 
 LayoutBlock applyLeftCrossoverUpdate(LayoutBlock existing, double deltaX) {
-  final pointerPos = existing.leftEdge+ deltaX;
+  final pointerPos = existing.leftEdge + deltaX;
   final difference = pointerPos - existing.rightEdge;
   final updatedElement = existing.copyWith(
     width: difference,
@@ -60,7 +56,7 @@ LayoutBlock applyBottomNormalUpdate(LayoutBlock existing, double deltaY) {
 
 LayoutBlock applyBottomCrossoverUpdate(LayoutBlock existing, double deltaY) {
   final updatedElement = existing.copyWith(
-    height: existing.topEdge- existing.yPos + _invertSign(deltaY),
+    height: existing.topEdge - existing.yPos + _invertSign(deltaY),
     yPos: existing.yPos + deltaY,
   );
   return updatedElement;
@@ -79,7 +75,7 @@ LayoutBlock applyRightNormalUpdate(LayoutBlock existing, double deltaX) {
 
 LayoutBlock applyRightCrossoverUpdate(LayoutBlock existing, double deltaX) {
   final updatedElement = existing.copyWith(
-    width: existing.leftEdge- existing.xPos + _invertSign(deltaX),
+    width: existing.leftEdge - existing.xPos + _invertSign(deltaX),
     xPos: existing.xPos + deltaX,
   );
   return updatedElement;

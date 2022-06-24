@@ -1,12 +1,9 @@
-import 'package:castboard_core/elements/GroupElement.dart';
 import 'package:castboard_core/layout-canvas/DragBox.dart';
 import 'package:castboard_core/layout-canvas/DragHandles.dart';
 import 'package:castboard_core/layout-canvas/DragSelectionBox.dart';
 import 'package:castboard_core/layout-canvas/LayoutBlock.dart';
-import 'package:castboard_core/layout-canvas/MultiChildCanvasItem.dart';
 import 'package:castboard_core/layout-canvas/ResizeHandle.dart';
 import 'package:castboard_core/layout-canvas/RotateHandle.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 typedef void OnDragBoxClickCallback(String blockId, int pointerId);

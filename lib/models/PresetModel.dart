@@ -1,4 +1,3 @@
-import 'package:castboard_core/models/ActorModel.dart';
 import 'package:castboard_core/models/CastChangeModel.dart';
 
 const _defaultBuiltInPresetId = 'DEFAULT-BUILT-IN-PRESET';

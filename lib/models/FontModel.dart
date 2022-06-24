@@ -1,8 +1,5 @@
-import 'dart:convert';
-
 import 'package:castboard_core/classes/FontRef.dart';
 import 'package:castboard_core/enum-converters/fontEncodingConverters.dart';
-import 'package:flutter/foundation.dart';
 
 enum FontEncoding { ttf, otf }
 

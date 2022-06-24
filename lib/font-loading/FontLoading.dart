@@ -10,7 +10,7 @@ import 'package:flutter/services.dart';
 class FontLoading {
   static Future<FontLoadingResult> loadFont(
       String familyName, Uint8List data) async {
-    if (familyName == null || familyName.isEmpty) {
+    if (familyName.isEmpty) {
       throw FontLoadingError(
           'No familyName was provided to loadFont. A family name is required');
     }

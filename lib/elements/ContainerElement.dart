@@ -2,7 +2,6 @@ import 'package:castboard_core/elements/ContainerItem.dart';
 import 'package:castboard_core/elements/Dragger.dart';
 import 'package:castboard_core/enums.dart';
 import 'package:castboard_core/inherited/RenderScaleProvider.dart';
-import 'package:castboard_core/layout-canvas/MultiChildCanvasItem.dart';
 import 'package:flutter/material.dart';
 
 const String _shadowId = 'shadow';
@@ -171,7 +170,7 @@ class _ContainerElementState extends State<ContainerElement> {
           color: item.selected ? Colors.grey.withAlpha(64) : null,
           foregroundDecoration: BoxDecoration(
             border: item.selected
-                ? Border.all(color: Theme.of(context).accentColor)
+                ? Border.all(color: Theme.of(context).colorScheme.secondary)
                 : Border.all(
                     color: Colors.grey.withAlpha(50),
                   ),

@@ -9,9 +9,9 @@ class DragSelectionBox extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-          color: Theme.of(context).accentColor.withAlpha(64),
+          color: Theme.of(context).colorScheme.secondary.withAlpha(64),
           border: Border.all(
-            color: Theme.of(context).accentColor,
+            color: Theme.of(context).colorScheme.secondary,
           )),
     );
   }

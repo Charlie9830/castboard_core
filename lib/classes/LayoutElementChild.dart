@@ -15,7 +15,6 @@ import 'package:castboard_core/enum-converters/runAlignmentConverters.dart';
 import 'package:castboard_core/enum-converters/shapeElementTypeConverters.dart';
 import 'package:castboard_core/enum-converters/textAlignConverters.dart';
 import 'package:castboard_core/enum-converters/crossAxisAlignmentConverters.dart';
-import 'package:castboard_core/enums.dart';
 import 'package:castboard_core/models/ColorModel.dart';
 import 'package:castboard_core/models/LayoutElementModel.dart';
 import 'package:castboard_core/models/TrackRef.dart';

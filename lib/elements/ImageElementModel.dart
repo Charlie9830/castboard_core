@@ -1,10 +1,6 @@
 import 'package:castboard_core/classes/PhotoRef.dart';
-import 'package:castboard_core/enum-converters/shapeElementTypeConverters.dart';
-import 'package:castboard_core/models/ColorModel.dart';
-import 'package:flutter/material.dart';
 
 import 'package:castboard_core/classes/LayoutElementChild.dart';
-import 'package:castboard_core/enums.dart';
 
 class ImageElementModel extends LayoutElementChild {
   final ImageRef ref;

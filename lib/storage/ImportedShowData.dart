@@ -56,7 +56,7 @@ class ImportedShowData {
   }
 
   static ImportedShowData _migrateToV2(ImportedShowData data) {
-    final DataMigrator migrateActorIndex = (ImportedShowData data) {
+    migrateActorIndex(ImportedShowData data) {
       // ActorIndex Migration.
       if (data.showData.actorIndex.length >= data.showData.actors.length) {
         // No migration required.
@@ -67,15 +67,15 @@ class ImportedShowData {
       /// Otherwise, Dart will implicitly return a List<ActorIndex> list. This will break code in the reducers
       /// at runtime because we will be adding/inserting elements of a List<ActorIndex> not a List<ActorIndexBase> (The base
       /// class that ActorIndex and ActorIndexDivider) derive from.
-      ActorIndexBase Function(ActorRef ref) mapper = (ref) => ActorIndex(ref);
+      ActorIndexBase mapper(ActorRef ref) => ActorIndex(ref);
 
       return data._copyWith(
           showData: data.showData.copyWith(
         actorIndex: data.showData.actors.keys.map(mapper).toList(),
       ));
-    };
+    }
 
-    final DataMigrator migrateTrackIndex = (ImportedShowData data) {
+    migrateTrackIndex(ImportedShowData data) {
       // ActorIndex Migration.
       if (data.showData.trackIndex.length >= data.showData.tracks.length) {
         // No migration required.
@@ -86,13 +86,13 @@ class ImportedShowData {
       /// Otherwise, Dart will implicitly return a List<TrackIndex> list. This will break code in the reducers
       /// at runtime because we will be adding/inserting elements of a List<TrackIndex> not a List<TrackIndexBase> (The base
       /// class that TrackIndex and TrackIndexDivider) derive from.
-      TrackIndexBase Function(TrackRef ref) mapper = (ref) => TrackIndex(ref);
+      TrackIndexBase mapper(TrackRef ref) => TrackIndex(ref);
 
       return data._copyWith(
           showData: data.showData.copyWith(
         trackIndex: data.showData.tracks.keys.map(mapper).toList(),
       ));
-    };
+    }
 
     return [migrateActorIndex, migrateTrackIndex]
         .fold(data, (previousValue, migrator) => migrator(previousValue));

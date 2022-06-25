@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 class RenderScale extends InheritedWidget {
   @override
   final Widget child;
+  
   final double? scale;
 
   const RenderScale({Key? key, required this.child, this.scale = 1})

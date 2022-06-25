@@ -178,21 +178,19 @@ class DragHandles extends StatelessWidget {
       ),
     );
 
-    return Container(
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          rotator,
-          topLeft,
-          topCenter,
-          topRight,
-          middleRight,
-          bottomRight,
-          bottomCenter,
-          bottomLeft,
-          middleLeft,
-        ],
-      ),
+    return Stack(
+      alignment: Alignment.center,
+      children: [
+        rotator,
+        topLeft,
+        topCenter,
+        topRight,
+        middleRight,
+        bottomRight,
+        bottomCenter,
+        bottomLeft,
+        middleLeft,
+      ],
     );
   }
 

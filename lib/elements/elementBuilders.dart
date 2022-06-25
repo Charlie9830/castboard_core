@@ -95,7 +95,7 @@ Widget _buildChild({
   Set<String>? selectedContainerIds = const <String>{},
   EdgeInsets elementPadding = EdgeInsets.zero,
 }) {
-  final withPadding = (Widget child) => Padding(
+  withPadding(Widget child) => Padding(
         padding: elementPadding,
         child: child,
       );
@@ -206,18 +206,16 @@ Widget _buildChild({
         _lookupText(element, castChange, actors, tracks, trackRefsByName);
 
     return withPadding(
-      Container(
-        child: TextElement(
-          text: text,
-          style: TextElementStyle(
-              alignment: element.alignment,
-              color: element.color,
-              fontFamily: element.fontFamily,
-              fontSize: element.fontSize,
-              bold: element.bold,
-              italics: element.italics,
-              underline: element.underline),
-        ),
+      TextElement(
+        text: text,
+        style: TextElementStyle(
+            alignment: element.alignment,
+            color: element.color,
+            fontFamily: element.fontFamily,
+            fontSize: element.fontSize,
+            bold: element.bold,
+            italics: element.italics,
+            underline: element.underline),
       ),
     );
   }
@@ -350,9 +348,6 @@ String? _lookupActorName(TrackRef trackRef, CastChangeModel? castChange,
       tracks.containsKey(trackRef) == false) {
     return 'Unassigned';
   }
-
-  final track = tracks[trackRef]!;
-  final trackTitle = track.title.isEmpty ? 'No Name Track' : track.title;
 
   if (castChange == null) {
     return "Artist's name";

@@ -21,10 +21,10 @@ class SearchDropdown extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  _SearchDropdownState createState() => _SearchDropdownState();
+  SearchDropdownState createState() => SearchDropdownState();
 }
 
-class _SearchDropdownState extends State<SearchDropdown> {
+class SearchDropdownState extends State<SearchDropdown> {
   // Non Flutter Tracked State.
   OverlayEntry? _backdrop;
   OverlayEntry? _entry;

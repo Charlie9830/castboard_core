@@ -15,7 +15,8 @@ import 'package:flutter/material.dart';
 
 const double _gridSnapDeadZoneRatio = 0.5;
 
-typedef OnSelectedElementsChangedCallback = void Function(Set<String> selectedElements);
+typedef OnSelectedElementsChangedCallback = void Function(
+    Set<String> selectedElements);
 typedef OnElementsChangedCallback = void Function(
     Map<String, LayoutBlock> changedElements);
 typedef OnPlaceCallback = void Function(double xPos, double yPos);
@@ -56,10 +57,10 @@ class LayoutCanvas extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  _LayoutCanvasState createState() => _LayoutCanvasState();
+  LayoutCanvasState createState() => LayoutCanvasState();
 }
 
-class _LayoutCanvasState extends State<LayoutCanvas> {
+class LayoutCanvasState extends State<LayoutCanvas> {
   Map<String, LayoutBlock> _activeElements = const {};
 
   // State
@@ -396,16 +397,16 @@ class _LayoutCanvasState extends State<LayoutCanvas> {
     final deltaYSnapAccumulator = _deltaYSnapAccumulator + renderDeltaY;
 
     // Declare a local function to get a snap delta (Saves repeating code in handles switch statement later).
-    final getSnappedDeltaX = (double currentPos, double renderDeltaX) {
+    getSnappedDeltaX(double currentPos, double renderDeltaX) {
       return _getSnapDelta(currentPos, deltaXSnapAccumulator, widget.gridSize,
           _gridSnapDeadZoneRatio);
-    };
+    }
 
     // Declare a local function to get a snap delta (Saves repeating code in handles switch statement later).
-    final getSnappedDeltaY = (double currentPos, double renderDeltaY) {
+    getSnappedDeltaY(double currentPos, double renderDeltaY) {
       return _getSnapDelta(currentPos, deltaYSnapAccumulator, widget.gridSize,
           _gridSnapDeadZoneRatio);
-    };
+    }
 
     switch (currentLogicalHandle) {
       // Top Left.

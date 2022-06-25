@@ -11,8 +11,7 @@ class ShowfileValidationResult {
     this.manifest,
   });
 
-  ShowfileValidationResult.good(ManifestModel? manifest)
+  ShowfileValidationResult.good(this.manifest)
       : isValid = true,
-        isCompatiableFileVersion = true,
-        manifest = manifest;
+        isCompatiableFileVersion = true;
 }

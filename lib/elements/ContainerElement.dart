@@ -15,7 +15,8 @@ const Map<MainAxisAlignment, WrapAlignment> _alignmentMapping = {
   MainAxisAlignment.spaceAround: WrapAlignment.spaceAround,
 };
 
-typedef OnOrderChanged = void Function(String? dragId, int oldIndex, int newIndex);
+typedef OnOrderChanged = void Function(
+    String? dragId, int oldIndex, int newIndex);
 
 class ContainerElement extends StatefulWidget {
   final bool? isEditing;
@@ -48,10 +49,10 @@ class ContainerElement extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  _ContainerElementState createState() => _ContainerElementState();
+  ContainerElementState createState() => ContainerElementState();
 }
 
-class _ContainerElementState extends State<ContainerElement> {
+class ContainerElementState extends State<ContainerElement> {
   bool _isDragging = false;
   String? _candidateId = '';
   int _candidateHomeIndex = -1;

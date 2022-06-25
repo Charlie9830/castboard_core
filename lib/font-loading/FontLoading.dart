@@ -1,5 +1,3 @@
-
-
 import 'dart:typed_data';
 
 import 'package:castboard_core/font-loading/FontLoadCandidate.dart';
@@ -15,9 +13,9 @@ class FontLoading {
           'No familyName was provided to loadFont. A family name is required');
     }
 
-    final loaderDelegate = () async {
+    loaderDelegate() async {
       return ByteData.sublistView(data);
-    };
+    }
 
     final loader = FontLoader(familyName);
     loader.addFont(loaderDelegate());

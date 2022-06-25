@@ -22,9 +22,6 @@ class TrackRef {
   }
 
   factory TrackRef.fromMap(Map<String, dynamic> map) {
-    if (map == null) {
-
-    }
     return TrackRef(
       map['uid'],
     );

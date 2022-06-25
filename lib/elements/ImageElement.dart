@@ -11,6 +11,6 @@ class ImageElement extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(child: Image.file(file!, fit: BoxFit.contain));
+    return Image.file(file!, fit: BoxFit.contain);
   }
 }

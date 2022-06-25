@@ -30,7 +30,7 @@ import 'package:castboard_core/storage/nestShowfile.dart';
 import 'package:castboard_core/storage/validateShowfileOffThread.dart';
 import 'package:castboard_core/version/fileVersion.dart';
 import 'package:file/local.dart'
-    as localFs; // TODO: Do we need this package anymore?
+    as local_fs; // TODO: Do we need this package anymore?
 import 'package:file/file.dart' as fs;
 
 import 'package:castboard_core/classes/PhotoRef.dart';
@@ -794,7 +794,7 @@ class Storage {
 
     LoggingManager.instance.storage
         .info("Preparing to write file to archived storage");
-    const lfs = localFs.LocalFileSystem();
+    const lfs = local_fs.LocalFileSystem();
 
     // Stage Directories.
     final fs.Directory stagingDir =

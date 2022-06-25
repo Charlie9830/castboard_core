@@ -131,7 +131,7 @@ packages:
     source: hosted
     version: "1.7.0"
   path:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: path
       url: "https://pub.dartlang.org"
@@ -276,7 +276,7 @@ packages:
     source: hosted
     version: "3.0.6"
   vector_math:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: vector_math
       url: "https://pub.dartlang.org"

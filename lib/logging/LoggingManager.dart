@@ -208,7 +208,7 @@ class LoggingManager {
     if (record.error != null) {
       throw record.error!;
     } else {
-      print(_formatRecord(record));
+      debugPrint(_formatRecord(record));
     }
   }
 
@@ -263,7 +263,7 @@ class LoggingManager {
   static Future<int> _getLastFileNumber(Directory docsDir) async {
     final List<File> existingLogFiles = [];
 
-    final isLogFile = (String path) => p.extension(path) == _logFileExtension;
+    isLogFile(String path) => p.extension(path) == _logFileExtension;
 
     await for (var logFile
         in docsDir.list().where((entity) => isLogFile(entity.path))) {

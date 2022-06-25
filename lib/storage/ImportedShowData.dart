@@ -76,7 +76,7 @@ class ImportedShowData {
     }
 
     migrateTrackIndex(ImportedShowData data) {
-      // ActorIndex Migration.
+      // TrackIndex Migration.
       if (data.showData.trackIndex.length >= data.showData.tracks.length) {
         // No migration required.
         return data;
@@ -87,7 +87,6 @@ class ImportedShowData {
       /// at runtime because we will be adding/inserting elements of a List<TrackIndex> not a List<TrackIndexBase> (The base
       /// class that TrackIndex and TrackIndexDivider) derive from.
       TrackIndexBase mapper(TrackRef ref) => TrackIndex(ref);
-
       return data._copyWith(
           showData: data.showData.copyWith(
         trackIndex: data.showData.tracks.keys.map(mapper).toList(),

@@ -20,7 +20,7 @@ class FontRef {
   @override
   bool operator ==(Object other) {
     if (other is FontRef) {
-      return this.uid == other.uid && this.ext == other.ext;
+      return uid == other.uid && ext == other.ext;
     }
     return false;
   }
@@ -34,7 +34,7 @@ class FontRef {
 
   factory FontRef.fromMap(Map<String, dynamic>? map) {
     if (map == null) {
-      return FontRef.none();
+      return const FontRef.none();
     }
     
     return FontRef(

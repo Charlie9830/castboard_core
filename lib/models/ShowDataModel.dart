@@ -1,4 +1,3 @@
-import 'dart:convert';
 
 import 'package:castboard_core/models/ActorIndex.dart';
 import 'package:castboard_core/models/ActorModel.dart';
@@ -54,7 +53,7 @@ class ShowDataModel {
 
   factory ShowDataModel.fromMap(Map<String, dynamic>? map) {
     if (map == null) {
-      return ShowDataModel.initial();
+      return const ShowDataModel.initial();
     }
 
     final rawTracksMap = map['tracks'] as Map<String, dynamic>;

@@ -13,20 +13,20 @@ enum ResizeHandleLocation {
   middleLeft,
 }
 
-typedef void OnResizeHandleDragged(
+typedef OnResizeHandleDragged = void Function(
     double deltaX, double deltaY, ResizeHandleLocation position, int pointerId);
 
-typedef void OnResizeHandleDragStartCallback(
+typedef OnResizeHandleDragStartCallback = void Function(
     ResizeHandleLocation handlePosition, int pointerId);
 
-typedef void OnRotateHandleDragStartCallback(
+typedef OnRotateHandleDragStartCallback = void Function(
   int pointerId,
 );
 
-typedef void OnRotateHandleDraggedCallback(
+typedef OnRotateHandleDraggedCallback = void Function(
     double deltaX, double deltaY, int pointerId);
 
-typedef void OnRotateDoneCallback(int pointerId);
+typedef OnRotateDoneCallback = void Function(int pointerId);
 
 class DragHandles extends StatelessWidget {
   final bool interactive;

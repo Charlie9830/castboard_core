@@ -3,13 +3,13 @@
 import 'package:castboard_core/layout-canvas/ResizeHandle.dart';
 import 'package:flutter/material.dart';
 
-typedef void OnClickCallback(int pointerId);
+typedef OnClickCallback = void Function(int pointerId);
 
-typedef void OnDoubleClickCallback();
+typedef OnDoubleClickCallback = void Function();
 
-typedef void OnMouseUpCallback(int pointerId);
+typedef OnMouseUpCallback = void Function(int pointerId);
 
-typedef void OnPositionChangeCallback(
+typedef OnPositionChangeCallback = void Function(
     double xDelta, double yDelta);
 
 class DragBox extends StatelessWidget {
@@ -67,7 +67,7 @@ class DragBox extends StatelessWidget {
                 child: Container(
                   decoration: BoxDecoration(
                       border: Border.all(
-                          color: Theme.of(context).colorScheme.secondaryVariant,
+                          color: Theme.of(context).colorScheme.secondaryContainer,
                           width: 2.0,
                           style:
                               selected ? BorderStyle.solid : BorderStyle.none)),

@@ -20,7 +20,7 @@ class AvailableResolutions {
 
   factory AvailableResolutions.fromMap(Map<String, dynamic> map) {
     if (map['resolutions'] == null) {
-      return AvailableResolutions.defaults();
+      return const AvailableResolutions.defaults();
     }
     return AvailableResolutions(
       List<DeviceResolution>.from(

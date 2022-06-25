@@ -37,6 +37,7 @@ class ActorElementModel extends TextElementModel
             },
             canConditionallyRender: true);
 
+  @override
   ActorElementModel copyWith({
     TrackRef? trackRef,
     String? text,
@@ -61,6 +62,7 @@ class ActorElementModel extends TextElementModel
     );
   }
 
+  @override
   Map<String, dynamic> toMap() {
     return {
       'elementType': 'actor',

@@ -35,7 +35,7 @@ ShowfileValidationWorkerResult validateShowFileWorker(
     return ShowfileValidationWorkerResult(
         false,
         ShowfileValidationFailReason.incorrectEncoding,
-        'File encoding does not match that of a Zip file. Exception Message: ${e}');
+        'File encoding does not match that of a Zip file. Exception Message: $e');
   }
 
   // Search for the Manifest.
@@ -51,7 +51,7 @@ ShowfileValidationWorkerResult validateShowFileWorker(
 
   final manifestByteData = manifestEntityHits.first.content as List<int>?;
 
-  if (manifestByteData == null || manifestByteData.length == 0) {
+  if (manifestByteData == null || manifestByteData.isEmpty) {
     return ShowfileValidationWorkerResult(
         false,
         ShowfileValidationFailReason.manifestMissing,

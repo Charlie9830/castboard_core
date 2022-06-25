@@ -36,7 +36,7 @@ class TrackRef {
   @override
   bool operator ==(Object other) {
     if (other is TrackRef) {
-      return this.uid == other.uid;
+      return uid == other.uid;
     }
     return false;
   }

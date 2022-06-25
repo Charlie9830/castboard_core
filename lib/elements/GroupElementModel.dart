@@ -7,7 +7,7 @@ class GroupElementModel extends LayoutElementChild {
 
   GroupElementModel({
     List<LayoutElementModel>? children,
-  })  : this.children = children ?? <LayoutElementModel>[],
+  })  : children = children ?? <LayoutElementModel>[],
         super(
             updateContracts: <PropertyUpdateContracts>{},
             canConditionallyRender: true);

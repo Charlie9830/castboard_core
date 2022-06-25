@@ -13,10 +13,11 @@ class ImageElementModel extends LayoutElementChild {
 
   ImageElementModel copyWith() {
     return ImageElementModel(
-      ref: this.ref,
+      ref: ref,
     );
   }
 
+  @override
   Map<String, dynamic> toMap() {
     return {
       'elementType': 'image',

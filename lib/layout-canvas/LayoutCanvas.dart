@@ -15,11 +15,11 @@ import 'package:flutter/material.dart';
 
 const double _gridSnapDeadZoneRatio = 0.5;
 
-typedef void OnSelectedElementsChangedCallback(Set<String> selectedElements);
-typedef void OnElementsChangedCallback(
+typedef OnSelectedElementsChangedCallback = void Function(Set<String> selectedElements);
+typedef OnElementsChangedCallback = void Function(
     Map<String, LayoutBlock> changedElements);
-typedef void OnPlaceCallback(double xPos, double yPos);
-typedef void OnElementDoubleClickedCallback(String elementId);
+typedef OnPlaceCallback = void Function(double xPos, double yPos);
+typedef OnElementDoubleClickedCallback = void Function(String elementId);
 
 class LayoutCanvas extends StatefulWidget {
   final bool interactive;
@@ -37,7 +37,7 @@ class LayoutCanvas extends StatefulWidget {
   final OnElementDoubleClickedCallback? onElementDoubleClicked;
   final OpenElementBuilder? openElementBuilder;
 
-  LayoutCanvas({
+  const LayoutCanvas({
     Key? key,
     this.interactive = true,
     this.deferHitTestingToChildren = false,
@@ -66,8 +66,8 @@ class _LayoutCanvasState extends State<LayoutCanvas> {
   ResizeHandleLocation? _logicalResizeHandle;
   Point? _pointerPosition;
   bool _isDragSelecting = false;
-  Offset? _dragSelectAnchorPoint = Offset(0, 0);
-  Offset? _dragSelectMousePoint = Offset(0, 0);
+  Offset? _dragSelectAnchorPoint = const Offset(0, 0);
+  Offset? _dragSelectMousePoint = const Offset(0, 0);
   Set<String> _dragSelectionPreviews = <String>{};
   double _deltaXSnapAccumulator =
       0.0; // Accumulates Delta Values up until the object or handle is snapped to a grid. In which case Accumulation will start again.
@@ -260,7 +260,7 @@ class _LayoutCanvasState extends State<LayoutCanvas> {
   void _handleResizeStart(
       ResizeHandleLocation position, int pointerId, String elementId) {
     setState(() {
-      _pointerPosition = Point(100.0, 100.0);
+      _pointerPosition = const Point(100.0, 100.0);
     });
   }
 

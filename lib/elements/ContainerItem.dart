@@ -31,11 +31,11 @@ class ContainerItem extends StatelessWidget {
     bool? selected,
   }) {
     return ContainerItem(
-      child: child ?? this.child,
       dragId: dragId ?? this.dragId,
       index: index ?? this.index,
       size: size ?? this.size,
       selected: selected ?? this.selected,
+      child: child ?? this.child,
     );
   }
 }

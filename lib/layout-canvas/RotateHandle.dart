@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
-typedef void OnRotateCallback(double deltaX, double deltaY, int pointerId);
-typedef void OnRotateDoneCallback(int pointerId);
-typedef void OnRotateStartCallback(int pointerId);
+typedef OnRotateCallback = void Function(double deltaX, double deltaY, int pointerId);
+typedef OnRotateDoneCallback = void Function(int pointerId);
+typedef OnRotateStartCallback = void Function(int pointerId);
 
 const double rotateHandleWidth = 24.0;
 const double rotateHandleHeight = 12.0;
@@ -47,13 +47,13 @@ class RotateHandle extends StatelessWidget {
               onPointerMove: interactive! ? _handlePointerMove : null,
               child: Icon(
                 Icons.refresh_outlined,
-                color: Theme.of(context).colorScheme.secondaryVariant,
+                color: Theme.of(context).colorScheme.secondaryContainer,
               ),
             ),
             Expanded(
               child: CustomPaint(
                   painter: _Trunk(
-                      color: Theme.of(context).colorScheme.secondaryVariant)),
+                      color: Theme.of(context).colorScheme.secondaryContainer)),
             )
           ],
         ));

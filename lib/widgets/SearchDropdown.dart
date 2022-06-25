@@ -1,5 +1,4 @@
 import 'package:castboard_core/utils/isMobile.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -12,7 +11,7 @@ class SearchDropdown extends StatefulWidget {
   final bool enabled;
   final void Function(dynamic value) onChanged;
 
-  SearchDropdown({
+  const SearchDropdown({
     Key? key,
     required this.itemsBuilder,
     required this.selectedItemBuilder,
@@ -154,7 +153,7 @@ class _SearchDropdownContent extends StatefulWidget {
   final void Function()? onCloseButtonPressed;
   final Widget? specialOptions;
 
-  _SearchDropdownContent({
+  const _SearchDropdownContent({
     Key? key,
     required this.value,
     required this.items,
@@ -243,7 +242,7 @@ class __SearchDropdownContentState extends State<_SearchDropdownContent> {
             TextField(
               controller: _controller,
               focusNode: _textFieldFocusNode,
-              decoration: InputDecoration(
+              decoration: const InputDecoration(
                 suffixIcon: Icon(Icons.search),
                 border: OutlineInputBorder(
                   borderSide: BorderSide(),
@@ -259,7 +258,7 @@ class __SearchDropdownContentState extends State<_SearchDropdownContent> {
           itemBuilder: (context, index) {
             final item = _options[index];
             return ConstrainedBox(
-              constraints: BoxConstraints(minHeight: 36, maxHeight: 48),
+              constraints: const BoxConstraints(minHeight: 36, maxHeight: 48),
               key: ValueKey(item.value),
               child: Container(
                 padding: isMobile(context)
@@ -395,7 +394,7 @@ class _Closed extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final concreteHint = hint ?? _Hint();
+    final concreteHint = hint ?? const _Hint();
     final concreteChild = child ?? concreteHint;
 
     return Container(
@@ -410,7 +409,7 @@ class _Closed extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Expanded(child: concreteChild),
-          if (enabled) Icon(Icons.arrow_drop_down, color: Colors.grey),
+          if (enabled) const Icon(Icons.arrow_drop_down, color: Colors.grey),
         ],
       ),
     );
@@ -459,7 +458,7 @@ class _AdaptiveContentLayout extends StatelessWidget {
   Widget build(BuildContext context) {
     if (isMobile(context)) {
       return Container(
-        padding: EdgeInsets.only(left: 8, right: 8, bottom: 8),
+        padding: const EdgeInsets.only(left: 8, right: 8, bottom: 8),
         child: Material(
             color: Theme.of(context).colorScheme.surface,
             child: Column(
@@ -471,7 +470,7 @@ class _AdaptiveContentLayout extends StatelessWidget {
                 ),
                 Expanded(child: listView),
                 Padding(
-                  padding: EdgeInsets.only(left: 8, top: 8, right: 8),
+                  padding: const EdgeInsets.only(left: 8, top: 8, right: 8),
                   child: searchField,
                 ),
               ],
@@ -479,7 +478,7 @@ class _AdaptiveContentLayout extends StatelessWidget {
       );
     } else {
       return Container(
-        padding: EdgeInsets.only(left: 8, right: 8, bottom: 8),
+        padding: const EdgeInsets.only(left: 8, right: 8, bottom: 8),
         width: 400,
         child: Material(
             color: Theme.of(context).colorScheme.surface,
@@ -487,7 +486,7 @@ class _AdaptiveContentLayout extends StatelessWidget {
             child: Column(
               children: [
                 Padding(
-                  padding: EdgeInsets.only(
+                  padding: const EdgeInsets.only(
                     left: 8,
                     top: 8,
                     right: 8,
@@ -513,7 +512,7 @@ class _DialogTitle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final title =
+    const title =
         Padding(padding: EdgeInsets.all(8), child: Text('Select Artist'));
 
     if (showCloseButton) {
@@ -521,12 +520,12 @@ class _DialogTitle extends StatelessWidget {
       return Stack(
         alignment: Alignment.center,
         children: [
-          Padding(padding: EdgeInsets.only(top: 12), child: title),
+          const Padding(padding: EdgeInsets.only(top: 12), child: title),
           Positioned(
             top: 8,
             left: 8,
             child: IconButton(
-              icon: Icon(Icons.close),
+              icon: const Icon(Icons.close),
               onPressed: () => onCloseButtonPressed?.call(),
             ),
           ),

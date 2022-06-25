@@ -28,15 +28,15 @@ class TextElementModel extends LayoutElementChild {
     TextAlign? alignment,
     Color? color,
     bool? needsInterpolation,
-  })  : this.text = text ?? '',
-        this.fontFamily = fontFamily ?? 'Arial',
-        this.fontSize = fontSize ?? 48,
-        this.italics = italics ?? false,
-        this.bold = bold ?? false,
-        this.underline = underline ?? false,
-        this.alignment = alignment ?? TextAlign.center,
-        this.color = color ?? Colors.black,
-        this.needsInterpolation = _hasInterpolation(text),
+  })  : text = text ?? '',
+        fontFamily = fontFamily ?? 'Arial',
+        fontSize = fontSize ?? 48,
+        italics = italics ?? false,
+        bold = bold ?? false,
+        underline = underline ?? false,
+        alignment = alignment ?? TextAlign.center,
+        color = color ?? Colors.black,
+        needsInterpolation = _hasInterpolation(text),
         super(
             updateContracts: propertyUpdateContracts ??
                 <PropertyUpdateContracts>{
@@ -67,6 +67,7 @@ class TextElementModel extends LayoutElementChild {
     );
   }
 
+  @override
   Map<String, dynamic> toMap() {
     return {
       'elementType': 'text',

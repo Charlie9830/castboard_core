@@ -25,9 +25,9 @@ class SystemConfig {
   });
 
   SystemConfig.defaults()
-      : deviceResolution = DeviceResolution.auto(),
+      : deviceResolution = const DeviceResolution.auto(),
         deviceOrientation = DeviceOrientation.landscape,
-        availableResolutions = AvailableResolutions.defaults(),
+        availableResolutions = const AvailableResolutions.defaults(),
         playShowOnIdle = true,
         playerVersion = '',
         playerBuildSignature = '',

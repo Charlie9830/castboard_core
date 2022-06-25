@@ -275,12 +275,12 @@ class Storage {
 
   Future<File> addFont(String uid, String path) async {
     LoggingManager.instance.server.info("Adding font from $path");
-    final Directory? fonts = _fontsDir;
+    final Directory fonts = _fontsDir;
 
     final font = File(path);
     if (await font.exists()) {
       final ext = p.extension(path);
-      final targetFile = await font.copy(p.join(fonts!.path, '$uid$ext'));
+      final targetFile = await font.copy(p.join(fonts.path, '$uid$ext'));
 
       return targetFile;
     } else {
@@ -290,12 +290,12 @@ class Storage {
 
   Future<File> addHeadshot(String uid, String path) async {
     LoggingManager.instance.storage.info("Adding headshot from $path");
-    final Directory? headshots = _headshotsDir;
+    final Directory headshots = _headshotsDir;
 
     final photo = File(path);
     if (await photo.exists()) {
       final ext = p.extension(path);
-      final targetFile = await photo.copy(p.join(headshots!.path, '$uid$ext'));
+      final targetFile = await photo.copy(p.join(headshots.path, '$uid$ext'));
 
       return targetFile;
     } else {
@@ -607,17 +607,17 @@ class Storage {
     if (byteDataSkippedFiles.isNotEmpty) {
       // We read over files that had null byteData. Log it, something could be wrong.
       LoggingManager.instance.storage.warning(
-          'Found archived files with null byteData. Offending files names: ${byteDataSkippedFiles}');
+          'Found archived files with null byteData. Offending files names: $byteDataSkippedFiles');
     }
 
     final manifestData = rawManifest == null
         ? ManifestModel()
         : ManifestModel.fromMap(rawManifest);
     final showData = rawShowData == null
-        ? ShowDataModel.initial()
+        ? const ShowDataModel.initial()
         : ShowDataModel.fromMap(rawShowData);
     final slideData = rawSlideData == null
-        ? SlideDataModel()
+        ? const SlideDataModel()
         : SlideDataModel.fromMap(rawSlideData);
     final playbackState = rawPlaybackState == null
         ? PlaybackStateData.initial()
@@ -794,7 +794,7 @@ class Storage {
 
     LoggingManager.instance.storage
         .info("Preparing to write file to archived storage");
-    final lfs = localFs.LocalFileSystem();
+    const lfs = localFs.LocalFileSystem();
 
     // Stage Directories.
     final fs.Directory stagingDir =
@@ -921,7 +921,7 @@ class Storage {
       fs.Directory stagingDir, Map<String, SlideModel> slides) async {
     final refs = slides.values
         .map((slide) => slide.backgroundRef)
-        .where((ref) => ref != ImageRef.none());
+        .where((ref) => ref != const ImageRef.none());
 
     final requests = refs.map((ref) {
       final sourceFile = getBackgroundFile(ref)!;
@@ -956,7 +956,7 @@ class Storage {
   Future<void> _stageFonts(
       fs.Directory stagingDir, List<FontModel> fonts) async {
     final relativePaths =
-        fonts.map((font) => font.ref).where((ref) => ref != FontRef.none());
+        fonts.map((font) => font.ref).where((ref) => ref != const FontRef.none());
 
     final requests = relativePaths.map((ref) {
       final sourceFile = getFontFile(ref)!;
@@ -972,7 +972,7 @@ class Storage {
       fs.Directory stagingDir, Map<ActorRef, ActorModel> actors) async {
     final refs = actors.values
         .map((actor) => actor.headshotRef)
-        .where((ref) => ref != ImageRef.none());
+        .where((ref) => ref != const ImageRef.none());
 
     final requests = refs.map((ref) {
       final sourceFile = getHeadshotFile(ref)!;

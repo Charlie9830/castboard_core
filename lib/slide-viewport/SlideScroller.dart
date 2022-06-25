@@ -28,13 +28,13 @@ class _SlideScrollerState extends State<SlideScroller> {
       primary: false,
       scrollDirection: Axis.vertical,
       physics: _allowScrolling
-          ? ClampingScrollPhysics()
-          : NeverScrollableScrollPhysics(),
+          ? const ClampingScrollPhysics()
+          : const NeverScrollableScrollPhysics(),
       child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
         physics: _allowScrolling
-            ? ClampingScrollPhysics()
-            : NeverScrollableScrollPhysics(),
+            ? const ClampingScrollPhysics()
+            : const NeverScrollableScrollPhysics(),
         child: Listener(
             onPointerDown: (event) => setState(() => _allowScrolling = false),
             onPointerUp: (event) => setState(() => _allowScrolling = true),

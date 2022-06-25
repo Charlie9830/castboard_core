@@ -35,7 +35,7 @@ class LoggingManager {
   final Queue<String> _messageQueue = Queue<String>();
 
   // Captures how many messages have been written to file. We use this to determine if it is time to switch to a new file.
-  int _sessionMessageCount = 0;
+  final int _sessionMessageCount = 0;
 
   LoggingManager({
     required Directory logsDir,
@@ -49,7 +49,7 @@ class LoggingManager {
     _runAsRelease = runAsRelease;
 
     // Setup Logging library Stream Listeners.
-    final Level logLevel = Level.ALL;
+    const Level logLevel = Level.ALL;
 
     general = Logger.detached('GENERAL')
       ..onRecord.listen(_handleLogRecord)
@@ -182,7 +182,7 @@ class LoggingManager {
     if (record.stackTrace == null) {
       return baseString;
     } else {
-      return baseString + "\n" + record.stackTrace!.toString() + "\n \n";
+      return "$baseString\n${record.stackTrace!}\n \n";
     }
   }
 

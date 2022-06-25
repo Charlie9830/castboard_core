@@ -1,19 +1,14 @@
-import 'package:castboard_core/enums.dart';
 import 'package:castboard_core/models/ActorIndex.dart';
-import 'package:castboard_core/models/ActorModel.dart';
 import 'package:castboard_core/models/ActorRef.dart';
 import 'package:castboard_core/models/ManifestModel.dart';
-import 'package:castboard_core/models/PresetModel.dart';
 import 'package:castboard_core/models/RemoteCastChangeData.dart';
 import 'package:castboard_core/models/ShowDataModel.dart';
-import 'package:castboard_core/models/SlideModel.dart';
 import 'package:castboard_core/models/TrackIndex.dart';
-import 'package:castboard_core/models/TrackModel.dart';
 import 'package:castboard_core/models/TrackRef.dart';
 import 'package:castboard_core/storage/SlideDataModel.dart';
 import 'package:castboard_core/version/fileVersion.dart';
 
-typedef ImportedShowData DataMigrator(ImportedShowData data);
+typedef DataMigrator = ImportedShowData Function(ImportedShowData data);
 
 class ImportedShowData {
   final ManifestModel manifest;

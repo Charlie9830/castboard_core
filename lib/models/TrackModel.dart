@@ -1,5 +1,4 @@
 import 'package:castboard_core/models/TrackRef.dart';
-import 'package:flutter/foundation.dart';
 
 class TrackModel {
   final TrackRef ref;

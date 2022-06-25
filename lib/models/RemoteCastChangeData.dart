@@ -14,7 +14,7 @@ class PlaybackStateData {
   PlaybackStateData.initial()
       : currentPresetId = '',
         combinedPresetIds = const [],
-        liveCastChangeEdits = CastChangeModel.initial();
+        liveCastChangeEdits = const CastChangeModel.initial();
 
   Map<String, dynamic> toMap() {
     return {

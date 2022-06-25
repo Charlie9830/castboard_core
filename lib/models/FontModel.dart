@@ -26,7 +26,7 @@ class FontModel {
     return FontModel(
       uid: uid ?? this.uid,
       familyName: familyName ?? this.familyName,
-      ref: path as FontRef? ?? this.ref,
+      ref: path as FontRef? ?? ref,
       encoding: encoding ?? this.encoding,
     );
   }

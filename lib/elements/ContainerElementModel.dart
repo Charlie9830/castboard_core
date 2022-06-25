@@ -27,14 +27,14 @@ class ContainerElementModel extends LayoutElementChild {
     List<LayoutElementModel>? children,
     Axis? axis,
     ContainerRunLoading? runLoading,
-  })  : this.children = children ?? <LayoutElementModel>[],
-        this.mainAxisAlignment = mainAxisAlignment ?? MainAxisAlignment.center,
-        this.crossAxisAlignment =
+  })  : children = children ?? <LayoutElementModel>[],
+        mainAxisAlignment = mainAxisAlignment ?? MainAxisAlignment.center,
+        crossAxisAlignment =
             crossAxisAlignment ?? CrossAxisAlignment.center,
-        this.axis = axis ?? Axis.horizontal,
-        this.runAlignment = runAlignment ?? WrapAlignment.start,
-        this.wrapEnabled = wrapEnabled ?? false,
-        this.runLoading = runLoading ?? ContainerRunLoading.topOrLeftHeavy,
+        axis = axis ?? Axis.horizontal,
+        runAlignment = runAlignment ?? WrapAlignment.start,
+        wrapEnabled = wrapEnabled ?? false,
+        runLoading = runLoading ?? ContainerRunLoading.topOrLeftHeavy,
         super(updateContracts: <PropertyUpdateContracts>{
           PropertyUpdateContracts.container
         }, canConditionallyRender: false);
@@ -43,13 +43,13 @@ class ContainerElementModel extends LayoutElementChild {
   Map<String, dynamic> toMap() {
     return {
       'elementType': 'container',
-      'axis': convertAxis(this.axis),
-      'mainAxisAlignment': convertMainAxisAlignment(this.mainAxisAlignment),
-      'crossAxisAlignment': convertCrossAxisAlignment(this.crossAxisAlignment),
-      'runAlignment': convertRunAlignment(this.runAlignment),
+      'axis': convertAxis(axis),
+      'mainAxisAlignment': convertMainAxisAlignment(mainAxisAlignment),
+      'crossAxisAlignment': convertCrossAxisAlignment(crossAxisAlignment),
+      'runAlignment': convertRunAlignment(runAlignment),
       'wrapEnabled': wrapEnabled,
       'children': children.map((item) => item.toMap()).toList(),
-      'runLoading': convertContainerRunLoading(this.runLoading),
+      'runLoading': convertContainerRunLoading(runLoading),
     };
   }
 

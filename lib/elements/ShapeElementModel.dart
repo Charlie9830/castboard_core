@@ -16,10 +16,10 @@ class ShapeElementModel extends LayoutElementChild {
     Color? fill,
     Color? lineColor,
     double? lineWeight,
-  })  : this.type = type ?? ShapeElementType.square,
-        this.fill = fill ?? Colors.blue,
-        this.lineColor = lineColor ?? Colors.black,
-        this.lineWeight = lineWeight ?? 1,
+  })  : type = type ?? ShapeElementType.square,
+        fill = fill ?? Colors.blue,
+        lineColor = lineColor ?? Colors.black,
+        lineWeight = lineWeight ?? 1,
         super(updateContracts: <PropertyUpdateContracts>{
           PropertyUpdateContracts.shape
         }, canConditionallyRender: false);
@@ -38,6 +38,7 @@ class ShapeElementModel extends LayoutElementChild {
     );
   }
 
+  @override
   Map<String, dynamic> toMap() {
     return {
       'elementType': 'shape',

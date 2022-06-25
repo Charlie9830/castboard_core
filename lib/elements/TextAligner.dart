@@ -18,14 +18,17 @@ class TextAligner extends StatelessWidget {
   }
 
   Alignment _getAlignment(TextAlign textAlign) {
-    if (textAlign == TextAlign.center || textAlign == TextAlign.justify)
+    if (textAlign == TextAlign.center || textAlign == TextAlign.justify) {
       return Alignment.center;
+    }
 
-    if (textAlign == TextAlign.left || textAlign == TextAlign.start)
+    if (textAlign == TextAlign.left || textAlign == TextAlign.start) {
       return Alignment.centerLeft;
+    }
 
-    if (textAlign == TextAlign.right || textAlign == TextAlign.end)
+    if (textAlign == TextAlign.right || textAlign == TextAlign.end) {
       return Alignment.centerRight;
+    }
 
     return Alignment.center;
   }

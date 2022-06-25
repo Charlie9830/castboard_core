@@ -67,7 +67,7 @@ class ActorIndex extends ActorIndexBase {
   @override
   Map<String, dynamic> toMap() {
     return {
-      'type': this.type,
+      'type': type,
       'ref': ref.toMap(),
     };
   }
@@ -94,8 +94,8 @@ class ActorIndexDivider extends ActorIndexBase {
   @override
   Map<String, dynamic> toMap() {
     return {
-      'type': this.type,
-      'uid': this.uid,
+      'type': type,
+      'uid': uid,
       'title': title,
     };
   }

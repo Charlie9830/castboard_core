@@ -39,8 +39,8 @@ class MultiChildCanvasItem extends StatelessWidget {
   }) {
     return MultiChildCanvasItem(
       key: key ?? this.key,
-      children: children ?? this.children,
       padding: padding ?? this.padding,
+      children: children ?? this.children,
     );
   }
 

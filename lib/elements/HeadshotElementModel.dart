@@ -21,6 +21,7 @@ class HeadshotElementModel extends LayoutElementChild
     );
   }
 
+  @override
   Map<String, dynamic> toMap() {
     return {
       'elementType': 'headshot',

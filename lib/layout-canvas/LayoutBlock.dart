@@ -37,15 +37,15 @@ class LayoutBlock extends StatelessWidget {
     double? debugRenderYPos,
   }) {
     return LayoutBlock(
-      id: this.id,
+      id: id,
       xPos: xPos ?? this.xPos,
       yPos: yPos ?? this.yPos,
       width: width ?? this.width,
       height: height ?? this.height,
       rotation: rotation ?? this.rotation,
-      child: child ?? this.child,
       debugRenderXPos: debugRenderXPos ?? this.debugRenderXPos,
       debugRenderYPos: debugRenderYPos ?? this.debugRenderYPos,
+      child: child ?? this.child,
     );
   }
 
@@ -68,19 +68,19 @@ class LayoutBlock extends StatelessWidget {
     LayoutBlock? yComponent,
   }) {
     return copyWith(
-      xPos: xComponent?.xPos ?? this.xPos,
-      yPos: yComponent?.yPos ?? this.yPos,
-      width: xComponent?.width ?? this.width,
-      height: yComponent?.height ?? this.height,
+      xPos: xComponent?.xPos ?? xPos,
+      yPos: yComponent?.yPos ?? yPos,
+      width: xComponent?.width ?? width,
+      height: yComponent?.height ?? height,
     );
   }
 
   BlockDelta getDeltas(LayoutBlock other) {
     return BlockDelta(
-      width: this.width - other.width,
-      height: this.height - other.height,
-      xPos: this.xPos - other.xPos,
-      yPos: this.yPos - other.yPos,
+      width: width - other.width,
+      height: height - other.height,
+      xPos: xPos - other.xPos,
+      yPos: yPos - other.yPos,
     );
   }
 

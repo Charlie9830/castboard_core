@@ -6,28 +6,28 @@ import 'package:castboard_core/layout-canvas/ResizeHandle.dart';
 import 'package:castboard_core/layout-canvas/RotateHandle.dart';
 import 'package:flutter/material.dart';
 
-typedef void OnDragBoxClickCallback(String blockId, int pointerId);
-typedef void OnDragBoxMouseUpCallback(String blockId, int pointerId);
-typedef void OnDragBoxDoubleClickCallback(String blockId);
-typedef void OnResizeDoneCallback(int pointerId);
-typedef void OnResizeStartCallback(
+typedef OnDragBoxClickCallback = void Function(String blockId, int pointerId);
+typedef OnDragBoxMouseUpCallback = void Function(String blockId, int pointerId);
+typedef OnDragBoxDoubleClickCallback = void Function(String blockId);
+typedef OnResizeDoneCallback = void Function(int pointerId);
+typedef OnResizeStartCallback = void Function(
     ResizeHandleLocation handlePosition, int pointerId, String blockId);
 
-typedef void OnRotateStartCallback(int pointerId, String blockId);
+typedef OnRotateStartCallback = void Function(int pointerId, String blockId);
 
-typedef void OnRotateCallback(
+typedef OnRotateCallback = void Function(
   double deltaX,
   double deltaY,
   String blockId,
   int pointerId,
 );
 
-typedef void OnRotateDoneCallback(
+typedef OnRotateDoneCallback = void Function(
   String blockId,
   int pointerId,
 );
 
-typedef Widget OpenElementBuilder(BuildContext context, LayoutBlock block);
+typedef OpenElementBuilder = Widget Function(BuildContext context, LayoutBlock block);
 
 class DragBoxLayer extends StatelessWidget {
   final bool interactive;
@@ -101,7 +101,7 @@ class DragBoxLayer extends StatelessWidget {
       top: dragSelectYPos,
       width: dragSelectWidth,
       height: dragSelectHeight,
-      child: DragSelectionBox(),
+      child: const DragSelectionBox(),
     );
   }
 
@@ -118,7 +118,7 @@ class DragBoxLayer extends StatelessWidget {
             rotateHandleTotalHeight,
         child: Transform(
           transform: Matrix4.rotationZ(block.rotation),
-          origin: Offset(0, rotateHandleTotalHeight / 2),
+          origin: const Offset(0, rotateHandleTotalHeight / 2),
           alignment: Alignment.center,
           child: DragHandles(
             interactive: interactive,

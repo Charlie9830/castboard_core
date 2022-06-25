@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
-typedef void OnDragCallback(double deltaX, double deltaY, int pointerId);
-typedef void OnDragDoneCallback(int pointerId);
-typedef void OnDragStartCallback(int pointerId);
+typedef OnDragCallback = void Function(double deltaX, double deltaY, int pointerId);
+typedef OnDragDoneCallback = void Function(int pointerId);
+typedef OnDragStartCallback = void Function(int pointerId);
 
 const double dragHandleWidth = 12.0;
 const double dragHandleHeight = 12.0;
@@ -40,7 +40,7 @@ class ResizeHandle extends StatelessWidget {
               ? BoxDecoration(
                   shape: BoxShape.circle,
                   border: Border.all(
-                      color: Theme.of(context).colorScheme.secondaryVariant,
+                      color: Theme.of(context).colorScheme.secondaryContainer,
                       width: 2),
                   color: Theme.of(context).colorScheme.onBackground,
                 )

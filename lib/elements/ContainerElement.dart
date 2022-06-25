@@ -15,7 +15,7 @@ const Map<MainAxisAlignment, WrapAlignment> _alignmentMapping = {
   MainAxisAlignment.spaceAround: WrapAlignment.spaceAround,
 };
 
-typedef void OnOrderChanged(String? dragId, int oldIndex, int newIndex);
+typedef OnOrderChanged = void Function(String? dragId, int oldIndex, int newIndex);
 
 class ContainerElement extends StatefulWidget {
   final bool? isEditing;
@@ -61,8 +61,8 @@ class _ContainerElementState extends State<ContainerElement> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      child: _getChild(context),
       foregroundDecoration: _getForegroundDecoration(),
+      child: _getChild(context),
     );
   }
 
@@ -221,7 +221,7 @@ class _ContainerElementState extends State<ContainerElement> {
   }
 
   Widget _buildFeedback(double? renderScale, Size itemSize, Widget child) {
-    return Container(
+    return SizedBox(
       width: itemSize.width,
       height: itemSize.height,
       child: RenderScale(
@@ -467,10 +467,10 @@ class _ContainerElementState extends State<ContainerElement> {
 
   ContainerItem _buildShadow(int index, Size size) {
     return ContainerItem(
-      child: _ItemShadow(),
       dragId: _shadowId,
       index: index,
       size: size,
+      child: const _ItemShadow(),
     );
   }
 
@@ -486,7 +486,7 @@ class _ItemShadow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox.expand();
+    return const SizedBox.expand();
   }
 }
 
@@ -561,9 +561,9 @@ class _VerticalContainer extends StatelessWidget {
         alignment: _alignmentMapping[mainAxisAlignment!]!,
         runAlignment: runAlignment ?? WrapAlignment.start,
         direction: Axis.vertical,
-        children: children as List<Widget>? ?? const [],
         verticalDirection: getVerticalDirection(concreteRunLoading),
         textDirection: getTextDirection(concreteRunLoading),
+        children: children as List<Widget>? ?? const [],
       );
     }
 

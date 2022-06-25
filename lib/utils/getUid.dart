@@ -1,5 +1,5 @@
 import 'package:uuid/uuid.dart';
 
 String getUid() {
-  return Uuid().v4();
+  return const Uuid().v4();
 }

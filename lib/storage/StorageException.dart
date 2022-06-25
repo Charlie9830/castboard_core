@@ -1,4 +1,3 @@
-import 'dart:io';
 
 class StorageException extends Error {
   final String message;

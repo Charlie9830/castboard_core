@@ -11,8 +11,6 @@ TextAlign parseTextAlign(String value) {
       return TextAlign.right;
     case 'center':
       return TextAlign.center;
-    case 'center':
-      return TextAlign.center;
     case 'justify':
       return TextAlign.justify;
     case 'start':

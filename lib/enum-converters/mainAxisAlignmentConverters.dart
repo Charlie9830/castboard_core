@@ -22,8 +22,6 @@ MainAxisAlignment parseMainAxisAlignment(String value) {
     case 'spaceAround':
       return MainAxisAlignment.spaceAround;
 
-    case 'spaceEvenly':
-      return MainAxisAlignment.spaceEvenly;
 
     default:
       throw EnumConversionError(

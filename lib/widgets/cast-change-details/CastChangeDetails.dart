@@ -51,7 +51,7 @@ class CastChangeDetails extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (trackViewModels.isEmpty && actorViewModels.isEmpty) {
-      return NoTracksOrArtistsFallback();
+      return const NoTracksOrArtistsFallback();
     }
 
     return ListView.builder(
@@ -85,7 +85,7 @@ class CastChangeDetails extends StatelessWidget {
         if (_fromNestedPreset(track.ref.uid, assignments) == true)
           Tooltip(
               message: _lookupSourcePresetName(track.ref.uid, assignments),
-              waitDuration: Duration(milliseconds: 250),
+              waitDuration: const Duration(milliseconds: 250),
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 8.0),
                 child: Icon(Icons.call_merge,
@@ -95,13 +95,13 @@ class CastChangeDetails extends StatelessWidget {
         // Live Edit Reset Button
         if (_fromLiveEdit(track.ref.uid, assignments) == true)
           TextButton(
-            child: Text('Reset'),
+            child: const Text('Reset'),
             onPressed: () => onResetLiveEdit?.call(track.ref),
           ),
 
         // Artist Selector
         Container(
-          constraints: BoxConstraints.loose(Size.fromWidth(150)),
+          constraints: BoxConstraints.loose(const Size.fromWidth(150)),
           child: _buildDropdownButton(
             allowNestedEditing,
             track,
@@ -128,7 +128,7 @@ class CastChangeDetails extends StatelessWidget {
       enabled: allowNestedEditing == true ||
           _fromNestedPreset(track.ref.uid, assignments) == false,
       onChanged: (actorRef) =>
-          onAssignmentUpdated?.call(track.ref, actorRef ?? ActorRef.blank()),
+          onAssignmentUpdated?.call(track.ref, actorRef ?? const ActorRef.blank()),
       itemsBuilder: (context) {
         return [
           if (isMobile(context) == false) ...<SearchDropdownItem>[
@@ -145,12 +145,12 @@ class CastChangeDetails extends StatelessWidget {
                 child: Row(
                   children: [
                     OutlinedButton(
-                        child: _TrackCutOption(),
-                        onPressed: () => onSelect(ActorRef.cut())),
-                    SizedBox(width: 8),
+                        child: const _TrackCutOption(),
+                        onPressed: () => onSelect(const ActorRef.cut())),
+                    const SizedBox(width: 8),
                     OutlinedButton(
-                        child: _UnassignedOption(),
-                        onPressed: () => onSelect(ActorRef.unassigned()))
+                        child: const _UnassignedOption(),
+                        onPressed: () => onSelect(const ActorRef.unassigned()))
                   ],
                 ),
               );
@@ -165,11 +165,11 @@ class CastChangeDetails extends StatelessWidget {
   ) {
     final actorRef = _lookupValue(track.uid, assignments);
 
-    if (actorRef == ActorRef.unassigned()) {
+    if (actorRef == const ActorRef.unassigned()) {
       return _buildUnassignedOption(context);
     }
 
-    if (actorRef == ActorRef.cut()) {
+    if (actorRef == const ActorRef.cut()) {
       return _buildTrackCutOption(context);
     }
 
@@ -191,14 +191,14 @@ class CastChangeDetails extends StatelessWidget {
 
   SearchDropdownItem _buildTrackCutOption(BuildContext context) {
     return SearchDropdownItem(
-        keyword: 'Track Cut', child: _TrackCutOption(), value: ActorRef.cut());
+        keyword: 'Track Cut', child: const _TrackCutOption(), value: const ActorRef.cut());
   }
 
   SearchDropdownItem _buildUnassignedOption(BuildContext context) {
     return SearchDropdownItem(
       keyword: 'Unassigned',
-      child: _UnassignedOption(),
-      value: ActorRef.unassigned(),
+      child: const _UnassignedOption(),
+      value: const ActorRef.unassigned(),
     );
   }
 
@@ -232,7 +232,7 @@ class CastChangeDetails extends StatelessWidget {
       return assignments[trackId]!.actorRef;
     }
 
-    return ActorRef.unassigned();
+    return const ActorRef.unassigned();
   }
 
   bool _fromNestedPreset(String? trackId, Map<String, ActorTuple> assignments) {
@@ -271,7 +271,7 @@ class _UnassignedOption extends StatelessWidget {
           size: 16,
           color: Theme.of(context).colorScheme.secondary,
         ),
-        SizedBox(width: 8),
+        const SizedBox(width: 8),
         Text('Unassigned',
             style: Theme.of(context)
                 .textTheme
@@ -296,7 +296,7 @@ class _TrackCutOption extends StatelessWidget {
           size: 16,
           color: Theme.of(context).colorScheme.secondary,
         ),
-        SizedBox(width: 8),
+        const SizedBox(width: 8),
         Text('Track Cut',
             style: Theme.of(context)
                 .textTheme

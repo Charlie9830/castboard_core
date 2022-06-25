@@ -96,7 +96,7 @@ class CastChangeModel {
 
   factory CastChangeModel.fromMap(Map<String, dynamic>? map) {
     if (map == null) {
-      return CastChangeModel.initial();
+      return const CastChangeModel.initial();
     }
 
     return CastChangeModel(
@@ -117,7 +117,7 @@ class CastChangeModel {
     CastChangeModel liveEdits = const CastChangeModel.initial(),
   }) {
     if (base == null) {
-      return CastChangeModel.initial();
+      return const CastChangeModel.initial();
     }
 
     return base.combinedWithOthers(combined).stompedByOther(liveEdits);

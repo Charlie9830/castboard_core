@@ -23,7 +23,7 @@ class ActorRef {
 
   factory ActorRef.fromJsonKey(String? key) {
     if (key == null) {
-      return ActorRef.blank();
+      return const ActorRef.blank();
     }
 
     final String uid = key;
@@ -43,7 +43,7 @@ class ActorRef {
 
   factory ActorRef.fromMap(Map<String, dynamic>? map) {
     if (map == null) {
-      return ActorRef.blank();
+      return const ActorRef.blank();
     }
     
     final String uid = map['uid'] ?? _blankUid;
@@ -71,7 +71,7 @@ class ActorRef {
   @override
   bool operator ==(Object other) {
     if (other is ActorRef) {
-      return this.uid == other.uid;
+      return uid == other.uid;
     }
     return false;
   }

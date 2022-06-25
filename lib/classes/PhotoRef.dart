@@ -24,7 +24,7 @@ class ImageRef {
   @override
   bool operator ==(Object other) {
     if (other is ImageRef) {
-      return this.uid == other.uid && this.ext == other.ext;
+      return uid == other.uid && ext == other.ext;
     }
     return false;
   }
@@ -37,7 +37,7 @@ class ImageRef {
   }
 
   factory ImageRef.fromMap(Map<String, dynamic>? map) {
-    if (map == null) return ImageRef.none();
+    if (map == null) return const ImageRef.none();
 
     return ImageRef(
       map['uid'],

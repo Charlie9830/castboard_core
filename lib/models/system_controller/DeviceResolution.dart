@@ -20,7 +20,7 @@ class DeviceResolution {
 
   factory DeviceResolution.fromMap(Map<String, dynamic> map) {
     if (map['auto'] == true) {
-      return DeviceResolution.auto();
+      return const DeviceResolution.auto();
     }
 
     return DeviceResolution(

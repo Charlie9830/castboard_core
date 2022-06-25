@@ -20,14 +20,13 @@ import 'package:castboard_core/models/ActorModel.dart';
 import 'package:castboard_core/models/ActorRef.dart';
 import 'package:castboard_core/models/CastChangeModel.dart';
 import 'package:castboard_core/models/LayoutElementModel.dart';
-import 'package:castboard_core/models/PresetModel.dart';
 import 'package:castboard_core/models/TrackModel.dart';
 import 'package:castboard_core/models/SlideModel.dart';
 import 'package:castboard_core/models/TrackRef.dart';
 import 'package:castboard_core/storage/Storage.dart';
 import 'package:flutter/material.dart';
 
-typedef void OnContainerItemsReorder(
+typedef OnContainerItemsReorder = void Function(
     String? containerId, String itemId, int oldIndex, int newIndex);
 
 Map<String, LayoutBlock> buildElements({
@@ -170,7 +169,7 @@ Widget _buildChild({
 
   if (element is HeadshotElementModel) {
     if (tracks == null) {
-      return withPadding(HeadshotFallback(
+      return withPadding(const HeadshotFallback(
         reason: HeadshotFallbackReason.noTrack,
       ));
     }
@@ -179,18 +178,18 @@ Widget _buildChild({
 
     if (track == null) {
       return withPadding(
-          HeadshotFallback(reason: HeadshotFallbackReason.noTrack));
+          const HeadshotFallback(reason: HeadshotFallbackReason.noTrack));
     }
 
     final actor = _getAssignedActor(element, castChange, actors);
 
     if (actor == null) {
       return withPadding(
-          HeadshotFallback(reason: HeadshotFallbackReason.noActor));
+          const HeadshotFallback(reason: HeadshotFallbackReason.noActor));
     }
 
     if (actor.headshotRef.uid!.isEmpty) {
-      return withPadding(HeadshotFallback(
+      return withPadding(const HeadshotFallback(
         reason: HeadshotFallbackReason.noPhoto,
       ));
     }
@@ -335,7 +334,7 @@ String? _lookupText(
 
 String _lookupTrackName(TrackRef trackRef, CastChangeModel? castChange,
     Map<ActorRef, ActorModel>? actors, Map<TrackRef, TrackModel>? tracks) {
-  if (trackRef == TrackRef.blank() ||
+  if (trackRef == const TrackRef.blank() ||
       tracks == null ||
       tracks.containsKey(trackRef) == false) {
     return 'Unassigned';
@@ -346,7 +345,7 @@ String _lookupTrackName(TrackRef trackRef, CastChangeModel? castChange,
 
 String? _lookupActorName(TrackRef trackRef, CastChangeModel? castChange,
     Map<ActorRef, ActorModel>? actors, Map<TrackRef, TrackModel>? tracks) {
-  if (trackRef == TrackRef.blank() ||
+  if (trackRef == const TrackRef.blank() ||
       tracks == null ||
       tracks.containsKey(trackRef) == false) {
     return 'Unassigned';

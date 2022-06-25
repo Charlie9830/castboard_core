@@ -1,5 +1,3 @@
-
-
 import 'package:flutter/material.dart';
 
 class SlideScroller extends StatefulWidget {
@@ -12,10 +10,10 @@ class SlideScroller extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  _SlideScrollerState createState() => _SlideScrollerState();
+  SlideScrollerState createState() => SlideScrollerState();
 }
 
-class _SlideScrollerState extends State<SlideScroller> {
+class SlideScrollerState extends State<SlideScroller> {
   bool _allowScrolling = true;
 
   @override

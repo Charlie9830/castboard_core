@@ -33,14 +33,13 @@ class SearchDropdownState extends State<SearchDropdown> {
   Widget build(BuildContext context) {
     final selectedItem = widget.selectedItemBuilder(context);
 
-    return Container(
-        child: GestureDetector(
+    return GestureDetector(
       onTap: widget.enabled ? () => _handleOpen(context, selectedItem) : null,
       child: _Closed(
-        enabled: widget.enabled,
-        child: selectedItem?.child,
+    enabled: widget.enabled,
+    child: selectedItem?.child,
       ),
-    ));
+    );
   }
 
   void _handleOpen(BuildContext context, SearchDropdownItem? selectedItem) {

@@ -42,14 +42,14 @@ class FontLoading {
       return <FontLoadCandidate>[];
     }
 
-    final candidates = candidates.toList();
+    final fontCandidates = candidates.toList();
 
-    final loadRequests = candidates.map((item) =>
+    final loadRequests = fontCandidates.map((item) =>
         loadFont(item.familyName, item.data)
           ..then((result) => item.setLoadResult(result)));
 
     await Future.wait(loadRequests);
 
-    return candidates;
+    return fontCandidates;
   }
 }

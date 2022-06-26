@@ -27,6 +27,7 @@ import 'package:castboard_core/storage/decompressGenericZipInternal.dart';
 import 'package:castboard_core/storage/extractImageRefs.dart';
 import 'package:castboard_core/storage/getParentDirectoryName.dart';
 import 'package:castboard_core/storage/nestShowfile.dart';
+import 'package:castboard_core/storage/showfile_migration/showfileMigration.dart';
 import 'package:castboard_core/storage/validateShowfileOffThread.dart';
 import 'package:castboard_core/version/fileVersion.dart';
 import 'package:file/local.dart'
@@ -505,12 +506,14 @@ class Storage {
     final slideData = SlideDataModel.fromMap(rawSlideData ?? {});
     final playbackState = PlaybackStateData.fromMap(rawPlaybackState);
 
-    return ImportedShowData(
-      manifest: manifest,
-      showData: showData,
-      slideData: slideData,
-      playbackState: playbackState,
-    ).ensureMigrated();
+    return await applyMigrations(
+        source: ImportedShowData(
+          manifest: manifest,
+          showData: showData,
+          slideData: slideData,
+          playbackState: playbackState,
+        ),
+        manifest: manifest);
   }
 
   /// Unzips and loads the provided [bytes] into the active show directory, overwriting what is already there.
@@ -531,7 +534,7 @@ class Storage {
     final fileWriteRequests = <Future<File>>[];
 
     // For files that are stored at the top level of showfile, which will be targeted to the _activeDir. We can use a file writer delegate for DRY purposes.
-    final topLevelFileWriterDelegate = (String name, List<int> byteData) =>
+    topLevelFileWriterDelegate(String name, List<int> byteData) =>
         File(p.join(_activeShowDir.path, p.basename(name)))
             .writeAsBytes(byteData);
 
@@ -629,12 +632,15 @@ class Storage {
     // TODO: Why are we unpacking the DataModels and repackaging them as ImportedShowData? Why not just pass the Models straight In.
     // -> Coerce a default Preset into existence if not already existing.
     // -> If the Manifest is null, something bad has probalby happened. Should notify the user.
-    return ImportedShowData(
+    return await applyMigrations(
+      source: ImportedShowData(
+        manifest: manifestData,
+        showData: showData,
+        slideData: slideData,
+        playbackState: playbackState,
+      ),
       manifest: manifestData,
-      showData: showData,
-      slideData: slideData,
-      playbackState: playbackState,
-    ).ensureMigrated();
+    );
   }
 
   Future<void> deleteActiveShow() async {
@@ -818,8 +824,8 @@ class Storage {
             slides: slides,
             slideOrientation: slideOrientation,
           )),
-      _stageShowData(
-          stagingDir, tracks, trackRefsByName, actors, actorIndex, trackIndex, presets),
+      _stageShowData(stagingDir, tracks, trackRefsByName, actors, actorIndex,
+          trackIndex, presets),
       _stageFonts(stagingDir, manifest.requiredFonts),
     ]);
 
@@ -955,8 +961,9 @@ class Storage {
 
   Future<void> _stageFonts(
       fs.Directory stagingDir, List<FontModel> fonts) async {
-    final relativePaths =
-        fonts.map((font) => font.ref).where((ref) => ref != const FontRef.none());
+    final relativePaths = fonts
+        .map((font) => font.ref)
+        .where((ref) => ref != const FontRef.none());
 
     final requests = relativePaths.map((ref) {
       final sourceFile = getFontFile(ref)!;

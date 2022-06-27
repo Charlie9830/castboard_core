@@ -15,6 +15,7 @@ void _compressShowfileWorker(CompressShowfileParameters params) {
   zipper.addDirectory(Directory(params.backgroundsDirPath));
   zipper.addDirectory(Directory(params.imagesDirPath));
   zipper.addDirectory(Directory(params.fontsDirPath));
+  zipper.addDirectory(Directory(params.thumbsDirPath));
   zipper.addFile(File(params.manifestFilePath));
   zipper.addFile(File(params.showDataFilePath));
   zipper.addFile(File(params.slideDataFilePath));
@@ -32,6 +33,7 @@ class CompressShowfileParameters {
   final String showDataFilePath;
   final String slideDataFilePath;
   final String playbackStateFilePath;
+  final String thumbsDirPath;
 
   CompressShowfileParameters({
     required this.targetFilePath,
@@ -43,5 +45,6 @@ class CompressShowfileParameters {
     required this.playbackStateFilePath,
     required this.showDataFilePath,
     required this.slideDataFilePath,
+    required this.thumbsDirPath,
   });
 }

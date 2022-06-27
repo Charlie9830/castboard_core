@@ -23,6 +23,7 @@ import 'package:castboard_core/storage/ImportedShowData.dart';
 import 'package:castboard_core/models/ShowDataModel.dart';
 import 'package:castboard_core/storage/SlideDataModel.dart';
 import 'package:castboard_core/storage/compressShowfile.dart';
+import 'package:castboard_core/storage/createThumbnail.dart';
 import 'package:castboard_core/storage/decompressGenericZipInternal.dart';
 import 'package:castboard_core/storage/extractImageRefs.dart';
 import 'package:castboard_core/storage/getParentDirectoryName.dart';
@@ -57,6 +58,7 @@ const _stagingDirName = 'castboard_file_staging';
 const _headshotsDirName = 'headshots';
 const _backgroundsDirName = 'backgrounds';
 const _imagesDirName = 'images';
+const _thumbsDirName = 'thumbs';
 const _fontsDirName = 'fonts';
 const _manifestFileName = 'manifest.json';
 const _slideDataFileName = 'slidedata.json';
@@ -83,6 +85,7 @@ class Storage {
   final Directory _backgroundsDir;
   final Directory _imagesDir;
   final Directory _fontsDir;
+  final Directory _thumbsDir;
 
   bool isWriting = false;
   bool isReading = false;
@@ -108,6 +111,7 @@ class Storage {
     required Directory activeShowDir,
     required Directory showExportDir,
     required Directory imagesDir,
+    required Directory thumbsDir,
   })  : _rootDir = rootDir,
         _headshotsDir = headshots,
         _backgroundsDir = backgrounds,
@@ -116,7 +120,8 @@ class Storage {
         _activeShowDir = activeShowDir,
         _showExportDir = showExportDir,
         _imagesDir = imagesDir,
-        _backupDir = backupDir;
+        _backupDir = backupDir,
+        _thumbsDir = thumbsDir;
 
   static Future<void> initialize(StorageMode mode) async {
     if (_initialized) {
@@ -196,6 +201,7 @@ class Storage {
     late Directory backgrounds;
     late Directory fontsDir;
     late Directory imagesDir;
+    late Directory thumbsDir;
 
     try {
       await Future.wait([
@@ -224,6 +230,12 @@ class Storage {
               await Directory(p.join(activeShowDir.path, _imagesDirName))
                   .create();
         }(),
+        // Thumbs
+        () async {
+          thumbsDir =
+              await Directory(p.join(activeShowDir.path, _thumbsDirName))
+                  .create();
+        }()
       ]);
     } catch (e, stacktrace) {
       LoggingManager.instance.storage.severe(
@@ -243,6 +255,7 @@ class Storage {
       backgrounds: backgrounds,
       fontsDir: fontsDir,
       imagesDir: imagesDir,
+      thumbsDir: thumbsDir,
     );
     _initialized = true;
 
@@ -298,10 +311,29 @@ class Storage {
       final ext = p.extension(path);
       final targetFile = await photo.copy(p.join(headshots.path, '$uid$ext'));
 
+      // Create and store a thumbnail.
+      await createThumbnail(
+          sourceFile: photo,
+          targetFile: await File(p.join(_thumbsDir.path, uid)).create());
+
       return targetFile;
     } else {
       throw StorageException('Source Photo File does not exist');
     }
+  }
+
+  Future<void> addThumbnails(List<String> uids, List<File> sourceFiles) async {
+    final targetFileRequests =
+        uids.map((uid) => File(p.join(_thumbsDir.path, uid)).create());
+
+    await Future.wait(targetFileRequests);
+
+    await createThumbnails(
+        sourceFiles: sourceFiles,
+        targetFiles:
+            uids.map((uid) => File(p.join(_thumbsDir.path, uid))).toList());
+
+    return;
   }
 
   Future<void> updateHeadshot(
@@ -317,12 +349,19 @@ class Storage {
   Future<void> deleteHeadshot(ImageRef ref) async {
     LoggingManager.instance.storage.info("Deleting Headshot ${ref.uid}");
     final Directory headshots = _headshotsDir;
-    final File file = File(p.join(headshots.path, ref.basename));
+    final File headshotFile = File(p.join(headshots.path, ref.basename));
+    final File thumbFile = File(p.join(_thumbsDir.path, ref.uid));
 
-    if (await file.exists()) {
-      await file.delete();
+    Future<void> deleteDelegate(File target) async {
+      if (await target.exists()) target.delete();
+
       return;
     }
+
+    await Future.wait([
+      deleteDelegate(headshotFile),
+      deleteDelegate(thumbFile),
+    ]);
 
     return;
   }
@@ -410,6 +449,14 @@ class Storage {
     }
 
     return File(p.join(_headshotsDir.path, ref.basename));
+  }
+
+  File? getThumbnailFile(ImageRef ref) {
+    if (ref.uid == null || ref.uid!.isEmpty) {
+      return null;
+    }
+
+    return File(p.join(_thumbsDir.path, ref.uid));
   }
 
   File? getBackgroundFile(ImageRef ref) {
@@ -579,6 +626,12 @@ class Storage {
               .writeAsBytes(byteData));
         }
 
+        // Thumbs
+        if (parentDirectoryName == _thumbsDirName) {
+          fileWriteRequests.add(File(p.join(_thumbsDir.path, p.basename(name)))
+              .writeAsBytes(byteData));
+        }
+
         // Manifest
         if (name == _manifestFileName) {
           rawManifest = json.decode(utf8.decode(byteData));
@@ -652,6 +705,7 @@ class Storage {
     final fonts = <FileSystemEntity>[];
     final images = <FileSystemEntity>[];
     final otherFiles = <FileSystemEntity>[];
+    final thumbs = <FileSystemEntity>[];
 
     await Future.wait([
       // Headshots
@@ -678,6 +732,12 @@ class Storage {
           images.add(entity);
         }
       }).asFuture(),
+      // Thumbs
+      _thumbsDir.list().listen((entity) {
+        if (entity is File) {
+          thumbs.add(entity);
+        }
+      }).asFuture(),
       // All other (Non-Directory) Files.
       _activeShowDir.list().listen((entity) {
         if (entity is File) {
@@ -691,6 +751,7 @@ class Storage {
     final fontDeleteRequests = fonts.map((file) => file.delete());
     final imagesDeleteRequests = images.map((file) => file.delete());
     final otherFilesDeleteRequests = otherFiles.map((file) => file.delete());
+    final thumbsDeleteRequests = thumbs.map((file) => file.delete());
 
     await Future.wait([
       ...headshotDeleteRequests,
@@ -698,6 +759,7 @@ class Storage {
       ...fontDeleteRequests,
       ...imagesDeleteRequests,
       ...otherFilesDeleteRequests,
+      ...thumbsDeleteRequests,
     ]);
 
     isWriting = false;
@@ -769,6 +831,7 @@ class Storage {
       backgroundsDirPath: joinWith(_backgroundsDirName),
       fontsDirPath: joinWith(_fontsDirName),
       imagesDirPath: joinWith(_imagesDirName),
+      thumbsDirPath: joinWith(_thumbsDirName),
       manifestFilePath: joinWith(_manifestFileName),
       playbackStateFilePath: joinWith(_playbackStateFileName),
       showDataFilePath: joinWith(_showDataFileName),
@@ -816,6 +879,7 @@ class Storage {
       _stagePlaybackState(stagingDir, playbackState),
       _stageManifest(stagingDir, manifest),
       _stageHeadshots(stagingDir, actors),
+      _stageThumbs(stagingDir, actors),
       _stageBackgrounds(stagingDir, slides),
       _stageImages(stagingDir, slides),
       _stageSlideData(
@@ -838,6 +902,7 @@ class Storage {
           backgroundsDirPath: p.join(stagingDir.path, _backgroundsDirName),
           fontsDirPath: p.join(stagingDir.path, _fontsDirName),
           imagesDirPath: p.join(stagingDir.path, _imagesDirName),
+          thumbsDirPath: p.join(stagingDir.path, _thumbsDirName),
           manifestFilePath: p.join(stagingDir.path, _manifestFileName),
           showDataFilePath: p.join(stagingDir.path, _showDataFileName),
           playbackStateFilePath:
@@ -985,6 +1050,22 @@ class Storage {
       final sourceFile = getHeadshotFile(ref)!;
       return _copyToStagingDir(sourceFile,
           stagingDir.childDirectory(_headshotsDirName).childFile(ref.basename));
+    });
+
+    await Future.wait(requests);
+    return;
+  }
+
+  Future<void> _stageThumbs(
+      fs.Directory stagingDir, Map<ActorRef, ActorModel> actors) async {
+    final refs = actors.values
+        .map((actor) => actor.headshotRef)
+        .where((ref) => ref != const ImageRef.none());
+
+    final requests = refs.map((ref) {
+      final sourceFile = getThumbnailFile(ref)!;
+      return _copyToStagingDir(sourceFile,
+          stagingDir.childDirectory(_thumbsDirName).childFile(ref.basename));
     });
 
     await Future.wait(requests);

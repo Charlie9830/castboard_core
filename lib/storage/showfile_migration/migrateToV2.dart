@@ -3,12 +3,14 @@ import 'package:castboard_core/models/ActorRef.dart';
 import 'package:castboard_core/models/TrackIndex.dart';
 import 'package:castboard_core/models/TrackRef.dart';
 import 'package:castboard_core/storage/ImportedShowData.dart';
+import 'package:castboard_core/storage/Storage.dart';
 import 'package:castboard_core/storage/showfile_migration/foldAsyncMigratorValues.dart';
 
 Future<ImportedShowData> migrateToV2(ImportedShowData source) async {
   final subMigrators = [
     _migrateActorIndexDelegate,
     _migrateTrackIndexDelegate,
+    _migrateActorThumbnailsDelegate
   ];
 
   // Asyncronously call each migrator function and reduce the values together.
@@ -53,4 +55,24 @@ Future<ImportedShowData> _migrateTrackIndexDelegate(
       showData: data.showData.copyWith(
     trackIndex: data.showData.tracks.keys.map(mapper).toList(),
   ));
+}
+
+Future<ImportedShowData> _migrateActorThumbnailsDelegate(
+    ImportedShowData data) async {
+  // Collect all ImageRefs of Actors that have headshots associated with them
+  final imageRefs = data.showData.actors.values
+      .where((model) =>
+          model.headshotRef.uid != null && model.headshotRef.uid!.isNotEmpty)
+      .map((model) => model.headshotRef);
+
+  final imageRefIds = imageRefs.map((ref) => ref.uid!).toList();
+  final imageFiles =
+      imageRefs.map((ref) => Storage.instance.getHeadshotFile(ref)!).toList();
+
+  await Storage.instance.addThumbnails(
+    imageRefIds,
+    imageFiles,
+  );
+
+  return data;
 }

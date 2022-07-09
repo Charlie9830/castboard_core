@@ -25,6 +25,7 @@ import 'package:castboard_core/storage/SlideDataModel.dart';
 import 'package:castboard_core/storage/compressShowfile.dart';
 import 'package:castboard_core/storage/createThumbnail.dart';
 import 'package:castboard_core/storage/decompressGenericZipInternal.dart';
+import 'package:castboard_core/storage/decompressShowfile.dart';
 import 'package:castboard_core/storage/extractImageRefs.dart';
 import 'package:castboard_core/storage/getParentDirectoryName.dart';
 import 'package:castboard_core/storage/nestShowfile.dart';
@@ -322,16 +323,21 @@ class Storage {
     }
   }
 
-  Future<void> addThumbnails(List<String> uids, List<File> sourceFiles) async {
+  Future<void> addThumbnails(List<String> uids, List<File> sourceFiles,
+      {Directory? baseDir}) async {
+    final thumbsDirPath = baseDir == null
+        ? _thumbsDir.path
+        : p.join(baseDir.path, _thumbsDirName);
+
     final targetFileRequests =
-        uids.map((uid) => File(p.join(_thumbsDir.path, uid)).create());
+        uids.map((uid) => File(p.join(thumbsDirPath, uid)).create());
 
     await Future.wait(targetFileRequests);
 
     await createThumbnails(
         sourceFiles: sourceFiles,
         targetFiles:
-            uids.map((uid) => File(p.join(_thumbsDir.path, uid))).toList());
+            uids.map((uid) => File(p.join(thumbsDirPath, uid))).toList());
 
     return;
   }
@@ -443,12 +449,19 @@ class Storage {
     return;
   }
 
-  File? getHeadshotFile(ImageRef ref) {
+  File? getHeadshotFile(
+    ImageRef ref, {
+    Directory? baseDir,
+  }) {
     if (ref.uid == null || ref.uid!.isEmpty) {
       return null;
     }
 
-    return File(p.join(_headshotsDir.path, ref.basename));
+    final dirPath = baseDir == null
+        ? _headshotsDir.path
+        : p.join(baseDir.path, _headshotsDirName);
+
+    return File(p.join(dirPath, ref.basename));
   }
 
   File? getThumbnailFile(ImageRef ref) {
@@ -515,16 +528,20 @@ class Storage {
     }
   }
 
-  Future<ImportedShowData> readActiveShow() async {
-    LoggingManager.instance.storage
-        .info('Reading active show file from storage');
-
+  /// Reads in the showfile from provided [path] otherwise the Active show Directory.
+  /// If [allowMigration] is True, showfile migration may be performed which involves writing the migrated
+  /// showfile back to the disk, ensure you have approriate write permissions.
+  Future<ImportedShowData> loadShowData(
+      {String? path, required bool allowMigration}) async {
     Map<String, dynamic>? rawManifest;
     Map<String, dynamic>? rawShowData;
     Map<String, dynamic>? rawSlideData;
     Map<String, dynamic>? rawPlaybackState;
 
-    final baseDirPath = _activeShowDir.path;
+    final baseDirPath = path ?? _activeShowDir.path;
+
+    LoggingManager.instance.storage.info('Reading show file from $baseDirPath');
+
     final readOperations = [
       // Manifest
       File(p.join(baseDirPath, _manifestFileName))
@@ -548,19 +565,33 @@ class Storage {
 
     // TODO: We should actually verify the show file Manifest file more thoroughly here. Perhaps look into it for a particular checksum like property.
 
-    final manifest = ManifestModel.fromMap(rawManifest ?? {});
-    final showData = ShowDataModel.fromMap(rawShowData);
-    final slideData = SlideDataModel.fromMap(rawSlideData ?? {});
-    final playbackState = PlaybackStateData.fromMap(rawPlaybackState);
+    final manifest = rawManifest == null
+        ? ManifestModel()
+        : ManifestModel.fromMap(rawManifest!);
+    final showData = rawShowData == null
+        ? const ShowDataModel.initial()
+        : ShowDataModel.fromMap(rawShowData!);
+    final slideData = rawSlideData == null
+        ? const SlideDataModel()
+        : SlideDataModel.fromMap(rawSlideData!);
+    final playbackState = rawPlaybackState == null
+        ? const PlaybackStateData.initial()
+        : PlaybackStateData.fromMap(rawPlaybackState!);
 
-    return await applyMigrations(
-        source: ImportedShowData(
-          manifest: manifest,
-          showData: showData,
-          slideData: slideData,
-          playbackState: playbackState,
-        ),
-        manifest: manifest);
+    final data = ImportedShowData(
+        manifest: manifest,
+        slideData: slideData,
+        showData: showData,
+        playbackState: playbackState);
+
+    isWriting = true;
+    final migratedData = await migrateShowfileData(
+        currentShowData: data,
+        manifestFile: File(p.join(baseDirPath, _manifestFileName)),
+        baseDir: Directory(baseDirPath));
+    isWriting = false;
+
+    return migratedData;
   }
 
   /// Unzips and loads the provided [bytes] into the active show directory, overwriting what is already there.
@@ -570,130 +601,31 @@ class Storage {
     // Delete current active show.
     await deleteActiveShow();
 
-    // Decode the Zip File
-    final unzipper = ZipDecoder();
-    final archive = unzipper.decodeBytes(bytes);
+    // Decompress the showfile in an Isolate. This will copy the contents of the archive to the active show dir.
+    final skippedFiles = await decompressShowfile(DecompressShowfileParameters(
+        targetDirPath: _activeShowDir.path,
+        bytes: bytes,
+        backgroundsDirName: _backgroundsDirName,
+        fontsDirName: _fontsDirName,
+        headshotsDirName: _headshotsDirName,
+        imagesDirName: _imagesDirName,
+        manifestFileName: _manifestFileName,
+        playbackStateFileName: _playbackStateFileName,
+        showDataFileName: _showDataFileName,
+        slideDataFileName: _slideDataFileName,
+        thumbsDirName: _thumbsDirName));
 
-    Map<String, dynamic>? rawManifest = {};
-    Map<String, dynamic>? rawShowData = {};
-    Map<String, dynamic>? rawSlideData = {};
-    Map<String, dynamic>? rawPlaybackState = {};
-    final fileWriteRequests = <Future<File>>[];
-
-    // For files that are stored at the top level of showfile, which will be targeted to the _activeDir. We can use a file writer delegate for DRY purposes.
-    topLevelFileWriterDelegate(String name, List<int> byteData) =>
-        File(p.join(_activeShowDir.path, p.basename(name)))
-            .writeAsBytes(byteData);
-
-    String byteDataSkippedFiles = '';
-
-    for (var entity in archive) {
-      final name = entity.name;
-      final parentDirectoryName = getParentDirectoryName(name);
-
-      if (entity.isFile) {
-        final byteData = entity.content as List<int>?;
-
-        if (byteData == null) {
-          // If byteData is null. Add the name to a string that we will log later and continue on.
-          byteDataSkippedFiles = '"${entity.name}", ';
-          continue;
-        }
-
-        // Headshots
-        if (parentDirectoryName == _headshotsDirName) {
-          fileWriteRequests.add(
-              File(p.join(_headshotsDir.path, p.basename(name)))
-                  .writeAsBytes(byteData));
-        }
-
-        // Backgrounds
-        if (parentDirectoryName == _backgroundsDirName) {
-          fileWriteRequests.add(
-              File(p.join(_backgroundsDir.path, p.basename(name)))
-                  .writeAsBytes(byteData));
-        }
-
-        // Fonts
-        if (parentDirectoryName == _fontsDirName) {
-          fileWriteRequests.add(File(p.join(_fontsDir.path, p.basename(name)))
-              .writeAsBytes(byteData));
-        }
-
-        // Images
-        if (parentDirectoryName == _imagesDirName) {
-          fileWriteRequests.add(File(p.join(_imagesDir.path, p.basename(name)))
-              .writeAsBytes(byteData));
-        }
-
-        // Thumbs
-        if (parentDirectoryName == _thumbsDirName) {
-          fileWriteRequests.add(File(p.join(_thumbsDir.path, p.basename(name)))
-              .writeAsBytes(byteData));
-        }
-
-        // Manifest
-        if (name == _manifestFileName) {
-          rawManifest = json.decode(utf8.decode(byteData));
-          fileWriteRequests.add(topLevelFileWriterDelegate(name, byteData));
-        }
-
-        // Show Data (Actors, Tracks, Presets)
-        if (name == _showDataFileName) {
-          rawShowData = json.decode(utf8.decode(byteData));
-          fileWriteRequests.add(topLevelFileWriterDelegate(name, byteData));
-        }
-
-        // Slide Data (Slides, SlideSize, SlideOrientation)
-        if (name == _slideDataFileName) {
-          rawSlideData = json.decode(utf8.decode(byteData));
-          fileWriteRequests.add(topLevelFileWriterDelegate(name, byteData));
-        }
-
-        // Playback State (Currently displayed Cast Change etc)
-        if (name == _playbackStateFileName) {
-          rawPlaybackState = json.decode(utf8.decode(byteData));
-          fileWriteRequests.add(topLevelFileWriterDelegate(name, byteData));
-        }
-      }
-    }
-
-    await Future.wait(fileWriteRequests);
-
-    if (byteDataSkippedFiles.isNotEmpty) {
+    if (skippedFiles.isNotEmpty) {
       // We read over files that had null byteData. Log it, something could be wrong.
       LoggingManager.instance.storage.warning(
-          'Found archived files with null byteData. Offending files names: $byteDataSkippedFiles');
+          'Found archived files with null byteData. Offending files names: $skippedFiles');
     }
 
-    final manifestData = rawManifest == null
-        ? ManifestModel()
-        : ManifestModel.fromMap(rawManifest);
-    final showData = rawShowData == null
-        ? const ShowDataModel.initial()
-        : ShowDataModel.fromMap(rawShowData);
-    final slideData = rawSlideData == null
-        ? const SlideDataModel()
-        : SlideDataModel.fromMap(rawSlideData);
-    final playbackState = rawPlaybackState == null
-        ? PlaybackStateData.initial()
-        : PlaybackStateData.fromMap(rawPlaybackState);
-
+    final data =
+        await loadShowData(path: _activeShowDir.path, allowMigration: true);
     isReading = false;
 
-    // TODO: Verification and Coercion. Values or behaviour for ImportedShowData if properties are Null.
-    // TODO: Why are we unpacking the DataModels and repackaging them as ImportedShowData? Why not just pass the Models straight In.
-    // -> Coerce a default Preset into existence if not already existing.
-    // -> If the Manifest is null, something bad has probalby happened. Should notify the user.
-    return await applyMigrations(
-      source: ImportedShowData(
-        manifest: manifestData,
-        showData: showData,
-        slideData: slideData,
-        playbackState: playbackState,
-      ),
-      manifest: manifestData,
-    );
+    return data;
   }
 
   Future<void> deleteActiveShow() async {

@@ -1,3 +1,6 @@
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:castboard_core/models/ActorIndex.dart';
 import 'package:castboard_core/models/ActorRef.dart';
 import 'package:castboard_core/models/TrackIndex.dart';
@@ -6,20 +9,28 @@ import 'package:castboard_core/storage/ImportedShowData.dart';
 import 'package:castboard_core/storage/Storage.dart';
 import 'package:castboard_core/storage/showfile_migration/foldAsyncMigratorValues.dart';
 
-Future<ImportedShowData> migrateToV2(ImportedShowData source) async {
+import 'package:path/path.dart' as p;
+
+Future<ImportedShowData> migrateToV2(
+  ImportedShowData source,
+  Directory baseDir,
+) async {
   final subMigrators = [
-    _migrateActorIndexDelegate,
-    _migrateTrackIndexDelegate,
-    _migrateActorThumbnailsDelegate
+    _migrateActorIndexDelegate, // Create the actorIndex property.
+    _migrateTrackIndexDelegate, // Create the trackIndex property.
+    _migrateActorThumbnailsDelegate, // Generate thumbnails from headshots
+    _finalize // Write back to showdata.json
   ];
 
   // Asyncronously call each migrator function and reduce the values together.
-  return await foldAsyncMigratorValues(source, subMigrators);
+  return await foldAsyncMigratorValues(source, baseDir, subMigrators);
 }
 
 // ActorIndex Migration Delegate.
 Future<ImportedShowData> _migrateActorIndexDelegate(
-    ImportedShowData data) async {
+  ImportedShowData data,
+  Directory baseDir,
+) async {
   if (data.showData.actorIndex.length >= data.showData.actors.length) {
     // No migration required.
     return data;
@@ -39,7 +50,9 @@ Future<ImportedShowData> _migrateActorIndexDelegate(
 
 // TrackIndex Migration Delegate.
 Future<ImportedShowData> _migrateTrackIndexDelegate(
-    ImportedShowData data) async {
+  ImportedShowData data,
+  Directory baseDir,
+) async {
   // TrackIndex Migration.
   if (data.showData.trackIndex.length >= data.showData.tracks.length) {
     // No migration required.
@@ -58,7 +71,9 @@ Future<ImportedShowData> _migrateTrackIndexDelegate(
 }
 
 Future<ImportedShowData> _migrateActorThumbnailsDelegate(
-    ImportedShowData data) async {
+  ImportedShowData data,
+  Directory baseDir,
+) async {
   // Collect all ImageRefs of Actors that have headshots associated with them
   final imageRefs = data.showData.actors.values
       .where((model) =>
@@ -66,13 +81,25 @@ Future<ImportedShowData> _migrateActorThumbnailsDelegate(
       .map((model) => model.headshotRef);
 
   final imageRefIds = imageRefs.map((ref) => ref.uid!).toList();
-  final imageFiles =
-      imageRefs.map((ref) => Storage.instance.getHeadshotFile(ref)!).toList();
+  final imageFiles = imageRefs
+      .map((ref) => Storage.instance.getHeadshotFile(ref, baseDir: baseDir)!)
+      .toList();
 
   await Storage.instance.addThumbnails(
     imageRefIds,
     imageFiles,
+    baseDir: baseDir,
   );
+
+  return data;
+}
+
+Future<ImportedShowData> _finalize(
+    ImportedShowData data, Directory baseDir) async {
+  final showDataJson = json.encode(data.showData.toMap());
+  final showDataFile = File(p.join(baseDir.path, 'showdata.json'));
+
+  await showDataFile.writeAsString(showDataJson);
 
   return data;
 }

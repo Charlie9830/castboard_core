@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:castboard_core/models/ActorIndex.dart';
 import 'package:castboard_core/models/ActorRef.dart';
 import 'package:castboard_core/models/ManifestModel.dart';
@@ -35,5 +37,9 @@ class ImportedShowData {
       showData: showData ?? this.showData,
       playbackState: playbackState ?? this.playbackState,
     );
+  }
+
+  static Future<ImportedShowData?> fromDirectory(Directory dir) async {
+    
   }
 }

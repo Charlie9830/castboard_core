@@ -11,7 +11,7 @@ class PlaybackStateData {
     required this.liveCastChangeEdits,
   });
 
-  PlaybackStateData.initial()
+  const PlaybackStateData.initial()
       : currentPresetId = '',
         combinedPresetIds = const [],
         liveCastChangeEdits = const CastChangeModel.initial();

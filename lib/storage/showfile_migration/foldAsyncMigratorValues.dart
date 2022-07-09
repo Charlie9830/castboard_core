@@ -1,12 +1,13 @@
-import 'package:castboard_core/storage/ImportedShowData.dart';
+import 'dart:io';
 
-Future<ImportedShowData> foldAsyncMigratorValues(
-    ImportedShowData initialValue,
-    Iterable<Future<ImportedShowData> Function(ImportedShowData data)>
-        migrators) async {
+import 'package:castboard_core/storage/ImportedShowData.dart';
+import 'package:castboard_core/storage/showfile_migration/showfileMigration.dart';
+
+Future<ImportedShowData> foldAsyncMigratorValues(ImportedShowData initialValue,
+    Directory baseDir, Iterable<ShowfileMigrator> migrators) async {
   ImportedShowData value = initialValue;
   for (var migrator in migrators) {
-    value = await migrator(value);
+    value = await migrator(value, baseDir);
   }
 
   return value;

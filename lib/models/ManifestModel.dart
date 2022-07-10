@@ -1,6 +1,6 @@
 import 'package:castboard_core/models/FontModel.dart';
 
-const manifestModelValidationKeyValue = 'correct-horse-battery-staple';
+const kManifestModelValidationKeyValue = 'correct-horse-battery-staple';
 
 class ManifestModel {
   final String
@@ -29,7 +29,7 @@ class ManifestModel {
 
   Map<String, dynamic> toMap() {
     return {
-      'validationKey': manifestModelValidationKeyValue,
+      'validationKey': kManifestModelValidationKeyValue,
       'showId': showId,
       'fileName': fileName,
       'created': created,

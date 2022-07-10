@@ -3,6 +3,8 @@ import 'dart:isolate';
 
 import 'package:image/image.dart';
 
+const kThumbnailFileExt = '.png';
+
 class DecodeParam {
   final File file;
   final SendPort sendPort;
@@ -18,15 +20,15 @@ void decodeIsolate(DecodeParam param) {
 // Decode and process an image file in a separate thread (isolate) to avoid
 // stalling the main UI thread.
 Future<void> createThumbnail(
-    {required File sourceFile, required File targetFile}) async {
+    {required File sourceFile, required String targetFilePath}) async {
   var receivePort = ReceivePort();
 
   await Isolate.spawn(
       decodeIsolate, DecodeParam(sourceFile, receivePort.sendPort));
 
   // Get the processed image from the isolate.
-  var image = await receivePort.first as Image;
-
+  final image = await receivePort.first as Image;
+  final targetFile = File('$targetFilePath$kThumbnailFileExt');
   await targetFile.writeAsBytes(encodePng(image));
 
   return;
@@ -41,13 +43,15 @@ class MultiDecodeParam {
 void multiDecodeIsolate(MultiDecodeParam param) {
   final images =
       param.files.map((file) => decodeImage(file.readAsBytesSync())!);
-  final thumbnails = images.map((image) => copyResize(image, width: 64)).toList();
+  final thumbnails =
+      images.map((image) => copyResize(image, width: 64)).toList();
 
   param.sendPort.send(thumbnails);
 }
 
 Future<void> createThumbnails(
-    {required List<File> sourceFiles, required List<File> targetFiles}) async {
+    {required List<File> sourceFiles,
+    required List<String> targetFilePaths}) async {
   final receivePort = ReceivePort();
 
   await Isolate.spawn(
@@ -57,7 +61,8 @@ Future<void> createThumbnails(
 
   var index = 0;
   for (var thumb in thumbnails) {
-    await targetFiles[index].writeAsBytes(encodePng(thumb));
+    final targetFile = File('${targetFilePaths[index]}$kThumbnailFileExt');
+    await targetFile.writeAsBytes(encodePng(thumb));
     index++;
   }
 }

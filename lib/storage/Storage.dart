@@ -17,56 +17,36 @@ import 'package:castboard_core/models/TrackModel.dart';
 import 'package:castboard_core/models/SlideModel.dart';
 import 'package:castboard_core/models/TrackRef.dart';
 import 'package:castboard_core/path_provider_shims.dart';
-import 'package:castboard_core/storage/ShowfIleValidationResult.dart';
+import 'package:castboard_core/storage/AppStoragePaths.dart';
+import 'package:castboard_core/storage/ShowStoragePaths.dart';
 import 'package:castboard_core/storage/FileWriteResult.dart';
 import 'package:castboard_core/storage/ImportedShowData.dart';
 import 'package:castboard_core/models/ShowDataModel.dart';
+import 'package:castboard_core/storage/ShowfileValidationResult.dart';
 import 'package:castboard_core/storage/SlideDataModel.dart';
+import 'package:castboard_core/storage/archiveShow.dart';
 import 'package:castboard_core/storage/compressShowfile.dart';
+import 'package:castboard_core/storage/copyToStagingDirectory.dart';
 import 'package:castboard_core/storage/createThumbnail.dart';
-import 'package:castboard_core/storage/decompressGenericZipInternal.dart';
 import 'package:castboard_core/storage/decompressShowfile.dart';
 import 'package:castboard_core/storage/extractImageRefs.dart';
-import 'package:castboard_core/storage/getParentDirectoryName.dart';
+import 'package:castboard_core/storage/getShowfileName.dart';
 import 'package:castboard_core/storage/nestShowfile.dart';
 import 'package:castboard_core/storage/showfile_migration/showfileMigration.dart';
-import 'package:castboard_core/storage/validateShowfileOffThread.dart';
+import 'package:castboard_core/storage/validateShowfileInternal.dart';
 import 'package:castboard_core/version/fileVersion.dart';
-import 'package:file/local.dart'
-    as local_fs; // TODO: Do we need this package anymore?
-import 'package:file/file.dart' as fs;
 
 import 'package:castboard_core/classes/PhotoRef.dart';
 import 'package:castboard_core/storage/StorageException.dart';
 
 import 'package:path/path.dart' as p;
 
-import 'package:archive/archive.dart';
-import 'package:archive/archive_io.dart';
-
 // Storage root names
 const editorStorageRootDirName = "com.charliehall.castboard-designer";
 const performerStorageRootDirName = "com.charliehall.castboard-performer";
-const _archiveDirName = 'archive';
-const _activeShowDirName = 'active';
-const _showExportDirName = 'showExport';
-const _backupDirName = 'backup';
 
 // Staging Directory Base Name.
 const _stagingDirName = 'castboard_file_staging';
-
-// Save File Names.
-const _headshotsDirName = 'headshots';
-const _backgroundsDirName = 'backgrounds';
-const _imagesDirName = 'images';
-const _thumbsDirName = 'thumbs';
-const _fontsDirName = 'fonts';
-const _manifestFileName = 'manifest.json';
-const _slideDataFileName = 'slidedata.json';
-const _showDataFileName = 'showdata.json';
-const _playbackStateFileName = 'playback_state.json';
-const _backupShowFileName = 'backup.castboard';
-const _backupStatusFileName = 'status';
 
 enum StorageMode {
   editor,
@@ -77,16 +57,8 @@ class Storage {
   static Storage? _instance;
   static bool _initialized = false;
 
-  final Directory _rootDir;
-  final Directory _archiveDir;
-  final Directory _showExportDir;
-  final Directory _backupDir;
-  final Directory _activeShowDir;
-  final Directory _headshotsDir;
-  final Directory _backgroundsDir;
-  final Directory _imagesDir;
-  final Directory _fontsDir;
-  final Directory _thumbsDir;
+  final AppStoragePaths _appStoragePaths;
+  final ShowStoragePaths _activeShowPaths;
 
   bool isWriting = false;
   bool isReading = false;
@@ -103,31 +75,15 @@ class Storage {
   }
 
   Storage({
-    required Directory rootDir,
-    required Directory headshots,
-    required Directory backgrounds,
-    required Directory archiveDir,
-    required Directory backupDir,
-    required Directory fontsDir,
-    required Directory activeShowDir,
-    required Directory showExportDir,
-    required Directory imagesDir,
-    required Directory thumbsDir,
-  })  : _rootDir = rootDir,
-        _headshotsDir = headshots,
-        _backgroundsDir = backgrounds,
-        _fontsDir = fontsDir,
-        _archiveDir = archiveDir,
-        _activeShowDir = activeShowDir,
-        _showExportDir = showExportDir,
-        _imagesDir = imagesDir,
-        _backupDir = backupDir,
-        _thumbsDir = thumbsDir;
+    required AppStoragePaths appStoragePaths,
+    required ShowStoragePaths activeShowPaths,
+  })  : _appStoragePaths = appStoragePaths,
+        _activeShowPaths = activeShowPaths;
 
   static Future<void> initialize(StorageMode mode) async {
     if (_initialized) {
       throw StorageException(
-          'Storage is already initalized. Ensure you are only calling Storage.initialize once');
+          'Storage is already initalized. Ensure you are only calling Storage.initialize() once');
     }
 
     // Create a the root storage directory. Use the correct App name based on if we are running inside the editor or the
@@ -154,41 +110,12 @@ class Storage {
     LoggingManager.instance.storage
         .info("Storage root directory created as $mode at ${rootDir.path}");
 
-    // Build the directories and assert their existence.
-    late Directory archiveDir;
-    late Directory activeShowDir;
-    late Directory showExportDir;
-    late Directory backupDir;
-
+    // Initialize the app Directory structure. Ensure all relevant Directories exist.
+    late AppStoragePaths appStoragePaths;
     try {
       // Create the first level of directories, these are the parents of all following directories.
-      await Future.wait([
-        // Active Show Directory.
-        () async {
-          activeShowDir =
-              await Directory(p.join(rootDir.path, _activeShowDirName))
-                  .create();
-        }(),
-
-        // Archived Show Directory.
-        () async {
-          archiveDir =
-              await Directory(p.join(rootDir.path, _archiveDirName)).create();
-        }(),
-
-        // Backup directory.
-        () async {
-          backupDir =
-              await Directory(p.join(rootDir.path, _backupDirName)).create();
-        }(),
-
-        // Show Export Directory.
-        () async {
-          showExportDir =
-              await Directory(p.join(rootDir.path, _showExportDirName))
-                  .create();
-        }(),
-      ]);
+      appStoragePaths = AppStoragePaths(rootDir.path);
+      await appStoragePaths.createDirectories();
     } catch (e, stacktrace) {
       LoggingManager.instance.storage.severe(
           'An error occured whilst creating the Active Show Directory or the Archive Directory',
@@ -198,46 +125,9 @@ class Storage {
     }
 
     // Create the remaining sub directories.
-    late Directory headshots;
-    late Directory backgrounds;
-    late Directory fontsDir;
-    late Directory imagesDir;
-    late Directory thumbsDir;
-
+    final activeShowPaths = ShowStoragePaths(appStoragePaths.activeShow.path);
     try {
-      await Future.wait([
-        // Headshots
-        () async {
-          headshots =
-              await Directory(p.join(activeShowDir.path, _headshotsDirName))
-                  .create();
-          return;
-        }(),
-        // Backgrounds
-        () async {
-          backgrounds =
-              await Directory(p.join(activeShowDir.path, _backgroundsDirName))
-                  .create();
-          return;
-        }(),
-        // Fonts
-        () async {
-          fontsDir = await Directory(p.join(activeShowDir.path, _fontsDirName))
-              .create();
-        }(),
-        // Images
-        () async {
-          imagesDir =
-              await Directory(p.join(activeShowDir.path, _imagesDirName))
-                  .create();
-        }(),
-        // Thumbs
-        () async {
-          thumbsDir =
-              await Directory(p.join(activeShowDir.path, _thumbsDirName))
-                  .create();
-        }()
-      ]);
+      await activeShowPaths.createDirectories();
     } catch (e, stacktrace) {
       LoggingManager.instance.storage.severe(
           'An error occured whilst creating one of the storage sub directories. ',
@@ -247,16 +137,8 @@ class Storage {
     }
 
     _instance = Storage(
-      rootDir: rootDir,
-      activeShowDir: activeShowDir,
-      archiveDir: archiveDir,
-      backupDir: backupDir,
-      showExportDir: showExportDir,
-      headshots: headshots,
-      backgrounds: backgrounds,
-      fontsDir: fontsDir,
-      imagesDir: imagesDir,
-      thumbsDir: thumbsDir,
+      appStoragePaths: appStoragePaths,
+      activeShowPaths: activeShowPaths,
     );
     _initialized = true;
 
@@ -265,11 +147,11 @@ class Storage {
   }
 
   File getBackupFile() {
-    return File(p.join(_backupDir.path, _backupShowFileName));
+    return _appStoragePaths.backupFile;
   }
 
   File getBackupStatusFile() {
-    return File(p.join(_backupDir.path, _backupStatusFileName));
+    return _appStoragePaths.backupStatus;
   }
 
   Future<ManifestModel?> getBackupFileManifest() async {
@@ -281,7 +163,7 @@ class Storage {
 
     final byteData = await backupFile.readAsBytes();
     final validateShowfileResult =
-        await validateShowfile(byteData, kMaxAllowedFileVersion);
+        await validateShowfileInternal(byteData, kMaxAllowedFileVersion);
 
     if (validateShowfileResult.isValid == false) return null;
 
@@ -290,7 +172,7 @@ class Storage {
 
   Future<File> addFont(String uid, String path) async {
     LoggingManager.instance.server.info("Adding font from $path");
-    final Directory fonts = _fontsDir;
+    final Directory fonts = _activeShowPaths.fonts;
 
     final font = File(path);
     if (await font.exists()) {
@@ -305,7 +187,7 @@ class Storage {
 
   Future<File> addHeadshot(String uid, String path) async {
     LoggingManager.instance.storage.info("Adding headshot from $path");
-    final Directory headshots = _headshotsDir;
+    final Directory headshots = _activeShowPaths.headshots;
 
     final photo = File(path);
     if (await photo.exists()) {
@@ -315,7 +197,7 @@ class Storage {
       // Create and store a thumbnail.
       await createThumbnail(
           sourceFile: photo,
-          targetFile: await File(p.join(_thumbsDir.path, uid)).create());
+          targetFilePath: p.join(_activeShowPaths.thumbs.path, uid));
 
       return targetFile;
     } else {
@@ -326,18 +208,13 @@ class Storage {
   Future<void> addThumbnails(List<String> uids, List<File> sourceFiles,
       {Directory? baseDir}) async {
     final thumbsDirPath = baseDir == null
-        ? _thumbsDir.path
-        : p.join(baseDir.path, _thumbsDirName);
-
-    final targetFileRequests =
-        uids.map((uid) => File(p.join(thumbsDirPath, uid)).create());
-
-    await Future.wait(targetFileRequests);
+        ? _activeShowPaths.thumbs.path
+        : ShowStoragePaths(baseDir.path).thumbs.path;
 
     await createThumbnails(
         sourceFiles: sourceFiles,
-        targetFiles:
-            uids.map((uid) => File(p.join(thumbsDirPath, uid))).toList());
+        targetFilePaths:
+            uids.map((uid) => p.join(thumbsDirPath, uid)).toList());
 
     return;
   }
@@ -354,9 +231,10 @@ class Storage {
 
   Future<void> deleteHeadshot(ImageRef ref) async {
     LoggingManager.instance.storage.info("Deleting Headshot ${ref.uid}");
-    final Directory headshots = _headshotsDir;
+    final Directory headshots = _activeShowPaths.headshots;
     final File headshotFile = File(p.join(headshots.path, ref.basename));
-    final File thumbFile = File(p.join(_thumbsDir.path, ref.uid));
+    final File thumbFile =
+        File(p.join(_activeShowPaths.thumbs.path, ref.uid) + kThumbnailFileExt);
 
     Future<void> deleteDelegate(File target) async {
       if (await target.exists()) target.delete();
@@ -374,7 +252,7 @@ class Storage {
 
   Future<void> deleteFont(FontRef ref) async {
     LoggingManager.instance.storage.info("Deleting Font ${ref.uid}");
-    final Directory fonts = _fontsDir;
+    final Directory fonts = _activeShowPaths.fonts;
     final File file = File(p.join(fonts.path, ref.basename));
 
     if (await file.exists()) {
@@ -391,8 +269,8 @@ class Storage {
 
     if (await image.exists()) {
       final ext = p.extension(path);
-      final targetFile =
-          await image.copy(p.join(_backgroundsDir.path, '$uid$ext'));
+      final targetFile = await image
+          .copy(p.join(_activeShowPaths.backgrounds.path, '$uid$ext'));
 
       return targetFile;
     } else {
@@ -406,7 +284,8 @@ class Storage {
 
     if (await image.exists()) {
       final ext = p.extension(path);
-      final targetFile = await image.copy(p.join(_imagesDir.path, '$uid$ext'));
+      final targetFile =
+          await image.copy(p.join(_activeShowPaths.images.path, '$uid$ext'));
 
       return targetFile;
     } else {
@@ -426,7 +305,7 @@ class Storage {
 
   Future<void> deleteBackground(ImageRef ref) async {
     LoggingManager.instance.storage.info("Deleting background ${ref.uid}");
-    final Directory backgrounds = _backgroundsDir;
+    final Directory backgrounds = _activeShowPaths.backgrounds;
     final File file = File(p.join(backgrounds.path, ref.basename));
 
     if (await file.exists()) {
@@ -439,7 +318,7 @@ class Storage {
 
   Future<void> deleteImage(ImageRef ref) async {
     LoggingManager.instance.storage.info("Deleting Image ${ref.uid}");
-    final File file = File(p.join(_imagesDir.path, ref.basename));
+    final File file = File(p.join(_activeShowPaths.images.path, ref.basename));
 
     if (await file.exists()) {
       await file.delete();
@@ -458,8 +337,8 @@ class Storage {
     }
 
     final dirPath = baseDir == null
-        ? _headshotsDir.path
-        : p.join(baseDir.path, _headshotsDirName);
+        ? _activeShowPaths.headshots.path
+        : ShowStoragePaths(baseDir.path).headshots.path;
 
     return File(p.join(dirPath, ref.basename));
   }
@@ -469,7 +348,8 @@ class Storage {
       return null;
     }
 
-    return File(p.join(_thumbsDir.path, ref.uid));
+    return File(
+        p.join(_activeShowPaths.thumbs.path, ref.uid) + kThumbnailFileExt);
   }
 
   File? getBackgroundFile(ImageRef ref) {
@@ -477,7 +357,7 @@ class Storage {
       return null;
     }
 
-    return File(p.join(_backgroundsDir.path, ref.basename));
+    return File(p.join(_activeShowPaths.backgrounds.path, ref.basename));
   }
 
   File? getImageFile(ImageRef ref) {
@@ -485,18 +365,19 @@ class Storage {
       return null;
     }
 
-    return File(p.join(_imagesDir.path, ref.basename));
+    return File(p.join(_activeShowPaths.images.path, ref.basename));
   }
 
   File? getFontFile(FontRef ref) {
     return File(
-      p.join(_fontsDir.path, ref.basename),
+      p.join(_activeShowPaths.fonts.path, ref.basename),
     );
   }
 
   /// Checks that a showfile Manifest file exists and it is not empty is the Performer storage directory (Not the Archive directory)
   Future<bool> isPerformerStoragePopulated() async {
-    final manifestFile = File(p.join(_activeShowDir.path, _manifestFileName));
+    final manifestFile = _activeShowPaths.manifest;
+
     return await manifestFile.exists() &&
         (await manifestFile.readAsString()).isNotEmpty;
 
@@ -509,9 +390,8 @@ class Storage {
   }) async {
     LoggingManager.instance.storage.info("Updating Performer show data");
 
-    final showDataFile = File(p.join(_activeShowDir.path, _showDataFileName));
-    final playbackStateFile =
-        File(p.join(_activeShowDir.path, _playbackStateFileName));
+    final showDataFile = _activeShowPaths.showData;
+    final playbackStateFile = _activeShowPaths.playbackState;
 
     final writeOperations = [
       showDataFile.writeAsString(json.encode(showData.toMap())),
@@ -538,25 +418,27 @@ class Storage {
     Map<String, dynamic>? rawSlideData;
     Map<String, dynamic>? rawPlaybackState;
 
-    final baseDirPath = path ?? _activeShowDir.path;
+    final ShowStoragePaths showPaths =
+        path == null ? _activeShowPaths : ShowStoragePaths(path);
 
-    LoggingManager.instance.storage.info('Reading show file from $baseDirPath');
+    LoggingManager.instance.storage
+        .info('Reading show file from ${showPaths.root.path}');
 
     final readOperations = [
       // Manifest
-      File(p.join(baseDirPath, _manifestFileName))
+      showPaths.manifest
           .readAsString()
           .then((res) => rawManifest = json.decode(res)),
       // Show Data
-      File(p.join(baseDirPath, _showDataFileName))
+      showPaths.showData
           .readAsString()
           .then((res) => rawShowData = json.decode(res)),
       // Slide Data
-      File(p.join(baseDirPath, _slideDataFileName))
+      showPaths.slideData
           .readAsString()
           .then((res) => rawSlideData = json.decode(res)),
       // Playback State
-      File(p.join(baseDirPath, _playbackStateFileName))
+      showPaths.playbackState
           .readAsString()
           .then((res) => rawPlaybackState = json.decode(res)),
     ];
@@ -587,8 +469,8 @@ class Storage {
     isWriting = true;
     final migratedData = await migrateShowfileData(
         currentShowData: data,
-        manifestFile: File(p.join(baseDirPath, _manifestFileName)),
-        baseDir: Directory(baseDirPath));
+        manifestFile: showPaths.manifest,
+        baseDir: showPaths.root);
     isWriting = false;
 
     return migratedData;
@@ -602,27 +484,13 @@ class Storage {
     await deleteActiveShow();
 
     // Decompress the showfile in an Isolate. This will copy the contents of the archive to the active show dir.
-    final skippedFiles = await decompressShowfile(DecompressShowfileParameters(
-        targetDirPath: _activeShowDir.path,
-        bytes: bytes,
-        backgroundsDirName: _backgroundsDirName,
-        fontsDirName: _fontsDirName,
-        headshotsDirName: _headshotsDirName,
-        imagesDirName: _imagesDirName,
-        manifestFileName: _manifestFileName,
-        playbackStateFileName: _playbackStateFileName,
-        showDataFileName: _showDataFileName,
-        slideDataFileName: _slideDataFileName,
-        thumbsDirName: _thumbsDirName));
+    await decompressShowfile(DecompressShowfileParameters(
+      targetDirPath: _activeShowPaths.root.path,
+      bytes: bytes,
+    ));
 
-    if (skippedFiles.isNotEmpty) {
-      // We read over files that had null byteData. Log it, something could be wrong.
-      LoggingManager.instance.storage.warning(
-          'Found archived files with null byteData. Offending files names: $skippedFiles');
-    }
-
-    final data =
-        await loadShowData(path: _activeShowDir.path, allowMigration: true);
+    final data = await loadShowData(
+        path: _activeShowPaths.root.path, allowMigration: true);
     isReading = false;
 
     return data;
@@ -641,37 +509,37 @@ class Storage {
 
     await Future.wait([
       // Headshots
-      _headshotsDir.list().listen((entity) {
+      _activeShowPaths.headshots.list().listen((entity) {
         if (entity is File) {
           headshots.add(entity);
         }
       }).asFuture(),
       // Backgrounds
-      _backgroundsDir.list().listen((entity) {
+      _activeShowPaths.backgrounds.list().listen((entity) {
         if (entity is File) {
           backgrounds.add(entity);
         }
       }).asFuture(),
       // Fonts
-      _fontsDir.list().listen((entity) {
+      _activeShowPaths.fonts.list().listen((entity) {
         if (entity is File) {
           fonts.add(entity);
         }
       }).asFuture(),
       // Images
-      _imagesDir.list().listen((entity) {
+      _activeShowPaths.images.list().listen((entity) {
         if (entity is File) {
           images.add(entity);
         }
       }).asFuture(),
       // Thumbs
-      _thumbsDir.list().listen((entity) {
+      _activeShowPaths.thumbs.list().listen((entity) {
         if (entity is File) {
           thumbs.add(entity);
         }
       }).asFuture(),
       // All other (Non-Directory) Files.
-      _activeShowDir.list().listen((entity) {
+      _activeShowPaths.root.list().listen((entity) {
         if (entity is File) {
           otherFiles.add(entity);
         }
@@ -698,31 +566,6 @@ class Storage {
     return;
   }
 
-  Future<String> _getShowfileName(Directory showfile) async {
-    const unknownFileName = 'Show.castboard';
-    final manifestFile = File(p.join(showfile.path, _manifestFileName));
-
-    if (await manifestFile.exists() == false) {
-      LoggingManager.instance.storage.warning(
-          'Failed to retrieve showfile name from manifest. Using default.');
-      return unknownFileName;
-    }
-
-    try {
-      final rawData = json.decode(await manifestFile.readAsString());
-      final manifest = ManifestModel.fromMap(rawData);
-
-      return '${manifest.fileName}.castboard';
-    } catch (e, stacktrace) {
-      print(e);
-      LoggingManager.instance.storage.warning(
-          'Failed to retrieve showfile name from manifest. Using default.',
-          e,
-          stacktrace);
-      return unknownFileName;
-    }
-  }
-
   /// Packages the current contents of the active show directory [_activeShowDir] into an archived file
   ///  and returns a reference to that file.
   ///
@@ -730,48 +573,24 @@ class Storage {
   /// browser downloads*.
   Future<File> archiveActiveShowForExport() async {
     // Retreive the showfile name from the manifest.
-    final filename = await _getShowfileName(_activeShowDir);
+    final filename = await getShowfileName(_activeShowPaths.root);
 
     // Create target .castboard showfile in a temporary staging directory.
     final tmpDirPath = (await getTemporaryDirectoryShim()).path;
     final showfileTarget = await File(p.join(tmpDirPath, filename)).create();
 
     // Archive/Compress the active show into our target file and return the result.
-    final innerFile = await _archiveShow(_activeShowDir, showfileTarget);
+    final innerFile = await archiveShow(_activeShowPaths.root, showfileTarget);
 
     // Create the targetfile for our zip file.
-    final zipFileTarget = File(p.join(_showExportDir.path, 'showexport.zip'));
+    final zipFileTarget =
+        File(p.join(_appStoragePaths.showExport.path, 'showexport.zip'));
     await zipFileTarget.create();
 
     await nestShowfile(NestShowfileParameters(
         inputFilePath: innerFile.path, outputFilePath: zipFileTarget.path));
 
     return zipFileTarget;
-  }
-
-  /// Archives the show file provided by [source] to the file reference provided by [target]
-  Future<File> _archiveShow(Directory source, File target) async {
-    if (await source.exists() == false) {
-      throw ArgumentError('Source directory does not exist', 'source');
-    }
-
-    final basePath = source.path;
-    final joinWith = (String subDir) => p.join(basePath, subDir);
-
-    await compressShowfile(CompressShowfileParameters(
-      headshotsDirPath: joinWith(_headshotsDirName),
-      backgroundsDirPath: joinWith(_backgroundsDirName),
-      fontsDirPath: joinWith(_fontsDirName),
-      imagesDirPath: joinWith(_imagesDirName),
-      thumbsDirPath: joinWith(_thumbsDirName),
-      manifestFilePath: joinWith(_manifestFileName),
-      playbackStateFilePath: joinWith(_playbackStateFileName),
-      showDataFilePath: joinWith(_showDataFileName),
-      slideDataFilePath: joinWith(_slideDataFileName),
-      targetFilePath: target.path,
-    ));
-
-    return target;
   }
 
   ///
@@ -795,57 +614,45 @@ class Storage {
 
     LoggingManager.instance.storage
         .info("Preparing to write file to archived storage");
-    const lfs = local_fs.LocalFileSystem();
 
-    // Stage Directories.
-    final fs.Directory stagingDir =
-        lfs.systemTempDirectory.childDirectory(_stagingDirName);
-    if (await stagingDir.exists()) {
-      await stagingDir.delete(recursive: true);
-    }
+    // Create a staging directory in the System temp location.
+    final Directory systemTempDir = await getTemporaryDirectoryShim();
+    final stagingPaths =
+        ShowStoragePaths(p.join(systemTempDir.path, _stagingDirName));
+    await stagingPaths.reset();
 
-    await stagingDir.create();
-
-    await _stageArchivedStorageDirectories(stagingDir);
     await Future.wait([
-      _stagePlaybackState(stagingDir, playbackState),
-      _stageManifest(stagingDir, manifest),
-      _stageHeadshots(stagingDir, actors),
-      _stageThumbs(stagingDir, actors),
-      _stageBackgrounds(stagingDir, slides),
-      _stageImages(stagingDir, slides),
+      _stagePlaybackState(stagingPaths.playbackState, playbackState),
+      _stageManifest(stagingPaths.manifest, manifest),
+      _stageHeadshots(stagingPaths.headshots, actors),
+      _stageThumbs(stagingPaths.thumbs, actors),
+      _stageBackgrounds(stagingPaths.backgrounds, slides),
+      _stageImages(stagingPaths.images, slides),
+      _stageFonts(stagingPaths.fonts, manifest.requiredFonts),
       _stageSlideData(
-          stagingDir,
+          stagingPaths.slideData,
           SlideDataModel(
             slides: slides,
             slideOrientation: slideOrientation,
           )),
-      _stageShowData(stagingDir, tracks, trackRefsByName, actors, actorIndex,
-          trackIndex, presets),
-      _stageFonts(stagingDir, manifest.requiredFonts),
+      _stageShowData(stagingPaths.showData, tracks, trackRefsByName, actors,
+          actorIndex, trackIndex, presets),
     ]);
 
     try {
       LoggingManager.instance.storage
-          .info("File staging complete. Beginning compression");
+          .info("File staging complete. Starting compression");
+
       await compressShowfile(CompressShowfileParameters(
-          targetFilePath: targetFile.path,
-          headshotsDirPath: p.join(stagingDir.path, _headshotsDirName),
-          backgroundsDirPath: p.join(stagingDir.path, _backgroundsDirName),
-          fontsDirPath: p.join(stagingDir.path, _fontsDirName),
-          imagesDirPath: p.join(stagingDir.path, _imagesDirName),
-          thumbsDirPath: p.join(stagingDir.path, _thumbsDirName),
-          manifestFilePath: p.join(stagingDir.path, _manifestFileName),
-          showDataFilePath: p.join(stagingDir.path, _showDataFileName),
-          playbackStateFilePath:
-              p.join(stagingDir.path, _playbackStateFileName),
-          slideDataFilePath: p.join(stagingDir.path, _slideDataFileName)));
+        sourceDirPath: stagingPaths.root.path,
+        targetFilePath: targetFile.path,
+      ));
 
       LoggingManager.instance.storage
           .info("Compression complete, cleaning up Staging directories");
 
       // Cleanup
-      await stagingDir.delete(recursive: true);
+      await stagingPaths.root.delete(recursive: true);
 
       LoggingManager.instance.storage
           .info("Staging Directory cleanup complete");
@@ -861,32 +668,29 @@ class Storage {
   }
 
   Future<void> _stagePlaybackState(
-    fs.Directory stagingDir,
+    File targetFile,
     PlaybackStateData? playbackState,
   ) async {
     final data = playbackState?.toMap() ?? {};
 
     final jsonData = json.encoder.convert(data);
-    final targetFile =
-        await stagingDir.childFile(_playbackStateFileName).create();
     await targetFile.writeAsString(jsonData);
     return;
   }
 
   Future<void> _stageManifest(
-    fs.Directory stagingDir,
+    File targetFile,
     ManifestModel manifest,
   ) async {
     final data = manifest.toMap();
 
     final jsonData = json.encoder.convert(data);
-    final targetFile = await stagingDir.childFile(_manifestFileName).create();
     await targetFile.writeAsString(jsonData);
     return;
   }
 
   Future<void> _stageShowData(
-      fs.Directory stagingDir,
+      File targetFile,
       Map<TrackRef, TrackModel> tracks,
       Map<String, TrackRef> trackRefsByName,
       Map<ActorRef, ActorModel> actors,
@@ -903,36 +707,28 @@ class Storage {
     ).toMap();
 
     final jsonData = json.encoder.convert(data);
-    final targetFile = await stagingDir.childFile(_showDataFileName).create();
     await targetFile.writeAsString(jsonData);
     return;
   }
 
   Future<void> _stageSlideData(
-      fs.Directory stagingDir, SlideDataModel slideData) async {
+      File targetFile, SlideDataModel slideData) async {
     final data = slideData.toMap();
-
     final jsonData = json.encoder.convert(data);
-
-    final targetFile = await stagingDir.childFile(_slideDataFileName).create();
 
     await targetFile.writeAsString(jsonData);
     return;
   }
 
   Future<void> _stageBackgrounds(
-      fs.Directory stagingDir, Map<String, SlideModel> slides) async {
+      Directory targetDir, Map<String, SlideModel> slides) async {
     final refs = slides.values
         .map((slide) => slide.backgroundRef)
         .where((ref) => ref != const ImageRef.none());
 
     final requests = refs.map((ref) {
       final sourceFile = getBackgroundFile(ref)!;
-      return _copyToStagingDir(
-          sourceFile,
-          stagingDir
-              .childDirectory(_backgroundsDirName)
-              .childFile(ref.basename));
+      return copyToStagingDir(sourceFile, targetDir);
     });
 
     await Future.wait(requests);
@@ -940,7 +736,7 @@ class Storage {
   }
 
   Future<void> _stageImages(
-      fs.Directory stagingDir, Map<String, SlideModel> slides) async {
+      Directory targetDir, Map<String, SlideModel> slides) async {
     final refs = slides.values
         .map((slide) => extractImageRefs(slide))
         .expand((iter) => iter)
@@ -948,24 +744,21 @@ class Storage {
 
     final requests = refs.map((ref) {
       final sourceFile = getImageFile(ref)!;
-      return _copyToStagingDir(sourceFile,
-          stagingDir.childDirectory(_imagesDirName).childFile(ref.basename));
+      return copyToStagingDir(sourceFile, targetDir);
     });
 
     await Future.wait(requests);
     return;
   }
 
-  Future<void> _stageFonts(
-      fs.Directory stagingDir, List<FontModel> fonts) async {
+  Future<void> _stageFonts(Directory targetDir, List<FontModel> fonts) async {
     final relativePaths = fonts
         .map((font) => font.ref)
         .where((ref) => ref != const FontRef.none());
 
     final requests = relativePaths.map((ref) {
       final sourceFile = getFontFile(ref)!;
-      return _copyToStagingDir(sourceFile,
-          stagingDir.childDirectory(_fontsDirName).childFile(ref.basename));
+      return copyToStagingDir(sourceFile, targetDir);
     });
 
     await Future.wait(requests);
@@ -973,15 +766,14 @@ class Storage {
   }
 
   Future<void> _stageHeadshots(
-      fs.Directory stagingDir, Map<ActorRef, ActorModel> actors) async {
+      Directory targetDir, Map<ActorRef, ActorModel> actors) async {
     final refs = actors.values
         .map((actor) => actor.headshotRef)
         .where((ref) => ref != const ImageRef.none());
 
     final requests = refs.map((ref) {
       final sourceFile = getHeadshotFile(ref)!;
-      return _copyToStagingDir(sourceFile,
-          stagingDir.childDirectory(_headshotsDirName).childFile(ref.basename));
+      return copyToStagingDir(sourceFile, targetDir);
     });
 
     await Future.wait(requests);
@@ -989,82 +781,26 @@ class Storage {
   }
 
   Future<void> _stageThumbs(
-      fs.Directory stagingDir, Map<ActorRef, ActorModel> actors) async {
+      Directory targetDir, Map<ActorRef, ActorModel> actors) async {
     final refs = actors.values
         .map((actor) => actor.headshotRef)
         .where((ref) => ref != const ImageRef.none());
 
     final requests = refs.map((ref) {
       final sourceFile = getThumbnailFile(ref)!;
-      return _copyToStagingDir(sourceFile,
-          stagingDir.childDirectory(_thumbsDirName).childFile(ref.basename));
+      return copyToStagingDir(sourceFile, targetDir);
     });
 
     await Future.wait(requests);
     return;
   }
 
-  Future<void> _stageArchivedStorageDirectories(fs.Directory dir) async {
-    // TODO: Possible Refactor: You now use the same directory structure for the player storage, editor storage and show file (Showfile is active dir only).
-    // Perhaps you could create a commond function that generates all those directories, ensures they exist and returns them. Then you could use that here as well
-    // as in the constructor, just providing a different root dir to each call of it.
-    final requests = [
-      dir.childDirectory(_headshotsDirName).create(),
-      dir.childDirectory(_backgroundsDirName).create(),
-      dir.childDirectory(_fontsDirName).create(),
-      dir.childDirectory(_imagesDirName).create(),
-    ];
-    await Future.wait(requests);
-    return;
-  }
-
-  Future<File> _copyToStagingDir(File sourceFile, File targetFile) async {
-    await targetFile.create(recursive: true);
-    final sourceFileBytes = await sourceFile.readAsBytes();
-    return await targetFile.writeAsBytes(sourceFileBytes);
-  }
-
   String get appRootStoragePath {
-    return _rootDir.path;
+    return _appStoragePaths.root.path;
   }
 
   Future<ShowfileValidationResult> validateShowfile(
       List<int> byteData, int maxFileVersion) async {
-    final computedResult = await validateShowfileOffThread(
-        byteData: byteData,
-        manifestFileName: _manifestFileName,
-        maxFileVersion: maxFileVersion,
-        manifestValidationKey: manifestModelValidationKeyValue);
-
-    // File is Valid.
-    if (computedResult.isValid) {
-      return ShowfileValidationResult(true, true,
-          manifest: computedResult.manifest);
-    }
-
-    // File is incompatiable version.
-    if (computedResult.reason ==
-        ShowfileValidationFailReason.incompatiableFileVersion) {
-      LoggingManager.instance.storage
-          .warning('Rejecting showfile, reason: ${computedResult.message}');
-      return ShowfileValidationResult(false, false);
-    }
-
-    if (computedResult.reason ==
-        ShowfileValidationFailReason.incorrectEncoding) {
-      LoggingManager.instance.storage.warning(
-          'Unzipper Rejected showfile, reason: ${computedResult.message}');
-      return ShowfileValidationResult(false, false);
-    }
-
-    // File is invalid. Could be a number of other reasons.
-    LoggingManager.instance.storage
-        .warning("Rejecting showfile, reason : ${computedResult.message}");
-    return ShowfileValidationResult(false, true);
-  }
-
-  Future<Directory> decompressGenericZip(
-      List<int> byteData, Directory targetDir) async {
-    return decompressGenericZipInternal(byteData, targetDir);
+    return validateShowfileInternal(byteData, maxFileVersion);
   }
 }

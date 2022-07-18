@@ -74,10 +74,10 @@ class Storage {
     return _instance!;
   }
 
-  Storage({
-    required AppStoragePaths appStoragePaths,
-    required ShowStoragePaths activeShowPaths,
-  })  : _appStoragePaths = appStoragePaths,
+  Storage(
+      {required AppStoragePaths appStoragePaths,
+      required ShowStoragePaths activeShowPaths})
+      : _appStoragePaths = appStoragePaths,
         _activeShowPaths = activeShowPaths;
 
   static Future<void> initialize(StorageMode mode) async {
@@ -88,7 +88,7 @@ class Storage {
 
     // Create a the root storage directory. Use the correct App name based on if we are running inside the editor or the
     // performer.
-    late Directory rootDir;
+    late final Directory rootDir;
     try {
       rootDir = mode == StorageMode.editor
           ? await Directory(p.join((await getTemporaryDirectoryShim()).path,
@@ -111,7 +111,7 @@ class Storage {
         .info("Storage root directory created as $mode at ${rootDir.path}");
 
     // Initialize the app Directory structure. Ensure all relevant Directories exist.
-    late AppStoragePaths appStoragePaths;
+    late final AppStoragePaths appStoragePaths;
     try {
       // Create the first level of directories, these are the parents of all following directories.
       appStoragePaths = AppStoragePaths(rootDir.path);
@@ -576,8 +576,8 @@ class Storage {
     final filename = await getShowfileName(_activeShowPaths.root);
 
     // Create target .castboard showfile in a temporary staging directory.
-    final tmpDirPath = (await getTemporaryDirectoryShim()).path;
-    final showfileTarget = await File(p.join(tmpDirPath, filename)).create();
+    final showfileTarget =
+        await File(p.join(_appStoragePaths.archive.path, filename)).create();
 
     // Archive/Compress the active show into our target file and return the result.
     final innerFile = await archiveShow(_activeShowPaths.root, showfileTarget);
@@ -615,11 +615,8 @@ class Storage {
     LoggingManager.instance.storage
         .info("Preparing to write file to archived storage");
 
-    // Create a staging directory in the System temp location.
-    final Directory systemTempDir = await getTemporaryDirectoryShim();
-    final stagingPaths =
-        ShowStoragePaths(p.join(systemTempDir.path, _stagingDirName));
-    await stagingPaths.reset();
+    // Create a Clean staging directory in the System temp location.
+    final stagingPaths = await _createCleanShowfileStagingDirectory();
 
     await Future.wait([
       _stagePlaybackState(stagingPaths.playbackState, playbackState),
@@ -802,5 +799,33 @@ class Storage {
   Future<ShowfileValidationResult> validateShowfile(
       List<int> byteData, int maxFileVersion) async {
     return validateShowfileInternal(byteData, maxFileVersion);
+  }
+
+  Future<ShowStoragePaths> _createCleanShowfileStagingDirectory() async {
+    LoggingManager.instance.storage.info('Creating Showfile Staging Directory');
+
+    final String systemTempPath = (await getTemporaryDirectoryShim()).path;
+    final Directory stagingDir =
+        await Directory(p.join(systemTempPath, _stagingDirName)).create();
+
+    LoggingManager.instance.storage
+        .info('Showfile Staging Directory created at ${stagingDir.path}');
+
+    final storagePaths = ShowStoragePaths(stagingDir.path);
+
+    LoggingManager.instance.storage
+        .info('Resetting Showfile Staging Directory to initial state');
+
+    try {
+      await ShowStoragePaths(stagingDir.path).reset();
+    } catch (e) {
+      LoggingManager.instance.storage.warning(
+          'An error occured whilst resetting the Showfile Staging Directory:  $e');
+      rethrow;
+    }
+
+    LoggingManager.instance.storage
+        .info('Fresh Showfile Staging Directory created');
+    return storagePaths;
   }
 }

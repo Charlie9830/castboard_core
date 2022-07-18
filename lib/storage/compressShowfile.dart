@@ -15,7 +15,7 @@ void _compressShowfileWorker(CompressShowfileParameters params) {
   final zipper = ZipFileEncoder();
   zipper.create(params.targetFilePath);
 
-  for (var dir in paths.directories) {
+  for (var dir in paths.subDirectories) {
     zipper.addDirectory(dir);
   }
 

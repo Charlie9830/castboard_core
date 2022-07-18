@@ -13,9 +13,8 @@ class ShowStoragePaths {
   late Directory images;
   late Directory thumbs;
 
-  List<Directory> get directories {
+  List<Directory> get subDirectories {
     return [
-      root,
       headshots,
       backgrounds,
       fonts,

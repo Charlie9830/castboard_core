@@ -28,6 +28,7 @@ import 'package:castboard_core/storage/archiveShow.dart';
 import 'package:castboard_core/storage/compressShowfile.dart';
 import 'package:castboard_core/storage/copyToStagingDirectory.dart';
 import 'package:castboard_core/storage/createThumbnail.dart';
+import 'package:castboard_core/storage/decompressGenericZipInternal.dart';
 import 'package:castboard_core/storage/decompressShowfile.dart';
 import 'package:castboard_core/storage/extractImageRefs.dart';
 import 'package:castboard_core/storage/getShowfileName.dart';
@@ -827,5 +828,10 @@ class Storage {
     LoggingManager.instance.storage
         .info('Fresh Showfile Staging Directory created');
     return storagePaths;
+  }
+
+  Future<Directory> decompressGenericZip(
+      List<int> byteData, Directory targetDir) async {
+    return decompressGenericZipInternal(byteData, targetDir);
   }
 }

@@ -36,8 +36,8 @@ class SearchDropdownState extends State<SearchDropdown> {
     return GestureDetector(
       onTap: widget.enabled ? () => _handleOpen(context, selectedItem) : null,
       child: _Closed(
-    enabled: widget.enabled,
-    child: selectedItem?.child,
+        enabled: widget.enabled,
+        child: selectedItem?.child,
       ),
     );
   }
@@ -71,13 +71,19 @@ class SearchDropdownState extends State<SearchDropdown> {
     final renderBox = context.findRenderObject() as RenderBox;
     final offset = renderBox.localToGlobal(Offset.zero);
     final screenHeight = MediaQuery.of(context).size.height;
+    final screenWidth = MediaQuery.of(context).size.width;
 
     const minimumHeight = 200.0;
+    const minimumWidth = 300.0;
 
     _entry = OverlayEntry(builder: (overlayContext) {
       return Positioned(
-          left: offset.dx,
-          top: _ensureFit(
+          left: _ensureHorizontalFit(
+            minimumWidth: minimumWidth,
+            screenWidth: screenWidth,
+            leftOffset: offset.dx,
+          ),
+          top: _ensureVerticalFit(
               minimumHeight: minimumHeight,
               screenHeight: screenHeight,
               topOffset: offset.dy),
@@ -121,7 +127,22 @@ class SearchDropdownState extends State<SearchDropdown> {
     }
   }
 
-  double _ensureFit({
+  _ensureHorizontalFit(
+      {required double minimumWidth,
+      required double screenWidth,
+      required double leftOffset}) {
+    final renderedWidth = screenWidth - leftOffset;
+
+    if (renderedWidth < minimumWidth) {
+      
+      // Popup isn't going to comfortably fit.
+      return leftOffset - minimumWidth > 0 ? leftOffset - minimumWidth : 0;
+    }
+
+    return leftOffset;
+  }
+
+  double _ensureVerticalFit({
     required double minimumHeight,
     required double screenHeight,
     required double topOffset,

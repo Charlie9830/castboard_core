@@ -10,6 +10,7 @@ class AppStoragePaths {
   late Directory backups;
   late Directory archive;
   late Directory showExport;
+  late Directory temp;
 
   // Files
   late File backupStatus;
@@ -22,6 +23,7 @@ class AppStoragePaths {
     backups = Directory(p.join(root.path, 'backup'));
     archive = Directory(p.join(root.path, 'archive'));
     showExport = Directory(p.join(root.path, 'showExport'));
+    temp = Directory(p.join(root.path, 'temp'));
 
     // Files
     backupStatus = File(p.join(backups.path, 'status'));
@@ -38,6 +40,7 @@ class AppStoragePaths {
       backups.create(),
       archive.create(),
       showExport.create(),
+      temp.create(),
     ]);
 
     return;

@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:castboard_core/classes/FontRef.dart';
 import 'package:castboard_core/enums.dart';
@@ -153,6 +154,10 @@ class Storage {
 
   File getBackupStatusFile() {
     return _appStoragePaths.backupStatus;
+  }
+
+  Directory getShowfileTempStorageDirectory() {
+    return _appStoragePaths.temp;
   }
 
   Future<ManifestModel?> getBackupFileManifest() async {
@@ -833,5 +838,34 @@ class Storage {
   Future<Directory> decompressGenericZip(
       List<int> byteData, Directory targetDir) async {
     return decompressGenericZipInternal(byteData, targetDir);
+  }
+
+  /// Extracts a castboard showfile from within a Zip archive. This usually occurs when a file has been
+  /// downloaded from performer.
+  Future<Uint8List> extractNestedShowfile(Uint8List data) async {
+    final targetDir = Directory(
+        p.join(_appStoragePaths.temp.path, 'downloaded_showfile_buffer'));
+    if (await targetDir.exists()) {
+      await targetDir.delete(recursive: true);
+    }
+
+    await targetDir.create();
+
+    await decompressGenericZip(data, targetDir);
+
+    File? targetFile;
+    await for (final entity in targetDir.list()) {
+      if (entity.path.endsWith('.castboard')) {
+        targetFile = File(entity.path);
+        continue;
+      }
+    }
+
+    if (targetFile == null || await targetFile.exists() == false) {
+      throw 'An error occured in extractNestedShowfile. Unable to locate .castboard file';
+    }
+
+    final bytes = await targetFile.readAsBytes();
+    return bytes;
   }
 }

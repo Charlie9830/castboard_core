@@ -56,6 +56,7 @@ class CastChangeDetails extends StatelessWidget {
 
     return ListView.builder(
       shrinkWrap: !selfScrolling,
+      controller: ScrollController(),
       itemCount: trackViewModels.length,
       itemBuilder: (context, index) {
         final trackViewModel = trackViewModels[index];
@@ -116,8 +117,8 @@ class CastChangeDetails extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: Center(
-          child:
-              Text(divider.title, style: Theme.of(context).textTheme.bodyText2)),
+          child: Text(divider.title,
+              style: Theme.of(context).textTheme.bodyText2)),
     );
   }
 
@@ -127,8 +128,8 @@ class CastChangeDetails extends StatelessWidget {
       selectedItemBuilder: (context) => _buildSelectedItem(context, track.ref),
       enabled: allowNestedEditing == true ||
           _fromNestedPreset(track.ref.uid, assignments) == false,
-      onChanged: (actorRef) =>
-          onAssignmentUpdated?.call(track.ref, actorRef ?? const ActorRef.blank()),
+      onChanged: (actorRef) => onAssignmentUpdated?.call(
+          track.ref, actorRef ?? const ActorRef.blank()),
       itemsBuilder: (context) {
         return [
           if (isMobile(context) == false) ...<SearchDropdownItem>[
@@ -191,7 +192,9 @@ class CastChangeDetails extends StatelessWidget {
 
   SearchDropdownItem _buildTrackCutOption(BuildContext context) {
     return SearchDropdownItem(
-        keyword: 'Track Cut', child: const _TrackCutOption(), value: const ActorRef.cut());
+        keyword: 'Track Cut',
+        child: const _TrackCutOption(),
+        value: const ActorRef.cut());
   }
 
   SearchDropdownItem _buildUnassignedOption(BuildContext context) {

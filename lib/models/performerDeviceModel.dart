@@ -14,6 +14,7 @@ class PerformerDeviceModel {
   final String deviceName;
   final String showName;
   final String softwareVersion;
+  final Set<String> discoveryMethods;
 
   PerformerDeviceModel({
     required this.ipAddress,
@@ -22,11 +23,13 @@ class PerformerDeviceModel {
     required this.deviceName,
     required this.showName,
     required this.softwareVersion,
+    required this.discoveryMethods,
   });
 
   PerformerDeviceModel.partial({
     required this.ipAddress,
     required this.port,
+    required this.discoveryMethods,
   })  : connectivityState = PerformerConnectivityState.partial,
         deviceName = '',
         showName = '',
@@ -39,7 +42,8 @@ class PerformerDeviceModel {
     required this.softwareVersion,
   })  : connectivityState = PerformerConnectivityState.partial,
         ipAddress = '0.0.0.0',
-        port = 0;
+        port = 0,
+        discoveryMethods = {};
 
   Map<String, dynamic> toMap() {
     return {
@@ -53,7 +57,8 @@ class PerformerDeviceModel {
     };
   }
 
-  factory PerformerDeviceModel.fromMap(Map<String, dynamic> map) {
+  factory PerformerDeviceModel.fromMap(
+      Map<String, dynamic> map, Set<String> discoveryMethods) {
     return PerformerDeviceModel(
       ipAddress: map['ipAddress'] ?? '',
       port: map['port']?.toInt() ?? 0,
@@ -62,13 +67,15 @@ class PerformerDeviceModel {
       deviceName: map['deviceName'] ?? '',
       showName: map['showName'] ?? '',
       softwareVersion: map['softwareVersion'] ?? '',
+      discoveryMethods: discoveryMethods,
     );
   }
 
   String toJson() => json.encode(toMap());
 
-  factory PerformerDeviceModel.fromJson(String source) =>
-      PerformerDeviceModel.fromMap(json.decode(source));
+  factory PerformerDeviceModel.fromJson(
+          String source, Set<String> discoveryMethods) =>
+      PerformerDeviceModel.fromMap(json.decode(source), discoveryMethods);
 
   PerformerDeviceModel copyWith({
     String? ipAddress,
@@ -77,14 +84,17 @@ class PerformerDeviceModel {
     String? deviceName,
     String? showName,
     String? softwareVersion,
+    Set<String>? discoveryMethods,
   }) {
     return PerformerDeviceModel(
-      ipAddress: ipAddress ?? this.ipAddress,
-      port: port ?? this.port,
-      connectivityState: connectivityState ?? this.connectivityState,
-      deviceName: deviceName ?? this.deviceName,
-      showName: showName ?? this.showName,
-      softwareVersion: softwareVersion ?? this.softwareVersion,
-    );
+        ipAddress: ipAddress ?? this.ipAddress,
+        port: port ?? this.port,
+        connectivityState: connectivityState ?? this.connectivityState,
+        deviceName: deviceName ?? this.deviceName,
+        showName: showName ?? this.showName,
+        softwareVersion: softwareVersion ?? this.softwareVersion,
+        discoveryMethods: discoveryMethods == null
+            ? this.discoveryMethods
+            : {...this.discoveryMethods, ...discoveryMethods});
   }
 }

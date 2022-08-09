@@ -13,6 +13,8 @@ class SystemConfig {
   final String playerVersion;
   final String playerBuildNumber;
   final String playerBuildSignature;
+  final String? deviceName;
+  final String versionCodename;
 
   SystemConfig({
     required this.deviceOrientation,
@@ -22,6 +24,8 @@ class SystemConfig {
     required this.playerBuildNumber,
     required this.playerBuildSignature,
     required this.playerVersion,
+    required this.deviceName,
+    required this.versionCodename,
   });
 
   SystemConfig.defaults()
@@ -31,7 +35,9 @@ class SystemConfig {
         playShowOnIdle = true,
         playerVersion = '',
         playerBuildSignature = '',
-        playerBuildNumber = '';
+        playerBuildNumber = '',
+        deviceName = 'Performer',
+        versionCodename = '';
 
   Map<String, dynamic> toMap() {
     return {
@@ -44,6 +50,8 @@ class SystemConfig {
       'playerVersion': playerVersion,
       'playerBuildNumber': playerBuildNumber,
       'playerBuildSignature': playerBuildSignature,
+      'deviceName': deviceName,
+      'versionCodename': versionCodename,
     };
   }
 
@@ -51,12 +59,14 @@ class SystemConfig {
     return SystemConfig(
         deviceOrientation: _parseOrientation(map['deviceOrientation']),
         deviceResolution: DeviceResolution.fromMap(map['deviceResolution']),
+        deviceName: map['deviceName'] ?? SystemConfig.defaults().deviceName,
         availableResolutions:
             AvailableResolutions.fromMap(map['availableResolutions']),
         playShowOnIdle: map['playShowOnIdle'],
         playerBuildNumber: map['playerBuildNumber'] ?? '',
         playerVersion: map['playerVersion'] ?? '',
-        playerBuildSignature: map['playerBuildSignature'] ?? '');
+        playerBuildSignature: map['playerBuildSignature'] ?? '',
+        versionCodename: map['versionCodename'] ?? '');
   }
 
   SystemConfig copyWith({
@@ -67,6 +77,8 @@ class SystemConfig {
     String? playerBuildNumber,
     String? playerBuildSignature,
     bool? playShowOnIdle,
+    String? deviceName,
+    String? versionCodename,
   }) {
     return SystemConfig(
       deviceOrientation: deviceOrientation ?? this.deviceOrientation,
@@ -76,6 +88,8 @@ class SystemConfig {
       playerVersion: playerVersion ?? this.playerBuildNumber,
       playerBuildNumber: playerBuildNumber ?? this.playerBuildNumber,
       playerBuildSignature: playerBuildSignature ?? this.playerBuildSignature,
+      deviceName: deviceName ?? this.deviceName,
+      versionCodename: versionCodename ?? this.versionCodename,
     );
   }
 }

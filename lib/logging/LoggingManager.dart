@@ -93,6 +93,10 @@ class LoggingManager {
     _initialized = true;
   }
 
+  Future<void> close() async {
+    return await _closeSink();
+  }
+
   Future<File> exportLogs() async {
     final tmpDir = await getTemporaryDirectoryShim();
     final targetFile =

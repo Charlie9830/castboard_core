@@ -148,6 +148,10 @@ class Storage {
         .info("Storage initialization completed succesfully");
   }
 
+  File getDesignerLastExportSettingsFile() {
+    return _appStoragePaths.lastDesignerExportSettingsFile;
+  }
+
   File getBackupFile() {
     return _appStoragePaths.backupFile;
   }

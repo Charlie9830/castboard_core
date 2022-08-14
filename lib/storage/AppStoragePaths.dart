@@ -1,6 +1,5 @@
 import 'dart:io';
 
-import 'package:castboard_core/storage/ShowStoragePaths.dart';
 import 'package:path/path.dart' as p;
 
 class AppStoragePaths {
@@ -11,10 +10,12 @@ class AppStoragePaths {
   late Directory archive;
   late Directory showExport;
   late Directory temp;
+  late Directory designerSettings;
 
   // Files
   late File backupStatus;
   late File backupFile;
+  late File lastDesignerExportSettingsFile;
 
   AppStoragePaths(String rootPath) {
     // Directories
@@ -24,10 +25,12 @@ class AppStoragePaths {
     archive = Directory(p.join(root.path, 'archive'));
     showExport = Directory(p.join(root.path, 'showExport'));
     temp = Directory(p.join(root.path, 'temp'));
+    designerSettings = Directory(p.join(root.path, 'settings'));
 
     // Files
     backupStatus = File(p.join(backups.path, 'status'));
     backupFile = File(p.join(backups.path, 'backup.castboard'));
+    lastDesignerExportSettingsFile = File(p.join(designerSettings.path, 'lastDesignerExport.json'));
   }
 
   ///
@@ -41,6 +44,7 @@ class AppStoragePaths {
       archive.create(),
       showExport.create(),
       temp.create(),
+      designerSettings.create(),
     ]);
 
     return;

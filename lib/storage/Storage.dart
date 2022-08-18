@@ -35,6 +35,7 @@ import 'package:castboard_core/storage/decompressGenericZipInternal.dart';
 import 'package:castboard_core/storage/decompressShowfile.dart';
 import 'package:castboard_core/storage/extractImageRefs.dart';
 import 'package:castboard_core/storage/getShowfileName.dart';
+import 'package:castboard_core/storage/headshot_progress.dart';
 import 'package:castboard_core/storage/nestShowfile.dart';
 import 'package:castboard_core/storage/showfile_migration/showfileMigration.dart';
 import 'package:castboard_core/storage/validateShowfileInternal.dart';
@@ -198,10 +199,15 @@ class Storage {
     }
   }
 
-  Future<void> addHeadshots(Map<String, String> uidsAndPaths) async {
+  Stream<HeadshotProgress> addHeadshots(
+      Map<String, String> uidsAndPaths) async* {
     // Initialize the Compressor.
     final compressor = ImageCompressor();
     await compressor.spinUp();
+
+    // Keep track of our progress.
+    final int total = uidsAndPaths.length;
+    int currentProgress = 0;
 
     for (var entry in uidsAndPaths.entries) {
       final uid = entry.key;
@@ -215,8 +221,12 @@ class Storage {
         final image = await compressor.decodeImage(bytes);
 
         if (image.success == false) {
-          await compressor.spinDown();
-          throw 'Unable to decode image';
+          yield HeadshotProgress(++currentProgress, total,
+              error: HeadshotProcessingError(
+                uid,
+                path,
+              ));
+          continue;
         }
 
         if (image.height > const SlideSizeModel.defaultSize().height) {
@@ -238,10 +248,7 @@ class Storage {
         final Directory headshots = _activeShowPaths.headshots;
         await File(p.join(headshots.path, '$uid$ext')).writeAsBytes(bytes);
 
-        // Create and store a thumbnail.
-        await createThumbnail(
-            sourceFile: photo,
-            targetFilePath: p.join(_activeShowPaths.thumbs.path, uid));
+        yield HeadshotProgress(++currentProgress, total);
       }
     }
 

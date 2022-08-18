@@ -855,10 +855,20 @@ class Storage {
 
     final requests = refs.map((ref) {
       final sourceFile = getThumbnailFile(ref)!;
+
       return copyToStagingDir(sourceFile, targetDir);
     });
 
-    await Future.wait(requests);
+    try {
+      await Future.wait(requests);
+    } on FileSystemException catch (e) {
+      if (e.osError != null && e.osError!.errorCode == 2) {
+        // The system cannot find the file specified. Actor Thumbnails aren't vital to the showfile so we shouldn't block execution because of this.
+        LoggingManager.instance.storage.warning(
+            'A thumbnail could not be located when saving the showfile. ${e.message}');
+      }
+    }
+
     return;
   }
 

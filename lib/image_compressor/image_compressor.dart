@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:isolate';
 import 'dart:typed_data';
 
+import 'package:castboard_core/image_compressor/decode_result.dart';
 import 'package:castboard_core/image_compressor/image_output_parameters.dart';
 import 'package:castboard_core/image_compressor/image_result.dart';
 import 'package:castboard_core/image_compressor/image_source_data.dart';
@@ -12,12 +13,16 @@ export 'package:castboard_core/image_compressor/image_source_data.dart';
 export 'package:castboard_core/image_compressor/image_output_parameters.dart';
 export 'package:castboard_core/image_compressor/image_size.dart';
 export 'package:castboard_core/image_compressor/image_result.dart';
+export 'package:castboard_core/image_compressor/decode_result.dart';
 
 class ImageCompressor {
   Isolate? _isolate;
   ReceivePort? _receivePort;
   IsolateChannel? _channel;
   bool running = false;
+  int _nextJobIndex = 0;
+  final Map<int, Completer<ImageResult>> _imageCompressionCompleters = {};
+  final Map<int, Completer<DecodeResult>> _imageDecodeCompleters = {};
 
   late final StreamController<ImageResult> _outputStreamController;
 
@@ -40,9 +45,21 @@ class ImageCompressor {
     running = true;
   }
 
+  Future<ImageResult> dispatchSingleImageToCompressor(
+      ImageSourceData sourceData, ImageOutputParameters outputParams) {
+    final jobIndex = _nextJobIndex;
+    _imageCompressionCompleters[jobIndex] = Completer<ImageResult>();
+
+    dispatchImageToCompressor(sourceData, outputParams);
+
+    return _imageCompressionCompleters[jobIndex]!.future;
+  }
+
   void dispatchImageToCompressor(
       ImageSourceData sourceData, ImageOutputParameters outputParams) {
     _channel!.sink.add(_Message(
+      jobType: _JobType.compression,
+      jobIndex: _nextJobIndex++,
       bytes: sourceData.bytes,
       sourceWidth: sourceData.width,
       sourceHeight: sourceData.height,
@@ -53,22 +70,70 @@ class ImageCompressor {
     ));
   }
 
+  Future<DecodeResult> decodeImage(Uint8List data) {
+    final jobIndex = _nextJobIndex;
+    _imageDecodeCompleters[jobIndex] = Completer<DecodeResult>();
+
+    _channel!.sink.add(_Message(
+        jobType: _JobType.decoding,
+        jobIndex: _nextJobIndex++,
+        sourceWidth: 0, // Not required for decoding jobs.
+        sourceHeight: 0, // Not required for decoding jobs.
+        bytes: data,
+        quality: 100 // Not required for decoding jobs.
+        ));
+
+    return _imageDecodeCompleters[jobIndex]!.future;
+  }
+
   void _handleMessageFromIsolate(dynamic data) {
-    if (data is _ResultMessage) {
+    if (data is _CompressionResultMessage) {
+      if (_imageCompressionCompleters.containsKey(data.jobIndex)) {
+        // This Result is coming from a call of dispatchSingleImageToCompressor(). Therefore call the relevant Future completer
+        // and return, not adding the result to the output stream. Adding the result erroneously to the output stream could result in a memory leak.
+        // This is due to the stream buffering its entries when there are no active listeners. If we are calling dispatchSingleImageToCompressor(), we are
+        // almost certainly not listening to the output stream.
+        _imageCompressionCompleters[data.jobIndex]!
+            .complete(ImageResult(data.bytes, data.tag));
+        return;
+      }
+
+      // Add the result to the output stream.
       _outputStreamController.sink.add(ImageResult(data.bytes, data.tag));
+    }
+
+    if (data is _DecodingResultMessage) {
+      if (_imageDecodeCompleters.containsKey(data.jobIndex)) {
+        _imageDecodeCompleters[data.jobIndex]!.complete(DecodeResult(
+          success: data.success,
+          width: data.width,
+          height: data.height,
+          bytes: data.bytes,
+        ));
+      }
     }
   }
 
-  void spinDown() {
+  Future<void> spinDown() async {
     _isolate!.kill();
-    _channel!.sink.close();
+    await _channel!.sink.close();
     _receivePort!.close();
+    if (_outputStreamController.hasListener) {
+      await _outputStreamController.close();
+    }
 
     running = false;
   }
 }
 
+enum _JobType {
+  compression,
+  decoding,
+}
+
 class _Message {
+  final _JobType jobType;
+  final int jobIndex;
   final Uint8List bytes;
   final int sourceWidth;
   final int sourceHeight;
@@ -78,6 +143,8 @@ class _Message {
   final int? targetHeight;
 
   _Message({
+    required this.jobType,
+    required this.jobIndex,
     required this.bytes,
     required this.sourceWidth,
     required this.sourceHeight,
@@ -88,11 +155,42 @@ class _Message {
   });
 }
 
-class _ResultMessage {
+class _ResultMessageBase {
+  final _JobType jobType;
+  final int jobIndex;
+
+  _ResultMessageBase(
+    this.jobType,
+    this.jobIndex,
+  );
+}
+
+class _CompressionResultMessage extends _ResultMessageBase {
   final List<int> bytes;
   final String? tag;
 
-  _ResultMessage(this.bytes, this.tag);
+  _CompressionResultMessage(
+    _JobType jobType,
+    int jobIndex, {
+    required this.bytes,
+    this.tag,
+  }) : super(jobType, jobIndex);
+}
+
+class _DecodingResultMessage extends _ResultMessageBase {
+  final bool success;
+  final int width;
+  final int height;
+  final List<int> bytes;
+
+  _DecodingResultMessage(
+    _JobType jobType,
+    int jobIndex, {
+    required this.success,
+    required this.width,
+    required this.height,
+    required this.bytes,
+  }) : super(jobType, jobIndex);
 }
 
 void _compressionIsolateWorker(SendPort sendPort) async {
@@ -100,24 +198,46 @@ void _compressionIsolateWorker(SendPort sendPort) async {
 
   await for (var data in channel.stream) {
     if (data is _Message) {
-      // Instantiate an image object from the provided data.
-      Image image =
-          Image.fromBytes(data.sourceWidth, data.sourceHeight, data.bytes);
+      // Compression Job
+      if (data.jobType == _JobType.compression) {
+        // Instantiate an image object from the provided data.
+        Image image =
+            Image.fromBytes(data.sourceWidth, data.sourceHeight, data.bytes);
 
-      // If resizing is required, perform it.
-      if ((data.targetHeight != null || data.targetWidth != null) &&
-          (data.targetWidth != data.sourceWidth ||
-              data.targetHeight != data.sourceHeight)) {
-        // Resize Image.
-        image = copyResize(image,
-            width: data.targetWidth, height: data.targetHeight);
+        // If resizing is required, perform it.
+        if ((data.targetHeight != null || data.targetWidth != null) &&
+            (data.targetWidth != data.sourceWidth ||
+                data.targetHeight != data.sourceHeight)) {
+          // Resize Image.
+          image = copyResize(image,
+              width: data.targetWidth, height: data.targetHeight);
+        }
+
+        // Encode the image as a Jpg.
+        final jpg = encodeJpg(image, quality: data.quality);
+
+        // Send the result back to the main thread.
+        channel.sink.add(_CompressionResultMessage(data.jobType, data.jobIndex,
+            bytes: jpg, tag: data.tag));
       }
 
-      // Encode the image as a Jpg.
-      final jpg = encodeJpg(image, quality: data.quality);
+      // Decoding Job.
+      if (data.jobType == _JobType.decoding) {
+        final image = decodeImage(data.bytes);
 
-      // Send the result back to the main thread.
-      channel.sink.add(_ResultMessage(jpg, data.tag));
+        if (image == null) {
+          // Failed to decode image.
+          channel.sink.add(_DecodingResultMessage(data.jobType, data.jobIndex,
+              success: false, width: 0, height: 0, bytes: []));
+        } else {
+          // Decoding success.
+          channel.sink.add(_DecodingResultMessage(data.jobType, data.jobIndex,
+              success: true,
+              width: image.width,
+              height: image.height,
+              bytes: image.getBytes()));
+        }
+      }
     }
   }
 }

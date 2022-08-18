@@ -5,6 +5,7 @@ import 'dart:typed_data';
 
 import 'package:castboard_core/classes/FontRef.dart';
 import 'package:castboard_core/enums.dart';
+import 'package:castboard_core/image_compressor/image_compressor.dart';
 import 'package:castboard_core/logging/LoggingManager.dart';
 import 'package:castboard_core/models/ActorIndex.dart';
 import 'package:castboard_core/models/ActorModel.dart';
@@ -13,6 +14,7 @@ import 'package:castboard_core/models/FontModel.dart';
 import 'package:castboard_core/models/ManifestModel.dart';
 import 'package:castboard_core/models/PresetModel.dart';
 import 'package:castboard_core/models/RemoteCastChangeData.dart';
+import 'package:castboard_core/models/SlideSizeModel.dart';
 import 'package:castboard_core/models/TrackIndex.dart';
 import 'package:castboard_core/models/TrackModel.dart';
 import 'package:castboard_core/models/SlideModel.dart';
@@ -40,6 +42,7 @@ import 'package:castboard_core/version/fileVersion.dart';
 
 import 'package:castboard_core/classes/PhotoRef.dart';
 import 'package:castboard_core/storage/StorageException.dart';
+import 'package:image/image.dart';
 
 import 'package:path/path.dart' as p;
 
@@ -193,6 +196,56 @@ class Storage {
     } else {
       throw StorageException('Source Font file does not exist');
     }
+  }
+
+  Future<void> addHeadshots(Map<String, String> uidsAndPaths) async {
+    // Initialize the Compressor.
+    final compressor = ImageCompressor();
+    await compressor.spinUp();
+
+    for (var entry in uidsAndPaths.entries) {
+      final uid = entry.key;
+      final path = entry.value;
+      final ext = p.extension(path);
+
+      final photo = File(path);
+
+      if (await photo.exists()) {
+        Uint8List bytes = await photo.readAsBytes();
+        final image = await compressor.decodeImage(bytes);
+
+        if (image.success == false) {
+          await compressor.spinDown();
+          throw 'Unable to decode image';
+        }
+
+        if (image.height > const SlideSizeModel.defaultSize().height) {
+          bytes = Uint8List.fromList(
+              (await compressor.dispatchSingleImageToCompressor(
+                      ImageSourceData(
+                          width: image.width,
+                          height: image.height,
+                          bytes: Uint8List.fromList(image.bytes)),
+                      ImageOutputParameters(
+                          quality: 100,
+                          targetSize: ImageSize(
+                              null,
+                              (const SlideSizeModel.defaultSize().height)
+                                  .toInt()))))
+                  .bytes);
+        }
+
+        final Directory headshots = _activeShowPaths.headshots;
+        await File(p.join(headshots.path, '$uid$ext')).writeAsBytes(bytes);
+
+        // Create and store a thumbnail.
+        await createThumbnail(
+            sourceFile: photo,
+            targetFilePath: p.join(_activeShowPaths.thumbs.path, uid));
+      }
+    }
+
+    await compressor.spinDown();
   }
 
   Future<File> addHeadshot(String uid, String path) async {

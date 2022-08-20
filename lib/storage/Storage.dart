@@ -28,6 +28,8 @@ import 'package:castboard_core/models/ShowDataModel.dart';
 import 'package:castboard_core/storage/ShowfileValidationResult.dart';
 import 'package:castboard_core/storage/SlideDataModel.dart';
 import 'package:castboard_core/storage/archiveShow.dart';
+import 'package:castboard_core/storage/image_processing_error.dart';
+import 'package:castboard_core/storage/maybe_compress_headshot.dart';
 import 'package:castboard_core/storage/compressShowfile.dart';
 import 'package:castboard_core/storage/copyToStagingDirectory.dart';
 import 'package:castboard_core/storage/createThumbnail.dart';
@@ -36,6 +38,7 @@ import 'package:castboard_core/storage/decompressShowfile.dart';
 import 'package:castboard_core/storage/extractImageRefs.dart';
 import 'package:castboard_core/storage/getShowfileName.dart';
 import 'package:castboard_core/storage/headshot_progress.dart';
+import 'package:castboard_core/storage/maybe_compress_image.dart';
 import 'package:castboard_core/storage/nestShowfile.dart';
 import 'package:castboard_core/storage/showfile_migration/showfileMigration.dart';
 import 'package:castboard_core/storage/validateShowfileInternal.dart';
@@ -46,6 +49,11 @@ import 'package:castboard_core/storage/StorageException.dart';
 import 'package:image/image.dart';
 
 import 'package:path/path.dart' as p;
+
+// Config
+const kMaxHeadshotHeight = 1080;
+const kMaxImageHeight = 1080;
+const kMaxImageWidth = 1920;
 
 // Storage root names
 const editorStorageRootDirName = "com.charliehall.castboard-designer";
@@ -229,20 +237,13 @@ class Storage {
           continue;
         }
 
+        // Compress the image if it's taller then the slide Size.
         if (image.height > const SlideSizeModel.defaultSize().height) {
-          bytes = Uint8List.fromList(
-              (await compressor.dispatchSingleImageToCompressor(
-                      ImageSourceData(
-                          width: image.width,
-                          height: image.height,
-                          bytes: Uint8List.fromList(image.bytes)),
-                      ImageOutputParameters(
-                          quality: 100,
-                          targetSize: ImageSize(
-                              null,
-                              (const SlideSizeModel.defaultSize().height)
-                                  .toInt()))))
-                  .bytes);
+          bytes = await maybeCompressHeadshot(
+            sourceBytes: bytes,
+            compressor: compressor,
+            maxHeight: kMaxHeadshotHeight,
+          );
         }
 
         final Directory headshots = _activeShowPaths.headshots;
@@ -258,19 +259,43 @@ class Storage {
   Future<File> addHeadshot(String uid, String path) async {
     LoggingManager.instance.storage.info("Adding headshot from $path");
     final Directory headshots = _activeShowPaths.headshots;
+    final ext = p.extension(path);
+
+    // Initialize the Compressor.
+    final compressor = ImageCompressor();
+    await compressor.spinUp();
 
     final photo = File(path);
     if (await photo.exists()) {
-      final ext = p.extension(path);
-      final targetFile = await photo.copy(p.join(headshots.path, '$uid$ext'));
+      Uint8List bytes = await photo.readAsBytes();
+      final image = await compressor.decodeImage(bytes);
+
+      if (image.success == false) {
+        await compressor.spinDown();
+        throw ImageProcessingError('Failed to decode image.');
+      }
+
+      // Compress the image if it's taller then the slide Size.
+      if (image.height > const SlideSizeModel.defaultSize().height) {
+        bytes = await maybeCompressHeadshot(
+          sourceBytes: bytes,
+          compressor: compressor,
+          maxHeight: kMaxHeadshotHeight,
+        );
+      }
+
+      final targetFile =
+          await File(p.join(headshots.path, '$uid$ext')).writeAsBytes(bytes);
 
       // Create and store a thumbnail.
       await createThumbnail(
-          sourceFile: photo,
+          sourceFile: targetFile,
           targetFilePath: p.join(_activeShowPaths.thumbs.path, uid));
 
+      await compressor.spinDown();
       return targetFile;
     } else {
+      await compressor.spinDown();
       throw StorageException('Source Photo File does not exist');
     }
   }
@@ -339,8 +364,23 @@ class Storage {
 
     if (await image.exists()) {
       final ext = p.extension(path);
-      final targetFile = await image
-          .copy(p.join(_activeShowPaths.backgrounds.path, '$uid$ext'));
+
+      // Instantiate the image compressor.
+      final compressor = ImageCompressor();
+      await compressor.spinUp();
+
+      Uint8List sourceBytes = await image.readAsBytes();
+      sourceBytes = await maybeCompressImage(
+          compressor: compressor,
+          sourceBytes: sourceBytes,
+          maxHeight: kMaxImageHeight,
+          maxWidth: kMaxImageWidth);
+
+      compressor.spinDown();
+
+      final targetFile =
+          await File(p.join(_activeShowPaths.backgrounds.path, '$uid$ext'))
+              .writeAsBytes(sourceBytes);
 
       return targetFile;
     } else {
@@ -350,12 +390,27 @@ class Storage {
 
   Future<File> addImage(String uid, String path) async {
     LoggingManager.instance.storage.info("Adding Image from $path");
-    final image = File(path);
+    final imageFile = File(path);
 
-    if (await image.exists()) {
+    if (await imageFile.exists()) {
       final ext = p.extension(path);
+
+      // Instantiate the image compressor.
+      final compressor = ImageCompressor();
+      await compressor.spinUp();
+
+      Uint8List sourceBytes = await imageFile.readAsBytes();
+      sourceBytes = await maybeCompressImage(
+          compressor: compressor,
+          sourceBytes: sourceBytes,
+          maxHeight: kMaxImageHeight * 2,
+          maxWidth: kMaxImageWidth * 2);
+
+      compressor.spinDown();
+
       final targetFile =
-          await image.copy(p.join(_activeShowPaths.images.path, '$uid$ext'));
+          await File(p.join(_activeShowPaths.images.path, '$uid$ext'))
+              .writeAsBytes(sourceBytes);
 
       return targetFile;
     } else {
@@ -413,13 +468,13 @@ class Storage {
     return File(p.join(dirPath, ref.basename));
   }
 
-  File? getThumbnailFile(ImageRef ref) {
+  File? getThumbnailFile(ImageRef ref, {bool withoutExtension = false}) {
     if (ref.uid == null || ref.uid!.isEmpty) {
       return null;
     }
 
-    return File(
-        p.join(_activeShowPaths.thumbs.path, ref.uid) + kThumbnailFileExt);
+    return File(p.join(_activeShowPaths.thumbs.path, ref.uid) +
+        (withoutExtension ? '' : kThumbnailFileExt));
   }
 
   File? getBackgroundFile(ImageRef ref) {

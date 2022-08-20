@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:castboard_core/image_compressor/image_compressor.dart';
 import 'package:castboard_core/models/SlideSizeModel.dart';
 import 'package:castboard_core/storage/compress_image.dart';
+import 'package:castboard_core/storage/compression_config.dart';
 import 'package:castboard_core/storage/image_processing_error.dart';
 
 Future<Uint8List> maybeCompressHeadshot(
@@ -19,7 +20,7 @@ Future<Uint8List> maybeCompressHeadshot(
   if (decodedImage.height > maxHeight) {
     // Constrain a Headshot by its height and leave it at 100 percent quality.
     final outputParams = ImageOutputParameters(
-      quality: 100,
+      quality: CompressionConfig.instance.headshotCompressionRatio,
       targetSize:
           ImageSize(null, (const SlideSizeModel.defaultSize().height).toInt()),
     );

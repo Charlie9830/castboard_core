@@ -28,6 +28,7 @@ import 'package:castboard_core/models/ShowDataModel.dart';
 import 'package:castboard_core/storage/ShowfileValidationResult.dart';
 import 'package:castboard_core/storage/SlideDataModel.dart';
 import 'package:castboard_core/storage/archiveShow.dart';
+import 'package:castboard_core/storage/compression_config.dart';
 import 'package:castboard_core/storage/image_processing_error.dart';
 import 'package:castboard_core/storage/maybe_compress_headshot.dart';
 import 'package:castboard_core/storage/compressShowfile.dart';
@@ -46,14 +47,8 @@ import 'package:castboard_core/version/fileVersion.dart';
 
 import 'package:castboard_core/classes/PhotoRef.dart';
 import 'package:castboard_core/storage/StorageException.dart';
-import 'package:image/image.dart';
 
 import 'package:path/path.dart' as p;
-
-// Config
-const kMaxHeadshotHeight = 1080;
-const kMaxImageHeight = 1080;
-const kMaxImageWidth = 1920;
 
 // Storage root names
 const editorStorageRootDirName = "com.charliehall.castboard-designer";
@@ -242,7 +237,7 @@ class Storage {
           bytes = await maybeCompressHeadshot(
             sourceBytes: bytes,
             compressor: compressor,
-            maxHeight: kMaxHeadshotHeight,
+            maxHeight: CompressionConfig.instance.maxHeadshotHeight,
           );
         }
 
@@ -280,7 +275,7 @@ class Storage {
         bytes = await maybeCompressHeadshot(
           sourceBytes: bytes,
           compressor: compressor,
-          maxHeight: kMaxHeadshotHeight,
+          maxHeight: CompressionConfig.instance.maxHeadshotHeight,
         );
       }
 
@@ -373,8 +368,9 @@ class Storage {
       sourceBytes = await maybeCompressImage(
           compressor: compressor,
           sourceBytes: sourceBytes,
-          maxHeight: kMaxImageHeight,
-          maxWidth: kMaxImageWidth);
+          maxHeight: CompressionConfig.instance.maxBackgroundHeight,
+          maxWidth: CompressionConfig.instance.maxBackgroundWidth,
+          ratio: CompressionConfig.instance.backgroundCompressionRatio);
 
       compressor.spinDown();
 
@@ -403,8 +399,9 @@ class Storage {
       sourceBytes = await maybeCompressImage(
           compressor: compressor,
           sourceBytes: sourceBytes,
-          maxHeight: kMaxImageHeight * 2,
-          maxWidth: kMaxImageWidth * 2);
+          maxHeight: CompressionConfig.instance.maxImageHeight,
+          maxWidth: CompressionConfig.instance.maxImageWidth,
+          ratio: CompressionConfig.instance.imageCompressionRatio);
 
       compressor.spinDown();
 

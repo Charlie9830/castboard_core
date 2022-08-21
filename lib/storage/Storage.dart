@@ -215,7 +215,8 @@ class Storage {
     for (var entry in uidsAndPaths.entries) {
       final uid = entry.key;
       final path = entry.value;
-      final ext = p.extension(path);
+      final ext = CompressionConfig.instance
+          .headshotExtension; // Image Compressor will encode as jpg file.
 
       final photo = File(path);
 
@@ -232,13 +233,22 @@ class Storage {
           continue;
         }
 
-        // Compress the image if it's taller then the slide Size.
-        if (image.height > const SlideSizeModel.defaultSize().height) {
-          bytes = await maybeCompressHeadshot(
-            sourceBytes: bytes,
-            compressor: compressor,
-            maxHeight: CompressionConfig.instance.maxHeadshotHeight,
-          );
+        try {
+          // Compress the image if it's taller then the slide Size.
+          if (image.height > const SlideSizeModel.defaultSize().height) {
+            bytes = await maybeCompressHeadshot(
+              sourceBytes: bytes,
+              compressor: compressor,
+              maxHeight: CompressionConfig.instance.maxHeadshotHeight,
+            );
+          }
+        } catch (e) {
+          yield HeadshotProgress(++currentProgress, total,
+              error: HeadshotProcessingError(
+                uid,
+                path,
+              ));
+          continue;
         }
 
         final Directory headshots = _activeShowPaths.headshots;
@@ -254,7 +264,8 @@ class Storage {
   Future<File> addHeadshot(String uid, String path) async {
     LoggingManager.instance.storage.info("Adding headshot from $path");
     final Directory headshots = _activeShowPaths.headshots;
-    final ext = p.extension(path);
+    final ext = CompressionConfig.instance
+        .headshotExtension; // Image Compressor will encode as jpg file.
 
     // Initialize the Compressor.
     final compressor = ImageCompressor();
@@ -356,10 +367,10 @@ class Storage {
   Future<File> addBackground(String uid, String path) async {
     LoggingManager.instance.storage.info("Adding background from $path");
     final image = File(path);
+    final ext = CompressionConfig.instance
+        .backgroundExtension; // Image Compressor will encode as jpg file.
 
     if (await image.exists()) {
-      final ext = p.extension(path);
-
       // Instantiate the image compressor.
       final compressor = ImageCompressor();
       await compressor.spinUp();
@@ -387,10 +398,9 @@ class Storage {
   Future<File> addImage(String uid, String path) async {
     LoggingManager.instance.storage.info("Adding Image from $path");
     final imageFile = File(path);
+    final ext = CompressionConfig.instance.imageExtension;
 
     if (await imageFile.exists()) {
-      final ext = p.extension(path);
-
       // Instantiate the image compressor.
       final compressor = ImageCompressor();
       await compressor.spinUp();

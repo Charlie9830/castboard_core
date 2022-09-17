@@ -1,7 +1,6 @@
-
-
 import 'dart:io';
 
+import 'package:castboard_core/inherited/image_filter_quality.dart';
 import 'package:flutter/material.dart';
 
 class ImageElement extends StatelessWidget {
@@ -11,6 +10,8 @@ class ImageElement extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Image.file(file!, fit: BoxFit.contain, filterQuality: FilterQuality.medium,);
+    final filterQuality =
+        ImageFilterQuality.of(context)?.filterQuality ?? FilterQuality.medium;
+    return Image.file(file!, fit: BoxFit.contain, filterQuality: filterQuality);
   }
 }

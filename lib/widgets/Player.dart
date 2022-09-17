@@ -1,6 +1,7 @@
 import 'package:castboard_core/elements/backgroundBuilder.dart';
 import 'package:castboard_core/elements/elementBuilders.dart';
 import 'package:castboard_core/enums.dart';
+import 'package:castboard_core/inherited/RenderScaleProvider.dart';
 import 'package:castboard_core/layout-canvas/LayoutCanvas.dart';
 import 'package:castboard_core/models/ActorModel.dart';
 import 'package:castboard_core/models/ActorRef.dart';
@@ -26,7 +27,8 @@ class Player extends StatelessWidget {
   final SlideOrientation slideOrientation;
   final bool playing;
   final bool offstageUpcomingSlides;
-  final Size? overrideSize;
+  final Size? sizeOverride;
+  final double? renderScaleOverride;
 
   const Player({
     Key? key,
@@ -39,7 +41,8 @@ class Player extends StatelessWidget {
     required this.slideSize,
     required this.slideOrientation,
     required this.nextSlideId,
-    this.overrideSize,
+    this.renderScaleOverride,
+    this.sizeOverride,
     this.playing = true,
     this.offstageUpcomingSlides = false,
   }) : super(key: key);
@@ -50,12 +53,25 @@ class Player extends StatelessWidget {
       return const Text('Current Slide is Null');
     }
 
+    // Calculate the playing area.
     final actualSlideSize =
-        overrideSize ?? _getDesiredSlideSize(slideSize, slideOrientation);
-    final windowSize = overrideSize ?? _getWindowSize(context);
-    final renderScale = overrideSize == null
-        ? _getRenderScale(windowSize, actualSlideSize)
-        : 1.0;
+        sizeOverride ?? _getDesiredSlideSize(slideSize, slideOrientation);
+
+    final windowSize = sizeOverride ?? _getWindowSize(context);
+
+    assert(sizeOverride != null && renderScaleOverride != null,
+        "sizeOverride and renderScaleOverride are codependent. If one is set, the other must also be set");
+
+    // Determine the Render scale. If sizeOverride is provided, use the renderScaleOverride otherwise
+    // calculate a scale that fits all of the contents into the available area.
+    double renderScale = 1.0;
+
+    if (sizeOverride == null) {
+      renderScale = _getFittedRenderScale(windowSize, actualSlideSize);
+    } else {
+      renderScale =
+          renderScaleOverride!; // Null safety protected by the assert statement.
+    }
 
     return Stack(
       fit: StackFit.passthrough,
@@ -139,7 +155,8 @@ class Player extends StatelessWidget {
     return MediaQuery.of(context).size;
   }
 
-  double _getRenderScale(Size windowSize, Size desiredSlideSize) {
+  // Calculates a render scale that Fits the content into the available window size.
+  double _getFittedRenderScale(Size windowSize, Size desiredSlideSize) {
     final xRatio = windowSize.width / desiredSlideSize.width;
     final yRatio = windowSize.height / desiredSlideSize.height;
 

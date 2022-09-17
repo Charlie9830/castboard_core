@@ -15,6 +15,13 @@ export 'package:castboard_core/image_compressor/image_size.dart';
 export 'package:castboard_core/image_compressor/image_result.dart';
 export 'package:castboard_core/image_compressor/decode_result.dart';
 
+enum ImageInterpolationType {
+  nearest,
+  average,
+  cubic,
+  linear,
+}
+
 class ImageCompressor {
   Isolate? _isolate;
   ReceivePort? _receivePort;
@@ -58,16 +65,17 @@ class ImageCompressor {
   void dispatchImageToCompressor(
       ImageSourceData sourceData, ImageOutputParameters outputParams) {
     _channel!.sink.add(_Message(
-      jobType: _JobType.compression,
-      jobIndex: _nextJobIndex++,
-      bytes: sourceData.bytes,
-      sourceWidth: sourceData.width,
-      sourceHeight: sourceData.height,
-      quality: outputParams.quality,
-      targetWidth: outputParams.targetSize?.width,
-      targetHeight: outputParams.targetSize?.height,
-      tag: sourceData.tag,
-    ));
+        jobType: _JobType.compression,
+        jobIndex: _nextJobIndex++,
+        bytes: sourceData.bytes,
+        sourceWidth: sourceData.width,
+        sourceHeight: sourceData.height,
+        quality: outputParams.quality,
+        targetWidth: outputParams.targetSize?.width,
+        targetHeight: outputParams.targetSize?.height,
+        tag: sourceData.tag,
+        interpolation:
+            _convertImageInterpolationType(outputParams.interpolationType)));
   }
 
   Future<DecodeResult> decodeImage(Uint8List data) {
@@ -80,7 +88,8 @@ class ImageCompressor {
         sourceWidth: 0, // Not required for decoding jobs.
         sourceHeight: 0, // Not required for decoding jobs.
         bytes: data,
-        quality: 100 // Not required for decoding jobs.
+        quality: 100, // Not required for decoding jobs.
+        interpolation: Interpolation.average // Not required for decoding jobs.
         ));
 
     return _imageDecodeCompleters[jobIndex]!.future;
@@ -141,6 +150,7 @@ class _Message {
   final String? tag;
   final int? targetWidth;
   final int? targetHeight;
+  final Interpolation interpolation;
 
   _Message({
     required this.jobType,
@@ -152,6 +162,7 @@ class _Message {
     this.targetWidth,
     this.targetHeight,
     this.tag,
+    required this.interpolation,
   });
 }
 
@@ -210,7 +221,13 @@ void _compressionIsolateWorker(SendPort sendPort) async {
                 data.targetHeight != data.sourceHeight)) {
           // Resize Image.
           image = copyResize(image,
-              width: data.targetWidth, height: data.targetHeight);
+              width: data.targetWidth,
+              height: data.targetHeight,
+              interpolation: data.interpolation);
+
+          // const smoothingFactor = 100;
+          // print(smoothingFactor);
+          // image = smooth(image, smoothingFactor);
         }
 
         // Encode the image as a Jpg.
@@ -239,5 +256,18 @@ void _compressionIsolateWorker(SendPort sendPort) async {
         }
       }
     }
+  }
+}
+
+Interpolation _convertImageInterpolationType(ImageInterpolationType type) {
+  switch (type) {
+    case ImageInterpolationType.nearest:
+      return Interpolation.nearest;
+    case ImageInterpolationType.average:
+      return Interpolation.average;
+    case ImageInterpolationType.cubic:
+      return Interpolation.cubic;
+    case ImageInterpolationType.linear:
+      return Interpolation.linear;
   }
 }

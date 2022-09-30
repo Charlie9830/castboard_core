@@ -30,6 +30,8 @@ class LoggingManager {
   late Logger storage;
   late Logger player;
   late Logger systemManager;
+  late Logger autoUpdate;
+  late Logger productActivation;
 
   // Queue to catch and buffer any messages that come through whilst the IOSink is unavaiable (Such as when we are exporting it to file).
   final Queue<String> _messageQueue = Queue<String>();
@@ -64,6 +66,12 @@ class LoggingManager {
       ..onRecord.listen(_handleLogRecord)
       ..level = logLevel;
     systemManager = Logger.detached("SYSTEM_MANAGER")
+      ..onRecord.listen(_handleLogRecord)
+      ..level = logLevel;
+    autoUpdate = Logger.detached("AUTO_UPDATE")
+      ..onRecord.listen(_handleLogRecord)
+      ..level = logLevel;
+    productActivation = Logger.detached("PRODUCT_ACTIVATION")
       ..onRecord.listen(_handleLogRecord)
       ..level = logLevel;
   }

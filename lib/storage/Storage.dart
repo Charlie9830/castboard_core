@@ -155,6 +155,10 @@ class Storage {
         .info("Storage initialization completed succesfully");
   }
 
+  Directory getPackageUpdateDirectory() {
+    return _appStoragePaths.packageUpdate;
+  }
+
   File getDesignerLastExportSettingsFile() {
     return _appStoragePaths.lastDesignerExportSettingsFile;
   }

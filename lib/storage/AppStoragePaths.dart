@@ -11,6 +11,7 @@ class AppStoragePaths {
   late Directory showExport;
   late Directory temp;
   late Directory designerSettings;
+  late Directory packageUpdate;
 
   // Files
   late File backupStatus;
@@ -26,11 +27,13 @@ class AppStoragePaths {
     showExport = Directory(p.join(root.path, 'showExport'));
     temp = Directory(p.join(root.path, 'temp'));
     designerSettings = Directory(p.join(root.path, 'settings'));
+    packageUpdate = Directory(p.join(root.path, 'update'));
 
     // Files
     backupStatus = File(p.join(backups.path, 'status'));
     backupFile = File(p.join(backups.path, 'backup.castboard'));
-    lastDesignerExportSettingsFile = File(p.join(designerSettings.path, 'lastDesignerExport.json'));
+    lastDesignerExportSettingsFile =
+        File(p.join(designerSettings.path, 'lastDesignerExport.json'));
   }
 
   ///
@@ -45,6 +48,7 @@ class AppStoragePaths {
       showExport.create(),
       temp.create(),
       designerSettings.create(),
+      packageUpdate.create(),
     ]);
 
     return;

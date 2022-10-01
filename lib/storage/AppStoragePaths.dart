@@ -17,6 +17,7 @@ class AppStoragePaths {
   late File backupStatus;
   late File backupFile;
   late File lastDesignerExportSettingsFile;
+  late File updateStatusFile;
 
   AppStoragePaths(String rootPath) {
     // Directories
@@ -34,6 +35,7 @@ class AppStoragePaths {
     backupFile = File(p.join(backups.path, 'backup.castboard'));
     lastDesignerExportSettingsFile =
         File(p.join(designerSettings.path, 'lastDesignerExport.json'));
+    updateStatusFile = File(p.join(packageUpdate.path, 'status'));
   }
 
   ///

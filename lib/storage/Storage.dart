@@ -155,6 +155,10 @@ class Storage {
         .info("Storage initialization completed succesfully");
   }
 
+  File getPackageUpdateStatusFile() {
+    return _appStoragePaths.updateStatusFile;
+  }
+
   Directory getPackageUpdateDirectory() {
     return _appStoragePaths.packageUpdate;
   }

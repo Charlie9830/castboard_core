@@ -1,7 +1,6 @@
 import 'package:castboard_core/elements/backgroundBuilder.dart';
 import 'package:castboard_core/elements/elementBuilders.dart';
 import 'package:castboard_core/enums.dart';
-import 'package:castboard_core/inherited/RenderScaleProvider.dart';
 import 'package:castboard_core/layout-canvas/LayoutCanvas.dart';
 import 'package:castboard_core/models/ActorModel.dart';
 import 'package:castboard_core/models/ActorRef.dart';
@@ -29,6 +28,7 @@ class Player extends StatelessWidget {
   final bool offstageUpcomingSlides;
   final Size? sizeOverride;
   final double? renderScaleOverride;
+  final bool showDemoIndicator;
 
   const Player({
     Key? key,
@@ -45,6 +45,7 @@ class Player extends StatelessWidget {
     this.sizeOverride,
     this.playing = true,
     this.offstageUpcomingSlides = false,
+    this.showDemoIndicator = false,
   }) : super(key: key);
 
   @override
@@ -91,8 +92,32 @@ class Player extends StatelessWidget {
               renderScale: renderScale,
             ),
           ),
-        _buildPauseIndicator(renderScale)
+        _buildPauseIndicator(renderScale),
+        if (showDemoIndicator) _buildDemoIndicator(context, renderScale)
       ],
+    );
+  }
+
+  Widget _buildDemoIndicator(BuildContext context, double renderScale) {
+    return Positioned.fill(
+      child: Center(
+        child: Transform(
+          alignment: Alignment.center,
+          transform: Matrix4.rotationZ(0.5),
+          child: Container(
+            decoration: BoxDecoration(
+                color: const Color(0x55000000),
+                backgroundBlendMode: BlendMode.difference,
+                borderRadius:
+                    BorderRadius.all(Radius.circular(80 * renderScale))),
+            child: Text('Demonstration File',
+                style: Theme.of(context).textTheme.headline2!.copyWith(
+                    color: const Color(0x99999999),
+                    fontSize: 180 * renderScale,
+                    fontFamily: 'Poppins')),
+          ),
+        ),
+      ),
     );
   }
 

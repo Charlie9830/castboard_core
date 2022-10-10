@@ -15,6 +15,7 @@ class ManifestModel {
   final String createdByVersion;
   final int fileVersion;
   final List<FontModel> requiredFonts;
+  final bool isDemoShow;
 
   ManifestModel({
     this.validationKey = '',
@@ -25,6 +26,7 @@ class ManifestModel {
     this.createdByVersion = '',
     this.fileVersion = 1,
     this.requiredFonts = const <FontModel>[],
+    this.isDemoShow = false,
   });
 
   Map<String, dynamic> toMap() {
@@ -63,6 +65,7 @@ class ManifestModel {
     String? createdByVersion,
     int? fileVersion,
     List<FontModel>? requiredFonts,
+    bool? isDemoShow,
   }) {
     return ManifestModel(
       validationKey: validationKey,
@@ -73,6 +76,7 @@ class ManifestModel {
       createdByVersion: createdByVersion ?? this.createdByVersion,
       fileVersion: fileVersion ?? this.fileVersion,
       requiredFonts: requiredFonts ?? this.requiredFonts,
+      isDemoShow: isDemoShow ?? this.isDemoShow,
     );
   }
 }

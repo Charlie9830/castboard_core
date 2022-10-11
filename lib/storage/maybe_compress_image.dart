@@ -22,7 +22,15 @@ Future<Uint8List> maybeCompressImage({
   final imageHeight = decodedImage.height;
 
   if (imageWidth <= maxWidth && imageHeight <= maxHeight) {
-    return _getUncompressedBytes(decodedImage);
+    return await compressImage(
+      sourceBytes,
+      compressor,
+      decodedImage,
+      ImageOutputParameters(
+        targetSize: ImageSize(imageWidth, imageHeight),
+        quality: 100,
+      ),
+    );
   }
 
   ImageOutputParameters outputParams =
@@ -38,7 +46,12 @@ Future<Uint8List> maybeCompressImage({
 
 /// Returns [ImageOutputParameters] that reflect whether the image should be scaled based on it's width or height.
 ImageOutputParameters _getOutputParameters(
-    int imageWidth, int imageHeight, int maxWidth, int maxHeight, int ratio,) {
+  int imageWidth,
+  int imageHeight,
+  int maxWidth,
+  int maxHeight,
+  int ratio,
+) {
   // Determine if the Delta between the image and max dimension is greater for the Width or Height axis.
   // Then return output parameters that will compress the image based on the axis with the greater delta.
   final widthDelta = (maxWidth - imageWidth).abs();

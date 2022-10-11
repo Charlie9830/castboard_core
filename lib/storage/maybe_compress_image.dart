@@ -18,7 +18,7 @@ Future<Uint8List> maybeCompressImage({
     throw ImageProcessingError('Image decoding returned a null image.');
   }
 
-  final imageWidth = decodedImage.height;
+  final imageWidth = decodedImage.width;
   final imageHeight = decodedImage.height;
 
   if (imageWidth <= maxWidth && imageHeight <= maxHeight) {

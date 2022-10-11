@@ -4,6 +4,8 @@ import 'package:castboard_core/image_compressor/image_compressor.dart';
 import 'package:castboard_core/storage/compress_image.dart';
 import 'package:castboard_core/storage/image_processing_error.dart';
 
+/// Applies scaling to the image represented by [sourceBytes] only if the image is greater then [maxHeight] or [maxWidth].
+/// Otherwise only applies Jpeg Compression without rescaling.
 Future<Uint8List> maybeCompressImage({
   required ImageCompressor compressor,
   required Uint8List sourceBytes,

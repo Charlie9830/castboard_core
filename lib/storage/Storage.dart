@@ -796,9 +796,9 @@ class Storage {
 
       isWriting = false;
       return FileWriteResult(true);
-    } catch (error) {
-      print(error);
-      LoggingManager.instance.storage.warning("File compression failed.");
+    } catch (error, stacktrace) {
+      LoggingManager.instance.storage
+          .warning("File compression failed", error, stacktrace);
       isWriting = false;
       return FileWriteResult(false, message: 'File compression failed.');
     }

@@ -63,7 +63,18 @@ class ContainerElementState extends State<ContainerElement> {
   Widget build(BuildContext context) {
     return Container(
       foregroundDecoration: _getForegroundDecoration(),
-      child: _getChild(context),
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          _getChild(context),
+          if (widget.showBorder)
+            const Positioned(
+              top: 2,
+              right: 2,
+              child: _EditingLabel(),
+            )
+        ],
+      ),
     );
   }
 
@@ -591,5 +602,24 @@ TextDirection getTextDirection(ContainerRunLoading runLoading) {
       return TextDirection.ltr;
     case ContainerRunLoading.bottomOrRightHeavy:
       return TextDirection.rtl;
+  }
+}
+
+class _EditingLabel extends StatelessWidget {
+  const _EditingLabel({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final renderScale = RenderScale.of(context)?.scale ?? 1;
+
+    return Container(
+      padding: EdgeInsets.all(4 * renderScale),
+      color: const Color(0x88FFFFFF),
+      child: Text('Auto Layout',
+          style: Theme.of(context)
+              .textTheme
+              .caption!
+              .copyWith(color: Colors.black, fontSize: 24 * renderScale)),
+    );
   }
 }

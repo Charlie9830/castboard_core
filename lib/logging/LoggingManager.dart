@@ -105,10 +105,12 @@ class LoggingManager {
     return await _closeSink();
   }
 
-  Future<File> exportLogs() async {
+  Future<File> exportLogs({
+    File? target,
+  }) async {
     final tmpDir = await getTemporaryDirectoryShim();
     final targetFile =
-        File(p.join(tmpDir.path, "castboard-log-export", 'logs.zip'));
+        target ?? File(p.join(tmpDir.path, "castboard-log-export", 'logs.zip'));
 
     final List<String> logPaths = [];
     await for (var file in _logsDir.list().where((entity) => entity is File)) {

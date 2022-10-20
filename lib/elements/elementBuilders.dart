@@ -29,6 +29,8 @@ import 'package:flutter/material.dart';
 typedef OnContainerItemsReorder = void Function(
     String? containerId, String itemId, int oldIndex, int newIndex);
 
+typedef OnContainerItemEvict = void Function(String itemId);
+
 Map<String, LayoutBlock> buildElements({
   SlideModel? slide,
   CastChangeModel? castChange,
@@ -41,6 +43,7 @@ Map<String, LayoutBlock> buildElements({
   bool isInSlideEditor = false,
   dynamic onContainerItemClick,
   Set<String>? selectedContainerItemIds,
+  OnContainerItemEvict? onContainerItemEvict,
 }) {
   final Map<String, LayoutElementModel> elements =
       slide?.elements ?? <String, LayoutElementModel>{};
@@ -73,6 +76,7 @@ Map<String, LayoutBlock> buildElements({
                   onContainerItemsReorder?.call(id, itemId, oldIndex, newIndex),
               onItemClick: onContainerItemClick,
               selectedContainerIds: selectedContainerItemIds,
+              onItemEvict: onContainerItemEvict,
             ),
           ),
         );
@@ -92,6 +96,7 @@ Widget _buildChild({
   bool isInSlideEditor = false,
   bool isHighlighted = false,
   dynamic onItemClick,
+  OnContainerItemEvict? onItemEvict,
   Set<String>? selectedContainerIds = const <String>{},
   EdgeInsets elementPadding = EdgeInsets.zero,
 }) {
@@ -121,6 +126,7 @@ Widget _buildChild({
       onOrderChanged: (id, oldIndex, newIndex) =>
           onContainerItemsReorder?.call(id, oldIndex, newIndex),
       onItemClick: onItemClick,
+      onItemEvict: onItemEvict,
       items: containerItems
           .where((child) => _shouldBuild(child, castChange))
           .map((child) {
@@ -221,12 +227,16 @@ Widget _buildChild({
   }
 
   if (element is ShapeElementModel) {
-    return withPadding(ShapeElement(
-      type: element.type,
-      fill: element.fill,
-      lineColor: element.lineColor,
-      lineWeight: element.lineWeight,
-    ));
+    return GestureDetector(
+      onTap: () => print('Shape Element Primary'),
+      onSecondaryTap: () => print('Shape Element Secondary'),
+      child: withPadding(ShapeElement(
+        type: element.type,
+        fill: element.fill,
+        lineColor: element.lineColor,
+        lineWeight: element.lineWeight,
+      )),
+    );
   }
 
   if (element is ImageElementModel) {

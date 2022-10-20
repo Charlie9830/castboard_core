@@ -2,6 +2,10 @@ import 'package:castboard_core/elements/ContainerItem.dart';
 import 'package:castboard_core/elements/Dragger.dart';
 import 'package:castboard_core/enums.dart';
 import 'package:castboard_core/inherited/RenderScaleProvider.dart';
+import 'package:castboard_core/secondary_context_menu/context_menu_item.dart';
+import 'package:castboard_core/secondary_context_menu/secondary_context_menu.dart';
+import 'package:castboard_core/show_overlay.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
 const String _shadowId = 'shadow';
@@ -31,6 +35,7 @@ class ContainerElement extends StatefulWidget {
   final List<ContainerItem>? items;
   final OnOrderChanged? onOrderChanged;
   final dynamic onItemClick;
+  final void Function(String itemId)? onItemEvict;
 
   const ContainerElement({
     Key? key,
@@ -46,6 +51,7 @@ class ContainerElement extends StatefulWidget {
     this.items,
     this.onOrderChanged,
     this.onItemClick,
+    this.onItemEvict,
   }) : super(key: key);
 
   @override
@@ -177,7 +183,7 @@ class ContainerElementState extends State<ContainerElement> {
   }) {
     if (isEditing) {
       return Listener(
-        onPointerDown: (event) => _handleDraggerPointerDown(item.dragId),
+        onPointerDown: (event) => _handleDraggerPointerDown(event, item.dragId),
         child: Container(
           color: item.selected ? Colors.grey.withAlpha(64) : null,
           foregroundDecoration: BoxDecoration(
@@ -228,7 +234,23 @@ class ContainerElementState extends State<ContainerElement> {
     }
   }
 
-  void _handleDraggerPointerDown(String? itemId) {
+  void _handleDraggerPointerDown(PointerDownEvent event, String? itemId) async {
+    if (event.buttons == kSecondaryMouseButton) {
+      await showOverlay(
+          context: context,
+          builder: (context) {
+            return SecondaryContextMenu(
+              offset: event.position,
+              items: [
+                ContextMenuItem(
+                  label: 'Evict Item',
+                  onTap: () => widget.onItemEvict?.call(itemId ?? ''),
+                )
+              ],
+            );
+          });
+    }
+
     widget.onItemClick?.call(itemId);
   }
 

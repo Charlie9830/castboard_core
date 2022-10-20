@@ -8,6 +8,7 @@ import 'package:castboard_core/layout-canvas/ResizeModifers.dart';
 import 'package:castboard_core/layout-canvas/RotateHandle.dart';
 import 'package:castboard_core/layout-canvas/consts.dart';
 import 'package:castboard_core/layout-canvas/rotatePoint.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/services.dart';
 import 'package:vector_math/vector_math_64.dart' hide Colors;
 
@@ -21,6 +22,8 @@ typedef OnElementsChangedCallback = void Function(
     Map<String, LayoutBlock> changedElements);
 typedef OnPlaceCallback = void Function(double xPos, double yPos);
 typedef OnElementDoubleClickedCallback = void Function(String elementId);
+typedef OnElementSecondaryClickCallback = void Function(
+    String? elementId, Offset position);
 
 class LayoutCanvas extends StatefulWidget {
   final bool interactive;
@@ -37,6 +40,7 @@ class LayoutCanvas extends StatefulWidget {
   final OnPlaceCallback? onPlace;
   final OnElementDoubleClickedCallback? onElementDoubleClicked;
   final OpenElementBuilder? openElementBuilder;
+  final OnElementSecondaryClickCallback? onElementSecondaryClick;
 
   const LayoutCanvas({
     Key? key,
@@ -54,6 +58,7 @@ class LayoutCanvas extends StatefulWidget {
     this.onElementsChanged,
     this.onElementDoubleClicked,
     this.openElementBuilder,
+    this.onElementSecondaryClick,
   }) : super(key: key);
 
   @override
@@ -116,36 +121,39 @@ class LayoutCanvasState extends State<LayoutCanvas> {
                     : null,
               ),
               DragBoxLayer(
-                interactive: widget.interactive,
-                openElementId: widget.openElementId,
-                openElementBuilder: widget.openElementBuilder,
-                deferHitTestingToChildren: widget.deferHitTestingToChildren,
-                selectedElementIds: Set<String?>.from(widget.selectedElements)
-                  ..addAll(_dragSelectionPreviews),
-                renderScale: widget.renderScale,
-                blocks: _buildBlocks(),
-                isDragSelecting: _isDragSelecting,
-                dragSelectXPos: dragSelectRect.topLeft.dx,
-                dragSelectYPos: dragSelectRect.topLeft.dy,
-                dragSelectHeight: dragSelectRect.height,
-                dragSelectWidth: dragSelectRect.width,
-                onDragBoxClick: (elementId, pointerId) {
-                  _notifySelection(elementId);
-                },
-                onDragBoxDoubleClick: (elementId) {
-                  widget.onElementDoubleClicked?.call(elementId);
-                },
-                onPositionChange: (xPosDelta, yPosDelta, blockId) {
-                  _handlePositionChange(blockId, xPosDelta, yPosDelta);
-                },
-                onDragBoxMouseUp: (blockId, pointerId) {},
-                onDragHandleDragged: _handleResizeHandleDragged,
-                onResizeDone: _handleResizeDone,
-                onResizeStart: _handleResizeStart,
-                onRotateStart: _handleRotateStart,
-                onRotate: _handleRotate,
-                onRotateDone: _handleRotateDone,
-              ),
+                  interactive: widget.interactive,
+                  openElementId: widget.openElementId,
+                  openElementBuilder: widget.openElementBuilder,
+                  deferHitTestingToChildren: widget.deferHitTestingToChildren,
+                  selectedElementIds: Set<String?>.from(widget.selectedElements)
+                    ..addAll(_dragSelectionPreviews),
+                  renderScale: widget.renderScale,
+                  blocks: _buildBlocks(),
+                  isDragSelecting: _isDragSelecting,
+                  dragSelectXPos: dragSelectRect.topLeft.dx,
+                  dragSelectYPos: dragSelectRect.topLeft.dy,
+                  dragSelectHeight: dragSelectRect.height,
+                  dragSelectWidth: dragSelectRect.width,
+                  onDragBoxClick: (elementId, pointerId) {
+                    _notifySelection(elementId);
+                  },
+                  onDragBoxDoubleClick: (elementId) {
+                    widget.onElementDoubleClicked?.call(elementId);
+                  },
+                  onPositionChange: (xPosDelta, yPosDelta, blockId) {
+                    _handlePositionChange(blockId, xPosDelta, yPosDelta);
+                  },
+                  onDragBoxMouseUp: (blockId, pointerId) {},
+                  onDragHandleDragged: _handleResizeHandleDragged,
+                  onResizeDone: _handleResizeDone,
+                  onResizeStart: _handleResizeStart,
+                  onRotateStart: _handleRotateStart,
+                  onRotate: _handleRotate,
+                  onRotateDone: _handleRotateDone,
+                  onDragBoxSecondaryMouseDown: (blockId, pointerId, position) {
+                    _notifySelection(blockId);
+                    widget.onElementSecondaryClick?.call(blockId, position);
+                  }),
             ],
           ),
         ),
@@ -195,6 +203,12 @@ class LayoutCanvasState extends State<LayoutCanvas> {
     if (widget.deferHitTestingToChildren == true) {
       return;
     }
+
+    // Secondary Mouse Button Press
+    if (pointerEvent.buttons == kSecondaryMouseButton) {
+      widget.onElementSecondaryClick?.call(null, pointerEvent.position);
+    }
+
     // Clear Selections.
     widget.onSelectedElementsChanged?.call(<String>{});
     setState(() {

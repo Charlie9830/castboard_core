@@ -1,4 +1,5 @@
 import 'package:castboard_core/layout-canvas/ResizeHandle.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
 typedef OnClickCallback = void Function(int pointerId);
@@ -6,6 +7,9 @@ typedef OnClickCallback = void Function(int pointerId);
 typedef OnDoubleClickCallback = void Function();
 
 typedef OnMouseUpCallback = void Function(int pointerId);
+
+typedef OnSecondaryMouseDownCallback = void Function(
+    int pointerId, Offset position);
 
 typedef OnPositionChangeCallback = void Function(double xDelta, double yDelta);
 
@@ -19,6 +23,7 @@ class DragBox extends StatelessWidget {
   final OnPositionChangeCallback? onPositionChange;
   final OnMouseUpCallback? onMouseUp;
   final OnDoubleClickCallback? onDoubleClick;
+  final OnSecondaryMouseDownCallback? onSecondaryMouseDown;
 
   const DragBox({
     Key? key,
@@ -31,6 +36,7 @@ class DragBox extends StatelessWidget {
     this.selected = false,
     this.onMouseUp,
     this.onDoubleClick,
+    this.onSecondaryMouseDown,
   }) : super(key: key);
 
   @override
@@ -45,7 +51,12 @@ class DragBox extends StatelessWidget {
             onDoubleTap: () => onDoubleClick?.call(),
             child: Listener(
               onPointerDown: (pointerEvent) {
-                onClick?.call(pointerEvent.original!.pointer);
+                if (pointerEvent.buttons == kSecondaryMouseButton) {
+                  onSecondaryMouseDown?.call(
+                      pointerEvent.original!.pointer, pointerEvent.position);
+                } else {
+                  onClick?.call(pointerEvent.original!.pointer);
+                }
               },
               onPointerMove: (pointerEvent) {
                 if (pointerEvent.down) {

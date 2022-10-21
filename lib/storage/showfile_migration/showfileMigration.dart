@@ -5,6 +5,7 @@ import 'package:castboard_core/logging/LoggingManager.dart';
 import 'package:castboard_core/storage/ImportedShowData.dart';
 import 'package:castboard_core/storage/showfile_migration/foldAsyncMigratorValues.dart';
 import 'package:castboard_core/storage/showfile_migration/migrateToV2.dart';
+import 'package:castboard_core/storage/showfile_migration/migrateToV3.dart';
 import 'package:castboard_core/version/fileVersion.dart';
 
 typedef ShowfileMigrator = Future<ImportedShowData> Function(
@@ -18,13 +19,13 @@ Future<ImportedShowData> migrateShowfileData({
   if (currentShowData.manifest.fileVersion == kMaxAllowedFileVersion) {
     return currentShowData;
   } else {
-    print('Migrating');
     LoggingManager.instance.storage.info(
         'Showfile out of date. Initiating migration from Showfile Version ${currentShowData.manifest} to $kMaxAllowedFileVersion');
     // Chain a sequence of Migrator functions together. Each function will perform the necessary migrations to the underlying
     // data and files in the baseDir then return an updated copy of the Imported shwo Data.
     final List<ShowfileMigrator> migrators = [
       migrateToV2,
+      migrateToV3,
     ];
 
     // Pick the approriate range of Migrator async functions.

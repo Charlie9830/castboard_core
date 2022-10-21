@@ -34,6 +34,7 @@ class _HoverActionListTileState extends State<HoverActionListTile> {
         minLeadingWidth: 16,
         selected: widget.selected ?? false,
         onTap: widget.onTap,
+        dense: true,
         leading: widget.leading,
         title: widget.title != null
             ? DefaultTextStyle.merge(

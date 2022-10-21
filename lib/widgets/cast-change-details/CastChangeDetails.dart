@@ -26,7 +26,6 @@ class ActorTuple {
 
 class CastChangeDetails extends StatelessWidget {
   final bool selfScrolling;
-  final bool allowNestedEditing;
   final Map<String, ActorTuple> assignments;
   final List<TrackOrDividerViewModel> trackViewModels;
   final Map<TrackRef, TrackModel> tracksByRef;
@@ -39,7 +38,6 @@ class CastChangeDetails extends StatelessWidget {
     Key? key,
     this.assignments = const <String, ActorTuple>{},
     this.selfScrolling = true,
-    this.allowNestedEditing = false,
     this.trackViewModels = const <TrackOrDividerViewModel>[],
     required this.tracksByRef,
     this.actorViewModels = const <ActorOrDividerViewModel>[],
@@ -104,7 +102,6 @@ class CastChangeDetails extends StatelessWidget {
         Container(
           constraints: BoxConstraints.loose(const Size.fromWidth(150)),
           child: _buildDropdownButton(
-            allowNestedEditing,
             track,
             context,
           ),
@@ -122,12 +119,10 @@ class CastChangeDetails extends StatelessWidget {
     );
   }
 
-  SearchDropdown _buildDropdownButton(
-      bool allowNestedEditing, TrackModel track, BuildContext context) {
+  SearchDropdown _buildDropdownButton(TrackModel track, BuildContext context) {
     return SearchDropdown(
       selectedItemBuilder: (context) => _buildSelectedItem(context, track.ref),
-      enabled: allowNestedEditing == true ||
-          _fromNestedPreset(track.ref.uid, assignments) == false,
+      enabled: _fromNestedPreset(track.ref.uid, assignments) == false,
       onChanged: (actorRef) => onAssignmentUpdated?.call(
           track.ref, actorRef ?? const ActorRef.blank()),
       itemsBuilder: (context) {

@@ -17,7 +17,7 @@ class _SecondaryContextMenuState extends State<SecondaryContextMenu> {
   @override
   Widget build(BuildContext context) {
     final height = _calculateHeight(widget.items);
-    const width = 200.0;
+    const width = 300.0;
 
     return Stack(
       children: [

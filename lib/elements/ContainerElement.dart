@@ -2,8 +2,10 @@ import 'package:castboard_core/elements/ContainerItem.dart';
 import 'package:castboard_core/elements/Dragger.dart';
 import 'package:castboard_core/enums.dart';
 import 'package:castboard_core/inherited/RenderScaleProvider.dart';
+import 'package:castboard_core/layout-canvas/BackstopListener.dart';
 import 'package:castboard_core/secondary_context_menu/context_menu_item.dart';
 import 'package:castboard_core/secondary_context_menu/secondary_context_menu.dart';
+import 'package:castboard_core/secondary_context_menu/shortcut_label.dart';
 import 'package:castboard_core/show_overlay.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
@@ -22,8 +24,10 @@ const Map<MainAxisAlignment, WrapAlignment> _alignmentMapping = {
 typedef OnOrderChanged = void Function(
     String? dragId, int oldIndex, int newIndex);
 
+typedef OnItemActionCallback = void Function(String itemId);
+
 class ContainerElement extends StatefulWidget {
-  final bool? isEditing;
+  final bool isEditing;
   final bool showHighlight;
   final bool showBorder;
   final bool allowWrap;
@@ -35,11 +39,14 @@ class ContainerElement extends StatefulWidget {
   final List<ContainerItem>? items;
   final OnOrderChanged? onOrderChanged;
   final dynamic onItemClick;
-  final void Function(String itemId)? onItemEvict;
+  final OnItemActionCallback? onItemEvict;
+  final OnItemActionCallback? onItemCopy;
+  final OnItemActionCallback? onItemPaste;
+  final OnItemActionCallback? onItemDelete;
 
   const ContainerElement({
     Key? key,
-    this.isEditing,
+    this.isEditing = false,
     this.showHighlight = false,
     this.showBorder = false,
     this.mainAxisAlignment,
@@ -52,6 +59,9 @@ class ContainerElement extends StatefulWidget {
     this.onOrderChanged,
     this.onItemClick,
     this.onItemEvict,
+    this.onItemCopy,
+    this.onItemPaste,
+    this.onItemDelete,
   }) : super(key: key);
 
   @override
@@ -72,13 +82,16 @@ class ContainerElementState extends State<ContainerElement> {
       child: Stack(
         fit: StackFit.expand,
         children: [
+          BackstopListener(
+            onPointerDown: widget.isEditing ? _handleBackstopPointerDown : null,
+          ),
           _getChild(context),
           if (widget.showBorder)
             const Positioned(
               top: 2,
               right: 2,
               child: _EditingLabel(),
-            )
+            ),
         ],
       ),
     );
@@ -86,7 +99,7 @@ class ContainerElementState extends State<ContainerElement> {
 
   BoxDecoration? _getForegroundDecoration() {
     if (widget.showHighlight == true) {
-      //Highlight Border.
+      // Highlight Border.
       return BoxDecoration(
         border: Border.all(color: Theme.of(context).indicatorColor, width: 2),
       );
@@ -118,7 +131,7 @@ class ContainerElementState extends State<ContainerElement> {
           children: items!.map((item) {
             final scaledItemSize = item.size * renderScale!;
             return _wrapVisibility(
-              widget.isEditing!,
+              widget.isEditing,
               item: item,
               visible: item.dragId != _candidateId,
               child: Container(
@@ -126,7 +139,7 @@ class ContainerElementState extends State<ContainerElement> {
                 width: scaledItemSize.width,
                 height: scaledItemSize.height,
                 child: _wrapDragger(
-                  widget.isEditing!,
+                  widget.isEditing,
                   item: item,
                   axis: Axis.horizontal,
                   renderScale: renderScale,
@@ -147,7 +160,7 @@ class ContainerElementState extends State<ContainerElement> {
           children: items!.map((item) {
             final scaledItemSize = item.size * renderScale!;
             return _wrapVisibility(
-              widget.isEditing!,
+              widget.isEditing,
               item: item,
               visible: item.dragId != _candidateId,
               child: Container(
@@ -155,7 +168,7 @@ class ContainerElementState extends State<ContainerElement> {
                 width: scaledItemSize.width,
                 height: scaledItemSize.height,
                 child: _wrapDragger(
-                  widget.isEditing!,
+                  widget.isEditing,
                   item: item,
                   axis: Axis.vertical,
                   renderScale: renderScale,
@@ -234,6 +247,26 @@ class ContainerElementState extends State<ContainerElement> {
     }
   }
 
+  void _handleBackstopPointerDown(PointerDownEvent event) async {
+    if (event.buttons == kSecondaryMouseButton) {
+      await showOverlay(
+          context: context,
+          builder: (context) {
+            return SecondaryContextMenu(
+              offset: event.position,
+              items: [
+                ContextMenuItem(
+                  label: 'Paste',
+                  shortcut: ShortcutLabel.paste,
+                  onTap: () => widget.onItemPaste?.call(
+                      ''), // We don't actually use the itemId for Pasteing so an empty string is fine.
+                ),
+              ],
+            );
+          });
+    }
+  }
+
   void _handleDraggerPointerDown(PointerDownEvent event, String? itemId) async {
     if (event.buttons == kSecondaryMouseButton) {
       await showOverlay(
@@ -245,6 +278,23 @@ class ContainerElementState extends State<ContainerElement> {
                 ContextMenuItem(
                   label: 'Evict Item',
                   onTap: () => widget.onItemEvict?.call(itemId ?? ''),
+                ),
+                ContextMenuItemDivider(),
+                ContextMenuItem(
+                  label: 'Copy',
+                  shortcut: ShortcutLabel.copy,
+                  onTap: () => widget.onItemCopy?.call(itemId ?? ''),
+                ),
+                ContextMenuItem(
+                  label: 'Paste',
+                  shortcut: ShortcutLabel.paste,
+                  onTap: () => widget.onItemPaste?.call(itemId ?? ''),
+                ),
+                ContextMenuItemDivider(),
+                ContextMenuItem(
+                  label: 'Delete',
+                  shortcut: ShortcutLabel.delete,
+                  onTap: () => widget.onItemDelete?.call(itemId ?? ''),
                 )
               ],
             );

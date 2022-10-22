@@ -10,6 +10,7 @@ class ContextMenuItem extends ContextMenuItemBase {
   final IconData? icon;
   final OnTapCallback? onTap;
   final bool enabled;
+  final String disabledTooltip;
 
   ContextMenuItem({
     required this.label,
@@ -17,6 +18,7 @@ class ContextMenuItem extends ContextMenuItemBase {
     this.icon,
     this.onTap,
     this.enabled = true,
+    this.disabledTooltip = '',
   });
 }
 

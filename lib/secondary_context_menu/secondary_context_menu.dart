@@ -48,21 +48,24 @@ class _SecondaryContextMenuState extends State<SecondaryContextMenu> {
   List<Widget> _mapItems(BuildContext context) {
     return widget.items.map((item) {
       if (item is ContextMenuItem) {
-        return ListTile(
-          enabled: item.enabled,
-          onTap: () {
-            if (Navigator.of(context).canPop()) {
-              Navigator.of(context).pop();
-            }
-            item.onTap?.call();
-          },
-          leading: item.icon == null ? null : Icon(item.icon),
-          title: Text(item.label),
-          trailing: item.shortcut == null
-              ? null
-              : Text(item.shortcut!,
-                  style: Theme.of(context).textTheme.caption),
-          dense: true,
+        return _wrapTooltip(
+          message: item.disabledTooltip,
+          child: ListTile(
+            enabled: item.enabled,
+            onTap: () {
+              if (Navigator.of(context).canPop()) {
+                Navigator.of(context).pop();
+              }
+              item.onTap?.call();
+            },
+            leading: item.icon == null ? null : Icon(item.icon),
+            title: Text(item.label),
+            trailing: item.shortcut == null
+                ? null
+                : Text(item.shortcut!,
+                    style: Theme.of(context).textTheme.caption),
+            dense: true,
+          ),
         );
       } else {
         return const SizedBox(
@@ -76,10 +79,24 @@ class _SecondaryContextMenuState extends State<SecondaryContextMenu> {
     }).toList();
   }
 
+  Widget _wrapTooltip({
+    required String message,
+    required Widget child,
+  }) {
+    if (message.isNotEmpty) {
+      return Tooltip(
+        message: message,
+        child: child,
+      );
+    }
+
+    return child;
+  }
+
   double _calculateHeight(List<ContextMenuItemBase> items) {
     final dividersCount = items.whereType<ContextMenuItemDivider>().length;
     final itemsCount = items.whereType<ContextMenuItem>().length;
-    
+
     return (itemsCount * 40) + (dividersCount * 28);
   }
 

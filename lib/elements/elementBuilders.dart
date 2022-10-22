@@ -29,8 +29,6 @@ import 'package:flutter/material.dart';
 typedef OnContainerItemsReorder = void Function(
     String? containerId, String itemId, int oldIndex, int newIndex);
 
-typedef OnContainerItemEvict = void Function(String itemId);
-
 Map<String, LayoutBlock> buildElements({
   SlideModel? slide,
   CastChangeModel? castChange,
@@ -43,7 +41,10 @@ Map<String, LayoutBlock> buildElements({
   bool isInSlideEditor = false,
   dynamic onContainerItemClick,
   Set<String>? selectedContainerItemIds,
-  OnContainerItemEvict? onContainerItemEvict,
+  OnItemActionCallback? onContainerItemEvict,
+  OnItemActionCallback? onContainerItemCopy,
+  OnItemActionCallback? onContainerItemPaste,
+  OnItemActionCallback? onContainerItemDelete,
 }) {
   final Map<String, LayoutElementModel> elements =
       slide?.elements ?? <String, LayoutElementModel>{};
@@ -75,8 +76,11 @@ Map<String, LayoutBlock> buildElements({
               onContainerItemsReorder: (itemId, oldIndex, newIndex) =>
                   onContainerItemsReorder?.call(id, itemId, oldIndex, newIndex),
               onItemClick: onContainerItemClick,
+              onItemCopy: onContainerItemCopy,
+              onItemPaste: onContainerItemPaste,
               selectedContainerIds: selectedContainerItemIds,
               onItemEvict: onContainerItemEvict,
+              onItemDelete: onContainerItemDelete,
             ),
           ),
         );
@@ -96,7 +100,10 @@ Widget _buildChild({
   bool isInSlideEditor = false,
   bool isHighlighted = false,
   dynamic onItemClick,
-  OnContainerItemEvict? onItemEvict,
+  OnItemActionCallback? onItemEvict,
+  OnItemActionCallback? onItemCopy,
+  OnItemActionCallback? onItemPaste,
+  OnItemActionCallback? onItemDelete,
   Set<String>? selectedContainerIds = const <String>{},
   EdgeInsets elementPadding = EdgeInsets.zero,
 }) {
@@ -127,6 +134,9 @@ Widget _buildChild({
           onContainerItemsReorder?.call(id, oldIndex, newIndex),
       onItemClick: onItemClick,
       onItemEvict: onItemEvict,
+      onItemCopy: onItemCopy,
+      onItemPaste: onItemPaste,
+      onItemDelete: onItemDelete,
       items: containerItems
           .where((child) => _shouldBuild(child, castChange))
           .map((child) {

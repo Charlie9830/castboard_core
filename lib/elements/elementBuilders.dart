@@ -237,16 +237,12 @@ Widget _buildChild({
   }
 
   if (element is ShapeElementModel) {
-    return GestureDetector(
-      onTap: () => print('Shape Element Primary'),
-      onSecondaryTap: () => print('Shape Element Secondary'),
-      child: withPadding(ShapeElement(
-        type: element.type,
-        fill: element.fill,
-        lineColor: element.lineColor,
-        lineWeight: element.lineWeight,
-      )),
-    );
+    return withPadding(ShapeElement(
+      type: element.type,
+      fill: element.fill,
+      lineColor: element.lineColor,
+      lineWeight: element.lineWeight,
+    ));
   }
 
   if (element is ImageElementModel) {

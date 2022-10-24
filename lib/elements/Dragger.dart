@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 
 enum HoverSide { start, end }
 
-typedef OnHover = void Function(HoverSide side, DraggerDetails? candidateDetails);
+typedef OnHover = void Function(
+    HoverSide side, DraggerDetails? candidateDetails);
 typedef OnDragEnd = void Function(DraggerDetails? candidateDetails);
 typedef FeedbackBuilder = Widget Function(BuildContext context);
 
@@ -71,7 +72,7 @@ class Dragger extends StatelessWidget {
         // Draggable.
         if (targetOnly == false)
           LongPressDraggable<DraggerDetails>(
-            delay: const Duration(milliseconds: 25),
+            delay: const Duration(milliseconds: 200),
             dragAnchorStrategy: pointerDragAnchorStrategy,
             feedback: feedbackBuilder != null
                 ? Builder(builder: feedbackBuilder as FeedbackBuilder)

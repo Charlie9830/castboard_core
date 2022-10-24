@@ -1,10 +1,8 @@
-
-
 import 'package:flutter/material.dart';
 
 class ContainerItem extends StatelessWidget {
   final Widget child;
-  final String? dragId;
+  final String dragId;
   final bool selected;
   final Size size;
   final int index;

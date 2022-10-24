@@ -29,7 +29,14 @@ import 'package:flutter/material.dart';
 typedef OnContainerItemsReorder = void Function(
     String? containerId, String itemId, int oldIndex, int newIndex);
 
+typedef OnContainerItemDoubleClick = void Function(
+    String containerId, String itemId, PointerEvent event);
+
+typedef OpenContainerItemBuilder = Widget Function(
+    BuildContext context, String itemId);
+
 Map<String, LayoutBlock> buildElements({
+  BuildContext? context, // Context is only required by the Slide Editor.
   SlideModel? slide,
   CastChangeModel? castChange,
   Map<ActorRef, ActorModel>? actors,
@@ -45,6 +52,9 @@ Map<String, LayoutBlock> buildElements({
   OnItemActionCallback? onContainerItemCopy,
   OnItemActionCallback? onContainerItemPaste,
   OnItemActionCallback? onContainerItemDelete,
+  String openElementContainerId = '',
+  OnContainerItemDoubleClick? onContainerItemDoubleClick,
+  OpenContainerItemBuilder? openContainerItemBuilder,
 }) {
   final Map<String, LayoutElementModel> elements =
       slide?.elements ?? <String, LayoutElementModel>{};
@@ -64,6 +74,7 @@ Map<String, LayoutBlock> buildElements({
             yPos: element.yPos,
             rotation: element.rotation,
             child: _buildChild(
+              context: context,
               element: element.child,
               castChange: castChange,
               actors: actors,
@@ -81,6 +92,10 @@ Map<String, LayoutBlock> buildElements({
               selectedContainerIds: selectedContainerItemIds,
               onItemEvict: onContainerItemEvict,
               onItemDelete: onContainerItemDelete,
+              openContainerElementId: openElementContainerId,
+              onContainerItemDoubleClick: (event, itemId) =>
+                  onContainerItemDoubleClick?.call(id, itemId, event),
+              openContainerItemBuilder: openContainerItemBuilder,
             ),
           ),
         );
@@ -90,6 +105,7 @@ Map<String, LayoutBlock> buildElements({
 }
 
 Widget _buildChild({
+  BuildContext? context, // Context is only required by the Slide Editor.
   LayoutElementChild? element,
   CastChangeModel? castChange,
   Map<ActorRef, ActorModel>? actors = const {},
@@ -104,8 +120,11 @@ Widget _buildChild({
   OnItemActionCallback? onItemCopy,
   OnItemActionCallback? onItemPaste,
   OnItemActionCallback? onItemDelete,
+  OnItemDoubleClickCallback? onContainerItemDoubleClick,
   Set<String>? selectedContainerIds = const <String>{},
   EdgeInsets elementPadding = EdgeInsets.zero,
+  String openContainerElementId = '',
+  OpenContainerItemBuilder? openContainerItemBuilder,
 }) {
   withPadding(Widget child) => Padding(
         padding: elementPadding,
@@ -137,6 +156,7 @@ Widget _buildChild({
       onItemCopy: onItemCopy,
       onItemPaste: onItemPaste,
       onItemDelete: onItemDelete,
+      onItemDoubleClick: onContainerItemDoubleClick,
       items: containerItems
           .where((child) => _shouldBuild(child, castChange))
           .map((child) {
@@ -146,14 +166,18 @@ Widget _buildChild({
           selected: selectedContainerIds != null &&
               selectedContainerIds.contains(child.uid),
           size: Size(child.width, child.height),
-          child: _buildChild(
-            element: child.child,
-            castChange: castChange,
-            actors: actors,
-            trackRefsByName: trackRefsByName,
-            tracks: tracks,
-            elementPadding: _buildEdgeInsets(child),
-          ),
+          child: child.uid == openContainerElementId &&
+                  openContainerItemBuilder != null
+              ? _callContainerItemBuilder(
+                  context, child.uid, openContainerItemBuilder)
+              : _buildChild(
+                  element: child.child,
+                  castChange: castChange,
+                  actors: actors,
+                  trackRefsByName: trackRefsByName,
+                  tracks: tracks,
+                  elementPadding: _buildEdgeInsets(child),
+                ),
         );
       }).toList(),
     ));
@@ -252,6 +276,16 @@ Widget _buildChild({
   }
 
   return SizedBox.fromSize(size: Size.zero);
+}
+
+Widget _callContainerItemBuilder(
+    BuildContext? context, String itemId, OpenContainerItemBuilder builder) {
+  if (context == null) {
+    throw AssertionError(
+        'The optional context parameter must be provided when using the containerItemBuilder.');
+  }
+
+  return builder(context, itemId);
 }
 
 EdgeInsets _buildEdgeInsets(LayoutElementModel element) {

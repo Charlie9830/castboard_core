@@ -3,6 +3,7 @@ import 'package:castboard_core/elements/Dragger.dart';
 import 'package:castboard_core/enums.dart';
 import 'package:castboard_core/inherited/RenderScaleProvider.dart';
 import 'package:castboard_core/layout-canvas/BackstopListener.dart';
+import 'package:castboard_core/layout-canvas/last_tap_down.dart';
 import 'package:castboard_core/secondary_context_menu/context_menu_item.dart';
 import 'package:castboard_core/secondary_context_menu/secondary_context_menu.dart';
 import 'package:castboard_core/secondary_context_menu/shortcut_label.dart';
@@ -26,6 +27,9 @@ typedef OnOrderChanged = void Function(
 
 typedef OnItemActionCallback = void Function(String itemId);
 
+typedef OnItemDoubleClickCallback = void Function(
+    PointerEvent event, String itemId);
+
 class ContainerElement extends StatefulWidget {
   final bool isEditing;
   final bool showHighlight;
@@ -43,6 +47,7 @@ class ContainerElement extends StatefulWidget {
   final OnItemActionCallback? onItemCopy;
   final OnItemActionCallback? onItemPaste;
   final OnItemActionCallback? onItemDelete;
+  final OnItemDoubleClickCallback? onItemDoubleClick;
 
   const ContainerElement({
     Key? key,
@@ -62,6 +67,7 @@ class ContainerElement extends StatefulWidget {
     this.onItemCopy,
     this.onItemPaste,
     this.onItemDelete,
+    this.onItemDoubleClick,
   }) : super(key: key);
 
   @override
@@ -74,6 +80,9 @@ class ContainerElementState extends State<ContainerElement> {
   int _candidateHomeIndex = -1;
   int _shadowIndex = -1;
   List<ContainerItem> _activeItems = const [];
+
+  // Untracked State.
+  LastTapDown? _lastTapDown;
 
   @override
   Widget build(BuildContext context) {
@@ -237,7 +246,7 @@ class ContainerElementState extends State<ContainerElement> {
   }) {
     if (isEditing) {
       return Visibility(
-        key: Key(item!.dragId!),
+        key: Key(item!.dragId),
         visible: visible,
         maintainState: true,
         child: child,
@@ -267,7 +276,7 @@ class ContainerElementState extends State<ContainerElement> {
     }
   }
 
-  void _handleDraggerPointerDown(PointerDownEvent event, String? itemId) async {
+  void _handleDraggerPointerDown(PointerDownEvent event, String itemId) async {
     if (event.buttons == kSecondaryMouseButton) {
       await showOverlay(
           context: context,
@@ -277,28 +286,40 @@ class ContainerElementState extends State<ContainerElement> {
               items: [
                 ContextMenuItem(
                   label: 'Evict Item',
-                  onTap: () => widget.onItemEvict?.call(itemId ?? ''),
+                  onTap: () => widget.onItemEvict?.call(itemId),
                 ),
                 ContextMenuItemDivider(),
                 ContextMenuItem(
                   label: 'Copy',
                   shortcut: ShortcutLabel.copy,
-                  onTap: () => widget.onItemCopy?.call(itemId ?? ''),
+                  onTap: () => widget.onItemCopy?.call(itemId),
                 ),
                 ContextMenuItem(
                   label: 'Paste',
                   shortcut: ShortcutLabel.paste,
-                  onTap: () => widget.onItemPaste?.call(itemId ?? ''),
+                  onTap: () => widget.onItemPaste?.call(itemId),
                 ),
                 ContextMenuItemDivider(),
                 ContextMenuItem(
                   label: 'Delete',
                   shortcut: ShortcutLabel.delete,
-                  onTap: () => widget.onItemDelete?.call(itemId ?? ''),
+                  onTap: () => widget.onItemDelete?.call(itemId),
                 )
               ],
             );
           });
+    }
+
+    if (event.buttons == kPrimaryButton) {
+      if (_lastTapDown != null && _lastTapDown!.itemId == itemId) {
+        final now = DateTime.now();
+        if (now.difference(_lastTapDown!.timestamp).inMilliseconds < 500) {
+          widget.onItemDoubleClick?.call(event, itemId);
+          _lastTapDown = LastTapDown(itemId, DateTime.now());
+          return;
+        }
+      }
+      _lastTapDown = LastTapDown(itemId, DateTime.now());
     }
 
     widget.onItemClick?.call(itemId);

@@ -30,8 +30,7 @@ typedef OnRotateDoneCallback = void Function(
   int pointerId,
 );
 
-typedef OpenElementBuilder = Widget Function(
-    BuildContext context, LayoutBlock block);
+typedef OpenElementBuilder = Widget Function(BuildContext context, String id);
 
 class DragBoxLayer extends StatelessWidget {
   final bool interactive;
@@ -210,7 +209,7 @@ class DragBoxLayer extends StatelessWidget {
         alignment: Alignment.center,
         transform: Matrix4.rotationZ(block.rotation),
         child: openElementId == block.id && openElementBuilder != null
-            ? openElementBuilder!(context, block)
+            ? openElementBuilder!(context, block.id)
             : block.child,
       ),
     );

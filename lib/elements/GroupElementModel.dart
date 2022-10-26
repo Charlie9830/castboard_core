@@ -1,13 +1,18 @@
 import 'package:castboard_core/classes/LayoutElementChild.dart';
+import 'package:castboard_core/elements/multi_child_element_model.dart';
+import 'package:castboard_core/layout-canvas/element_ref.dart';
 import 'package:castboard_core/models/LayoutElementModel.dart';
 import 'package:castboard_core/utils/getUid.dart';
+import 'package:collection/collection.dart';
 
-class GroupElementModel extends LayoutElementChild {
-  final List<LayoutElementModel> children;
+class GroupElementModel extends LayoutElementChild
+    implements MultiChildElementModel {
+  @override
+  final Map<ElementRef, LayoutElementModel> children;
 
   GroupElementModel({
-    List<LayoutElementModel>? children,
-  })  : children = children ?? <LayoutElementModel>[],
+    Map<ElementRef, LayoutElementModel>? children,
+  })  : children = children ?? <ElementRef, LayoutElementModel>{},
         super(
             updateContracts: <PropertyUpdateContracts>{},
             canConditionallyRender: true);
@@ -16,20 +21,33 @@ class GroupElementModel extends LayoutElementChild {
   Map<String, dynamic> toMap() {
     return {
       'elementType': 'group',
-      'children': children.map((item) => item.toMap()).toList()
+      'children': children.values.map((item) => item.toMap()).toList()
     };
   }
 
   GroupElementModel copyWith({
-    List<LayoutElementModel>? children,
+    Map<ElementRef, LayoutElementModel>? children,
   }) {
     return GroupElementModel(children: children ?? this.children);
   }
 
   @override
-  LayoutElementChild copy() {
+  LayoutElementChild copy({ElementRef? parentId}) {
+    if (parentId == null) {
+      throw 'LayoutElementChild copy error. If Child implements MultiChildElementModel a parentId MUST be provided to the copy method';
+    }
+
     return copyWith(
-      children: children.map((child) => child.copy(getUid())).toList(),
+      children: Map<ElementRef, LayoutElementModel>.fromEntries(
+          children.values.map((child) {
+        final newId = parentId.withSuffix(getUid());
+        return MapEntry(newId, child.copy(newId));
+      })),
     );
+  }
+
+  @override
+  LayoutElementModel? getChild(ElementRef id) {
+    return children[id];
   }
 }

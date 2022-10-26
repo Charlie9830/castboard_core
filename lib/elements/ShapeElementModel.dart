@@ -1,4 +1,5 @@
 import 'package:castboard_core/enum-converters/shapeElementTypeConverters.dart';
+import 'package:castboard_core/layout-canvas/element_ref.dart';
 import 'package:castboard_core/models/ColorModel.dart';
 import 'package:flutter/material.dart';
 
@@ -50,7 +51,7 @@ class ShapeElementModel extends LayoutElementChild {
   }
 
   @override
-  LayoutElementChild copy() {
+  LayoutElementChild copy({ElementRef? parentId}) {
     return copyWith();
   }
 }

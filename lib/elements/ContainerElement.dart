@@ -3,6 +3,7 @@ import 'package:castboard_core/elements/Dragger.dart';
 import 'package:castboard_core/enums.dart';
 import 'package:castboard_core/inherited/RenderScaleProvider.dart';
 import 'package:castboard_core/layout-canvas/BackstopListener.dart';
+import 'package:castboard_core/layout-canvas/element_ref.dart';
 import 'package:castboard_core/layout-canvas/last_tap_down.dart';
 import 'package:castboard_core/secondary_context_menu/context_menu_item.dart';
 import 'package:castboard_core/secondary_context_menu/secondary_context_menu.dart';
@@ -11,7 +12,7 @@ import 'package:castboard_core/show_overlay.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
-const String _shadowId = 'shadow';
+const ElementRef _shadowId = ElementRef.shadow();
 
 const Map<MainAxisAlignment, WrapAlignment> _alignmentMapping = {
   MainAxisAlignment.start: WrapAlignment.start,
@@ -23,12 +24,12 @@ const Map<MainAxisAlignment, WrapAlignment> _alignmentMapping = {
 };
 
 typedef OnOrderChanged = void Function(
-    String? dragId, int oldIndex, int newIndex);
+    ElementRef id, int oldIndex, int newIndex);
 
-typedef OnItemActionCallback = void Function(String itemId);
+typedef OnItemActionCallback = void Function(ElementRef itemId);
 
 typedef OnItemDoubleClickCallback = void Function(
-    PointerEvent event, String itemId);
+    PointerEvent event, ElementRef itemId);
 
 class ContainerElement extends StatefulWidget {
   final bool isEditing;
@@ -42,7 +43,7 @@ class ContainerElement extends StatefulWidget {
   final ContainerRunLoading runLoading;
   final List<ContainerItem>? items;
   final OnOrderChanged? onOrderChanged;
-  final dynamic onItemClick;
+  final OnItemActionCallback? onItemClick;
   final OnItemActionCallback? onItemEvict;
   final OnItemActionCallback? onItemCopy;
   final OnItemActionCallback? onItemPaste;
@@ -76,7 +77,7 @@ class ContainerElement extends StatefulWidget {
 
 class ContainerElementState extends State<ContainerElement> {
   bool _isDragging = false;
-  String? _candidateId = '';
+  ElementRef _candidateId = const ElementRef.none();
   int _candidateHomeIndex = -1;
   int _shadowIndex = -1;
   List<ContainerItem> _activeItems = const [];
@@ -142,7 +143,7 @@ class ContainerElementState extends State<ContainerElement> {
             return _wrapVisibility(
               widget.isEditing,
               item: item,
-              visible: item.dragId != _candidateId,
+              visible: item.id != _candidateId,
               child: Container(
                 alignment: Alignment.center,
                 width: scaledItemSize.width,
@@ -171,7 +172,7 @@ class ContainerElementState extends State<ContainerElement> {
             return _wrapVisibility(
               widget.isEditing,
               item: item,
-              visible: item.dragId != _candidateId,
+              visible: item.id != _candidateId,
               child: Container(
                 alignment: Alignment.center,
                 width: scaledItemSize.width,
@@ -205,7 +206,7 @@ class ContainerElementState extends State<ContainerElement> {
   }) {
     if (isEditing) {
       return Listener(
-        onPointerDown: (event) => _handleDraggerPointerDown(event, item.dragId),
+        onPointerDown: (event) => _handleDraggerPointerDown(event, item.id),
         child: Container(
           color: item.selected ? Colors.grey.withAlpha(64) : null,
           foregroundDecoration: BoxDecoration(
@@ -217,15 +218,14 @@ class ContainerElementState extends State<ContainerElement> {
           ),
           child: Dragger(
             axis: axis,
-            targetOnly: item.dragId == _shadowId,
+            targetOnly: item.id == _shadowId,
             feedbackBuilder: (_) => _buildFeedback(
                 renderScale, item.size * renderScale, item.child),
-            onDragStart: () =>
-                _handleDragStart(item.dragId, item.index, item.size),
+            onDragStart: () => _handleDragStart(item.id, item.index, item.size),
             onDragEnd: (_) => _handleDragEnd(),
             onHover: (side, candidateDetails) =>
-                _handleHover(side, item.dragId, item.index, candidateDetails),
-            dragData: DraggerDetails(item.dragId, item.index),
+                _handleHover(side, item.id, item.index, candidateDetails),
+            dragData: DraggerDetails(item.id, item.index),
             child: child,
           ),
         ),
@@ -240,13 +240,13 @@ class ContainerElementState extends State<ContainerElement> {
   ///
   Widget _wrapVisibility(
     bool isEditing, {
-    ContainerItem? item,
+    required ContainerItem item,
     bool visible = true,
     required Widget child,
   }) {
     if (isEditing) {
       return Visibility(
-        key: Key(item!.dragId),
+        key: ValueKey(item.id),
         visible: visible,
         maintainState: true,
         child: child,
@@ -267,8 +267,8 @@ class ContainerElementState extends State<ContainerElement> {
                 ContextMenuItem(
                   label: 'Paste',
                   shortcut: ShortcutLabel.paste,
-                  onTap: () => widget.onItemPaste?.call(
-                      ''), // We don't actually use the itemId for Pasteing so an empty string is fine.
+                  onTap: () => widget.onItemPaste?.call(const ElementRef
+                      .none()), // We don't actually use the itemId for Pasteing so an empty value is fine.
                 ),
               ],
             );
@@ -276,7 +276,8 @@ class ContainerElementState extends State<ContainerElement> {
     }
   }
 
-  void _handleDraggerPointerDown(PointerDownEvent event, String itemId) async {
+  void _handleDraggerPointerDown(
+      PointerDownEvent event, ElementRef itemId) async {
     if (event.buttons == kSecondaryMouseButton) {
       await showOverlay(
           context: context,
@@ -339,7 +340,7 @@ class ContainerElementState extends State<ContainerElement> {
     );
   }
 
-  void _handleHover(HoverSide side, String? underItemId, int underItemIndex,
+  void _handleHover(HoverSide side, ElementRef underItemId, int underItemIndex,
       DraggerDetails? candidateDetails) {
     if (candidateDetails == null) {
       return;
@@ -524,14 +525,14 @@ class ContainerElementState extends State<ContainerElement> {
 
   bool _isShadowAlreadyInPlace(List<ContainerItem> items, int targetIndex) {
     if (targetIndex >= 0 && targetIndex < items.length) {
-      return items[targetIndex].dragId == _shadowId;
+      return items[targetIndex].id == _shadowId;
     } else {
       return false;
     }
   }
 
   void _handleDragStart(
-      String? candidateId, int candidateHomeIndex, Size candidateSize) {
+      ElementRef candidateId, int candidateHomeIndex, Size candidateSize) {
     setState(() {
       _isDragging = true;
       _activeItems = _withRebuiltIndices(
@@ -564,7 +565,7 @@ class ContainerElementState extends State<ContainerElement> {
     setState(() {
       _isDragging = false;
       _activeItems = const [];
-      _candidateId = '';
+      _candidateId = const ElementRef.none();
       _candidateHomeIndex = -1;
       _shadowIndex = -1;
     });
@@ -572,7 +573,7 @@ class ContainerElementState extends State<ContainerElement> {
 
   ContainerItem _buildShadow(int index, Size size) {
     return ContainerItem(
-      dragId: _shadowId,
+      id: _shadowId,
       index: index,
       size: size,
       child: const _ItemShadow(),

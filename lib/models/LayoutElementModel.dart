@@ -1,9 +1,11 @@
+import 'package:castboard_core/elements/multi_child_element_model.dart';
+import 'package:castboard_core/layout-canvas/element_ref.dart';
 import 'package:flutter/material.dart';
 
 import 'package:castboard_core/classes/LayoutElementChild.dart';
 
 class LayoutElementModel {
-  final String uid;
+  final ElementRef uid;
   final double xPos;
   final double yPos;
   final double width;
@@ -30,7 +32,7 @@ class LayoutElementModel {
   });
 
   LayoutElementModel copyWith({
-    String? uid,
+    ElementRef? uid,
     double? xPos,
     double? yPos,
     double? width,
@@ -62,6 +64,8 @@ class LayoutElementModel {
     required double x,
     required double y,
   }) {
+    // TODO: Why do we use Minus here? Everywhere we call this we have to first multiply the value by
+    // -1 to force it to a negative integer.
     return copyWith(
       xPos: xPos - x,
       yPos: yPos - y,
@@ -82,7 +86,7 @@ class LayoutElementModel {
 
   Map<String, dynamic> toMap() {
     return {
-      'uid': uid,
+      'uid': uid.toString(),
       'xPos': xPos,
       'yPos': yPos,
       'width': width,
@@ -98,7 +102,7 @@ class LayoutElementModel {
 
   factory LayoutElementModel.fromMap(Map<String, dynamic> map) {
     return LayoutElementModel(
-      uid: map['uid'] ?? '',
+      uid: ElementRef.fromString(map['uid'] ?? ''),
       xPos: map['xPos'] ?? 0,
       yPos: map['yPos'] ?? 0,
       width: map['width'] ?? 100,
@@ -112,10 +116,17 @@ class LayoutElementModel {
     );
   }
 
-  LayoutElementModel copy(String parentUid) {
+  LayoutElementModel copy(ElementRef newId) {
     return copyWith(
-      uid: parentUid,
-      child: child.copy(),
+      uid: newId,
+      child: child is MultiChildElementModel
+          ? child.copy(parentId: newId)
+          : child.copy(),
     );
+  }
+
+  Rect get rectangle {
+    return Rect.fromPoints(
+        Offset(xPos, yPos), Offset(xPos + width, yPos + height));
   }
 }

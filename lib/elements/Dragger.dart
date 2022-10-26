@@ -1,3 +1,4 @@
+import 'package:castboard_core/layout-canvas/element_ref.dart';
 import 'package:flutter/material.dart';
 
 enum HoverSide { start, end }
@@ -105,7 +106,7 @@ class Dragger extends StatelessWidget {
 }
 
 class DraggerDetails {
-  final String? id;
+  final ElementRef? id;
   final int index;
 
   DraggerDetails(this.id, this.index);

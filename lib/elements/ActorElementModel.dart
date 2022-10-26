@@ -1,6 +1,7 @@
 import 'package:castboard_core/classes/LayoutElementChild.dart';
 import 'package:castboard_core/elements/TrackAssignmentInterface.dart';
 import 'package:castboard_core/enum-converters/textAlignConverters.dart';
+import 'package:castboard_core/layout-canvas/element_ref.dart';
 import 'package:castboard_core/models/ColorModel.dart';
 import 'package:castboard_core/models/TrackRef.dart';
 import 'package:flutter/material.dart';
@@ -79,7 +80,7 @@ class ActorElementModel extends TextElementModel
   }
 
   @override
-  LayoutElementChild copy() {
+  LayoutElementChild copy({ElementRef? parentId}) {
     return copyWith();
   }
 }

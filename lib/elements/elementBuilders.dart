@@ -16,54 +16,51 @@ import 'package:castboard_core/elements/TextElement.dart';
 import 'package:castboard_core/elements/TextElementModel.dart';
 import 'package:castboard_core/elements/TrackElementModel.dart';
 import 'package:castboard_core/layout-canvas/LayoutBlock.dart';
+import 'package:castboard_core/layout-canvas/element_ref.dart';
 import 'package:castboard_core/models/ActorModel.dart';
 import 'package:castboard_core/models/ActorRef.dart';
 import 'package:castboard_core/models/CastChangeModel.dart';
 import 'package:castboard_core/models/LayoutElementModel.dart';
 import 'package:castboard_core/models/TrackModel.dart';
-import 'package:castboard_core/models/SlideModel.dart';
 import 'package:castboard_core/models/TrackRef.dart';
 import 'package:castboard_core/storage/Storage.dart';
 import 'package:flutter/material.dart';
 
 typedef OnContainerItemsReorder = void Function(
-    String? containerId, String itemId, int oldIndex, int newIndex);
+    ElementRef itemId, int oldIndex, int newIndex);
 
 typedef OnContainerItemDoubleClick = void Function(
-    String containerId, String itemId, PointerEvent event);
+    ElementRef itemId, PointerEvent event);
 
 typedef OpenContainerItemBuilder = Widget Function(
-    BuildContext context, String itemId);
+    BuildContext context, ElementRef itemId);
 
-Map<String, LayoutBlock> buildElements({
+Map<ElementRef, LayoutBlock> buildElements({
   BuildContext? context, // Context is only required by the Slide Editor.
-  SlideModel? slide,
+  Map<ElementRef, LayoutElementModel> elements = const {},
+  ElementRef openElementId = const ElementRef.none(),
+  List<String> reference = const [],
   CastChangeModel? castChange,
   Map<ActorRef, ActorModel>? actors,
   Map<String, TrackRef> trackRefsByName = const {},
   Map<TrackRef, TrackModel>? tracks,
   OnContainerItemsReorder? onContainerItemsReorder,
-  String editingContainerId = '',
-  String highlightedContainerId = '',
+  ElementRef highlightedContainerId = const ElementRef.none(),
   bool isInSlideEditor = false,
   dynamic onContainerItemClick,
-  Set<String>? selectedContainerItemIds,
+  Set<ElementRef>? selectedElementIds,
   OnItemActionCallback? onContainerItemEvict,
   OnItemActionCallback? onContainerItemCopy,
   OnItemActionCallback? onContainerItemPaste,
   OnItemActionCallback? onContainerItemDelete,
-  String openElementContainerId = '',
   OnContainerItemDoubleClick? onContainerItemDoubleClick,
   OpenContainerItemBuilder? openContainerItemBuilder,
 }) {
-  final Map<String, LayoutElementModel> elements =
-      slide?.elements ?? <String, LayoutElementModel>{};
-
-  return Map<String, LayoutBlock>.fromEntries(
+  return Map<ElementRef, LayoutBlock>.fromEntries(
     elements.values.where((element) => _shouldBuild(element, castChange)).map(
       (element) {
         final id = element.uid;
-        final isEditingContainer = id == editingContainerId;
+        final isEditingContainer = id == openElementId;
         return MapEntry(
           id,
           LayoutBlock(
@@ -74,6 +71,7 @@ Map<String, LayoutBlock> buildElements({
             yPos: element.yPos,
             rotation: element.rotation,
             child: _buildChild(
+              parentReference: id,
               context: context,
               element: element.child,
               castChange: castChange,
@@ -85,16 +83,15 @@ Map<String, LayoutBlock> buildElements({
               isEditingContainer: isEditingContainer,
               isHighlighted: isEditingContainer || highlightedContainerId == id,
               onContainerItemsReorder: (itemId, oldIndex, newIndex) =>
-                  onContainerItemsReorder?.call(id, itemId, oldIndex, newIndex),
+                  onContainerItemsReorder?.call(itemId, oldIndex, newIndex),
               onItemClick: onContainerItemClick,
               onItemCopy: onContainerItemCopy,
               onItemPaste: onContainerItemPaste,
-              selectedContainerIds: selectedContainerItemIds,
+              selectedElements: selectedElementIds,
               onItemEvict: onContainerItemEvict,
               onItemDelete: onContainerItemDelete,
-              openContainerElementId: openElementContainerId,
               onContainerItemDoubleClick: (event, itemId) =>
-                  onContainerItemDoubleClick?.call(id, itemId, event),
+                  onContainerItemDoubleClick?.call(itemId, event),
               openContainerItemBuilder: openContainerItemBuilder,
             ),
           ),
@@ -105,25 +102,26 @@ Map<String, LayoutBlock> buildElements({
 }
 
 Widget _buildChild({
+  required ElementRef parentReference,
+  ElementRef openElementId = const ElementRef.none(),
   BuildContext? context, // Context is only required by the Slide Editor.
   LayoutElementChild? element,
   CastChangeModel? castChange,
   Map<ActorRef, ActorModel>? actors = const {},
   required Map<String, TrackRef> trackRefsByName,
   Map<TrackRef, TrackModel>? tracks = const {},
-  dynamic onContainerItemsReorder,
+  OnContainerItemsReorder? onContainerItemsReorder,
   bool isEditingContainer = false,
   bool isInSlideEditor = false,
   bool isHighlighted = false,
-  dynamic onItemClick,
+  OnItemActionCallback? onItemClick,
   OnItemActionCallback? onItemEvict,
   OnItemActionCallback? onItemCopy,
   OnItemActionCallback? onItemPaste,
   OnItemActionCallback? onItemDelete,
   OnItemDoubleClickCallback? onContainerItemDoubleClick,
-  Set<String>? selectedContainerIds = const <String>{},
+  Set<ElementRef>? selectedElements = const <ElementRef>{},
   EdgeInsets elementPadding = EdgeInsets.zero,
-  String openContainerElementId = '',
   OpenContainerItemBuilder? openContainerItemBuilder,
 }) {
   withPadding(Widget child) => Padding(
@@ -136,8 +134,8 @@ Widget _buildChild({
 
     final containerItems =
         element.runLoading == ContainerRunLoading.bottomOrRightHeavy
-            ? element.children.reversed
-            : element.children;
+            ? element.children.values.toList().reversed
+            : element.children.values.toList();
 
     return withPadding(ContainerElement(
       isEditing: isEditingContainer,
@@ -160,17 +158,16 @@ Widget _buildChild({
       items: containerItems
           .where((child) => _shouldBuild(child, castChange))
           .map((child) {
+        final id = child.uid;
         return ContainerItem(
-          dragId: child.uid,
+          id: id,
           index: index++,
-          selected: selectedContainerIds != null &&
-              selectedContainerIds.contains(child.uid),
+          selected: selectedElements != null && selectedElements.contains(id),
           size: Size(child.width, child.height),
-          child: child.uid == openContainerElementId &&
-                  openContainerItemBuilder != null
-              ? _callContainerItemBuilder(
-                  context, child.uid, openContainerItemBuilder)
+          child: id == openElementId && openContainerItemBuilder != null
+              ? _callContainerItemBuilder(context, id, openContainerItemBuilder)
               : _buildChild(
+                  parentReference: id,
                   element: child.child,
                   castChange: castChange,
                   actors: actors,
@@ -186,21 +183,24 @@ Widget _buildChild({
   if (element is GroupElementModel) {
     return MultiChildCanvasItem(
       padding: elementPadding,
-      children: element.children.map(
+      children: element.children.values.map(
         (child) {
+          final id = child.uid;
           return LayoutBlock(
-            id: child.uid,
+            id: id,
             xPos: child.xPos,
             yPos: child.yPos,
             width: child.width,
             height: child.height,
             rotation: child.rotation,
             child: _buildChild(
-                element: child.child,
-                actors: actors,
-                trackRefsByName: trackRefsByName,
-                tracks: tracks,
-                castChange: castChange),
+              parentReference: id,
+              element: child.child,
+              actors: actors,
+              trackRefsByName: trackRefsByName,
+              tracks: tracks,
+              castChange: castChange,
+            ),
           );
         },
       ).toList(),
@@ -278,8 +278,8 @@ Widget _buildChild({
   return SizedBox.fromSize(size: Size.zero);
 }
 
-Widget _callContainerItemBuilder(
-    BuildContext? context, String itemId, OpenContainerItemBuilder builder) {
+Widget _callContainerItemBuilder(BuildContext? context, ElementRef itemId,
+    OpenContainerItemBuilder builder) {
   if (context == null) {
     throw AssertionError(
         'The optional context parameter must be provided when using the containerItemBuilder.');
@@ -308,7 +308,7 @@ bool _shouldBuild(LayoutElementModel element, CastChangeModel? castChange) {
   }
 
   if (child is GroupElementModel) {
-    final canAllChildrenConditionallyRender = child.children
+    final canAllChildrenConditionallyRender = child.children.values
         .every((item) => item.child.canConditionallyRender == true);
 
     if (canAllChildrenConditionallyRender == false) {
@@ -316,7 +316,7 @@ bool _shouldBuild(LayoutElementModel element, CastChangeModel? castChange) {
     }
 
     final shouldBuild =
-        child.children.every((item) => _shouldBuild(item, castChange));
+        child.children.values.every((item) => _shouldBuild(item, castChange));
 
     return shouldBuild;
   }

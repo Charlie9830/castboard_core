@@ -1,3 +1,4 @@
+import 'package:castboard_core/elements/multi_child_element_model.dart';
 import 'package:castboard_core/enum-converters/axisConverters.dart';
 
 import 'package:castboard_core/classes/LayoutElementChild.dart';
@@ -8,15 +9,20 @@ import 'package:castboard_core/enum-converters/runAlignmentConverters.dart';
 import 'package:castboard_core/enums.dart';
 import 'package:castboard_core/models/LayoutElementModel.dart';
 import 'package:castboard_core/utils/getUid.dart';
+import 'package:collection/collection.dart';
 import 'package:flutter/widgets.dart';
 
-class ContainerElementModel extends LayoutElementChild {
+import '../layout-canvas/element_ref.dart';
+
+class ContainerElementModel extends LayoutElementChild
+    implements MultiChildElementModel {
   final MainAxisAlignment mainAxisAlignment;
   final CrossAxisAlignment crossAxisAlignment;
   final WrapAlignment runAlignment;
   final bool wrapEnabled;
   final Axis axis;
-  final List<LayoutElementModel> children;
+  @override
+  final Map<ElementRef, LayoutElementModel> children;
   final ContainerRunLoading runLoading;
 
   ContainerElementModel({
@@ -24,13 +30,12 @@ class ContainerElementModel extends LayoutElementChild {
     CrossAxisAlignment? crossAxisAlignment,
     WrapAlignment? runAlignment,
     bool? wrapEnabled,
-    List<LayoutElementModel>? children,
+    Map<ElementRef, LayoutElementModel>? children,
     Axis? axis,
     ContainerRunLoading? runLoading,
-  })  : children = children ?? <LayoutElementModel>[],
+  })  : children = children ?? <ElementRef, LayoutElementModel>{},
         mainAxisAlignment = mainAxisAlignment ?? MainAxisAlignment.center,
-        crossAxisAlignment =
-            crossAxisAlignment ?? CrossAxisAlignment.center,
+        crossAxisAlignment = crossAxisAlignment ?? CrossAxisAlignment.center,
         axis = axis ?? Axis.horizontal,
         runAlignment = runAlignment ?? WrapAlignment.start,
         wrapEnabled = wrapEnabled ?? false,
@@ -48,7 +53,7 @@ class ContainerElementModel extends LayoutElementChild {
       'crossAxisAlignment': convertCrossAxisAlignment(crossAxisAlignment),
       'runAlignment': convertRunAlignment(runAlignment),
       'wrapEnabled': wrapEnabled,
-      'children': children.map((item) => item.toMap()).toList(),
+      'children': children.values.map((item) => item.toMap()).toList(),
       'runLoading': convertContainerRunLoading(runLoading),
     };
   }
@@ -59,7 +64,7 @@ class ContainerElementModel extends LayoutElementChild {
       CrossAxisAlignment? crossAxisAlignment,
       WrapAlignment? runAlignment,
       bool? wrapEnabled,
-      List<LayoutElementModel>? children,
+      Map<ElementRef, LayoutElementModel>? children,
       ContainerRunLoading? runLoading}) {
     return ContainerElementModel(
       mainAxisAlignment: mainAxisAlignment ?? this.mainAxisAlignment,
@@ -73,9 +78,22 @@ class ContainerElementModel extends LayoutElementChild {
   }
 
   @override
-  LayoutElementChild copy() {
+  LayoutElementChild copy({ElementRef? parentId}) {
+    if (parentId == null) {
+      throw 'LayoutElementChild copy error. If Child implements MultiChildElementModel a parentId MUST be provided to the copy method';
+    }
+
     return copyWith(
-      children: children.map((child) => child.copy(getUid())).toList(),
+      children: Map<ElementRef, LayoutElementModel>.fromEntries(
+          children.values.map((child) {
+        final newId = parentId.withSuffix(getUid());
+        return MapEntry(newId, child.copy(newId));
+      })),
     );
+  }
+
+  @override
+  LayoutElementModel? getChild(ElementRef id) {
+    return children[id];
   }
 }

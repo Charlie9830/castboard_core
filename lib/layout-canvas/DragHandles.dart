@@ -31,6 +31,7 @@ typedef OnRotateDoneCallback = void Function(int pointerId);
 class DragHandles extends StatelessWidget {
   final bool interactive;
   final bool selected;
+  final bool showHandles;
   final double width;
   final double height;
   final OnResizeHandleDragStartCallback? onDragStart;
@@ -43,6 +44,7 @@ class DragHandles extends StatelessWidget {
   const DragHandles({
     Key? key,
     this.interactive = true,
+    this.showHandles = true,
     required this.width,
     required this.height,
     this.onDrag,

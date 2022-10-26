@@ -1,0 +1,1 @@
+enum DragBoxType { full, min }

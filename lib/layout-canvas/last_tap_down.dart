@@ -1,5 +1,7 @@
+import 'package:castboard_core/layout-canvas/element_ref.dart';
+
 class LastTapDown {
-  final String itemId;
+  final ElementRef itemId;
   final DateTime timestamp;
 
   LastTapDown(this.itemId, this.timestamp);

@@ -1,5 +1,6 @@
 import 'package:castboard_core/elements/TextElement.dart';
 import 'package:castboard_core/enum-converters/textAlignConverters.dart';
+import 'package:castboard_core/layout-canvas/element_ref.dart';
 import 'package:castboard_core/models/ColorModel.dart';
 import 'package:flutter/material.dart';
 
@@ -83,7 +84,7 @@ class TextElementModel extends LayoutElementChild {
   }
 
   @override
-  LayoutElementChild copy() {
+  LayoutElementChild copy({ElementRef? parentId}) {
     return copyWith();
   }
 

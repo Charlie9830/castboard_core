@@ -1,8 +1,9 @@
+import 'package:castboard_core/layout-canvas/element_ref.dart';
 import 'package:flutter/material.dart';
 
 class ContainerItem extends StatelessWidget {
   final Widget child;
-  final String dragId;
+  final ElementRef id;
   final bool selected;
   final Size size;
   final int index;
@@ -10,7 +11,7 @@ class ContainerItem extends StatelessWidget {
   const ContainerItem({
     Key? key,
     required this.child,
-    required this.dragId,
+    required this.id,
     required this.index,
     required this.size,
     this.selected = false,
@@ -23,13 +24,13 @@ class ContainerItem extends StatelessWidget {
 
   ContainerItem copyWith({
     Widget? child,
-    String? dragId,
+    ElementRef? dragId,
     int? index,
     Size? size,
     bool? selected,
   }) {
     return ContainerItem(
-      dragId: dragId ?? this.dragId,
+      id: dragId ?? this.id,
       index: index ?? this.index,
       size: size ?? this.size,
       selected: selected ?? this.selected,

@@ -2,8 +2,10 @@ import 'package:castboard_core/layout-canvas/BlockDeltas.dart';
 import 'package:castboard_core/layout-canvas/MultiChildCanvasItem.dart';
 import 'package:flutter/material.dart';
 
+import 'element_ref.dart';
+
 class LayoutBlock extends StatelessWidget {
-  final String id;
+  final ElementRef id;
   final Widget child;
   final double xPos;
   final double yPos;

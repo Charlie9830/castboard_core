@@ -1,4 +1,4 @@
-
+import 'package:castboard_core/layout-canvas/element_ref.dart';
 import 'package:castboard_core/models/ColorModel.dart';
 import 'package:flutter/material.dart';
 
@@ -14,7 +14,7 @@ class SlideModel {
   final Color backgroundColor;
   final bool usePreviousBackground;
   final double holdTime;
-  final Map<String, LayoutElementModel> elements;
+  final Map<ElementRef, LayoutElementModel> elements;
 
   SlideModel({
     this.uid = '',
@@ -37,7 +37,7 @@ class SlideModel {
     Color? backgroundColor,
     bool? usePreviousBackground,
     double? holdTime,
-    Map<String, LayoutElementModel>? elements,
+    Map<ElementRef, LayoutElementModel>? elements,
   }) {
     return SlideModel(
       uid: uid ?? this.uid,
@@ -66,7 +66,7 @@ class SlideModel {
       'usePreviousBackground': usePreviousBackground,
       'holdTime': holdTime,
       'elements': Map<String, dynamic>.fromEntries(elements.entries
-          .map((entry) => MapEntry(entry.key, entry.value.toMap()))),
+          .map((entry) => MapEntry(entry.key.toString(), entry.value.toMap()))),
     };
   }
 
@@ -84,14 +84,14 @@ class SlideModel {
     );
   }
 
-  static Map<String, LayoutElementModel> _mapElements(
+  static Map<ElementRef, LayoutElementModel> _mapElements(
       Map<String, dynamic>? map) {
     if (map == null || map.isEmpty) {
       return const {};
     }
 
-    return Map<String, LayoutElementModel>.fromEntries(map.entries.map(
-        (entry) =>
-            MapEntry(entry.key, LayoutElementModel.fromMap(entry.value))));
+    return Map<ElementRef, LayoutElementModel>.fromEntries(map.entries.map(
+        (entry) => MapEntry(ElementRef.fromString(entry.key),
+            LayoutElementModel.fromMap(entry.value))));
   }
 }

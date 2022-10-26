@@ -7,6 +7,8 @@ import 'package:castboard_core/layout-canvas/LayoutBlock.dart';
 import 'package:castboard_core/layout-canvas/ResizeModifers.dart';
 import 'package:castboard_core/layout-canvas/RotateHandle.dart';
 import 'package:castboard_core/layout-canvas/consts.dart';
+import 'package:castboard_core/layout-canvas/drag_box_type.dart';
+import 'package:castboard_core/layout-canvas/element_ref.dart';
 import 'package:castboard_core/layout-canvas/rotatePoint.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/services.dart';
@@ -17,22 +19,24 @@ import 'package:flutter/material.dart';
 const double _gridSnapDeadZoneRatio = 0.5;
 
 typedef OnSelectedElementsChangedCallback = void Function(
-    Set<String> selectedElements);
+    Set<ElementRef> selectedElements);
 typedef OnElementsChangedCallback = void Function(
-    Map<String, LayoutBlock> changedElements);
+    Map<ElementRef, LayoutBlock> changedElements);
 typedef OnPlaceCallback = void Function(double xPos, double yPos);
-typedef OnElementDoubleClickedCallback = void Function(String elementId);
+typedef OnElementDoubleClickedCallback = void Function(ElementRef elementId);
 typedef OnElementSecondaryClickCallback = void Function(
-    String? elementId, Offset position);
+    ElementRef? elementId, Offset position);
 
 class LayoutCanvas extends StatefulWidget {
   final bool interactive;
   final bool deferHitTestingToChildren;
   final bool showGrid;
+  final bool clipping;
+  final DragBoxType dragBoxType;
   final double gridSize;
-  final Map<String, LayoutBlock> elements;
-  final Set<String> selectedElements;
-  final String openElementId;
+  final Map<ElementRef, LayoutBlock> elements;
+  final Set<ElementRef> selectedElements;
+  final ElementRef openElementId;
   final double renderScale;
   final bool placing;
   final OnSelectedElementsChangedCallback? onSelectedElementsChanged;
@@ -41,16 +45,19 @@ class LayoutCanvas extends StatefulWidget {
   final OnElementDoubleClickedCallback? onElementDoubleClicked;
   final OpenElementBuilder? openElementBuilder;
   final OnElementSecondaryClickCallback? onElementSecondaryClick;
+  final bool allowDragSelection;
 
   const LayoutCanvas({
     Key? key,
     this.interactive = true,
     this.deferHitTestingToChildren = false,
+    this.dragBoxType = DragBoxType.full,
     this.showGrid = false,
+    this.clipping = true,
     this.gridSize = 10,
     this.elements = const {},
     this.selectedElements = const {},
-    this.openElementId = '',
+    this.openElementId = const ElementRef.none(),
     this.placing = false,
     this.renderScale = 1,
     this.onPlace,
@@ -59,6 +66,7 @@ class LayoutCanvas extends StatefulWidget {
     this.onElementDoubleClicked,
     this.openElementBuilder,
     this.onElementSecondaryClick,
+    this.allowDragSelection = true,
   }) : super(key: key);
 
   @override
@@ -66,7 +74,7 @@ class LayoutCanvas extends StatefulWidget {
 }
 
 class LayoutCanvasState extends State<LayoutCanvas> {
-  Map<String, LayoutBlock> _activeElements = const {};
+  Map<ElementRef, LayoutBlock> _activeElements = const {};
 
   // State
   ResizeHandleLocation? _logicalResizeHandle;
@@ -74,7 +82,7 @@ class LayoutCanvasState extends State<LayoutCanvas> {
   bool _isDragSelecting = false;
   Offset? _dragSelectAnchorPoint = const Offset(0, 0);
   Offset? _dragSelectMousePoint = const Offset(0, 0);
-  Set<String> _dragSelectionPreviews = <String>{};
+  Set<ElementRef> _dragSelectionPreviews = <ElementRef>{};
   double _deltaXSnapAccumulator =
       0.0; // Accumulates Delta Values up until the object or handle is snapped to a grid. In which case Accumulation will start again.
   double _deltaYSnapAccumulator =
@@ -106,6 +114,7 @@ class LayoutCanvasState extends State<LayoutCanvas> {
                 )
               : null,
           child: Stack(
+            clipBehavior: widget.clipping ? Clip.hardEdge : Clip.none,
             children: [
               // The backstop listener only receives PointerDown or PointerMove events if they have been triggered by an
               // unobscured press directly onto the canvas background. This is as opposed to the Parent listener up above
@@ -122,11 +131,14 @@ class LayoutCanvasState extends State<LayoutCanvas> {
               ),
               DragBoxLayer(
                   interactive: widget.interactive,
+                  dragBoxType: widget.dragBoxType,
+                  clipping: widget.clipping,
                   openElementId: widget.openElementId,
                   openElementBuilder: widget.openElementBuilder,
                   deferHitTestingToChildren: widget.deferHitTestingToChildren,
-                  selectedElementIds: Set<String?>.from(widget.selectedElements)
-                    ..addAll(_dragSelectionPreviews),
+                  selectedElementIds:
+                      Set<ElementRef>.from(widget.selectedElements)
+                        ..addAll(_dragSelectionPreviews),
                   renderScale: widget.renderScale,
                   blocks: _buildBlocks(),
                   isDragSelecting: _isDragSelecting,
@@ -210,9 +222,9 @@ class LayoutCanvasState extends State<LayoutCanvas> {
     }
 
     // Clear Selections.
-    widget.onSelectedElementsChanged?.call(<String>{});
+    widget.onSelectedElementsChanged?.call(<ElementRef>{});
     setState(() {
-      _activeElements = <String, LayoutBlock>{};
+      _activeElements = <ElementRef, LayoutBlock>{};
     });
 
     if (widget.placing) {
@@ -226,17 +238,25 @@ class LayoutCanvasState extends State<LayoutCanvas> {
   }
 
   void _finishDragSelection() {
+    if (widget.allowDragSelection == false) {
+      return;
+    }
+
     widget.onSelectedElementsChanged!(_dragSelectionPreviews);
 
     setState(() {
       _isDragSelecting = false;
-      _dragSelectionPreviews = <String>{};
+      _dragSelectionPreviews = <ElementRef>{};
       _dragSelectAnchorPoint = const Offset(0, 0);
       _dragSelectMousePoint = const Offset(0, 0);
     });
   }
 
   void _updateDragSelection(Offset? currentPos) {
+    if (widget.allowDragSelection == false) {
+      return;
+    }
+
     setState(() {
       _dragSelectMousePoint = currentPos;
       _dragSelectionPreviews = _hitTestSelectionBox(
@@ -246,23 +266,23 @@ class LayoutCanvasState extends State<LayoutCanvas> {
     });
   }
 
-  void _notifySelection(String elementId) {
+  void _notifySelection(ElementRef id) {
     if (RawKeyboard.instance.keysPressed
         .contains(LogicalKeyboardKey.shiftLeft)) {
-      if (widget.selectedElements.contains(elementId)) {
-        widget.onSelectedElementsChanged?.call(
-            Set<String>.from(widget.selectedElements)..remove(elementId));
+      if (widget.selectedElements.contains(id)) {
+        widget.onSelectedElementsChanged
+            ?.call(Set<ElementRef>.from(widget.selectedElements)..remove(id));
       } else {
         widget.onSelectedElementsChanged
-            ?.call(Set<String>.from(widget.selectedElements)..add(elementId));
+            ?.call(Set<ElementRef>.from(widget.selectedElements)..add(id));
       }
-    } else if (widget.selectedElements.contains(elementId) == false) {
-      widget.onSelectedElementsChanged?.call(<String>{elementId});
+    } else if (widget.selectedElements.contains(id) == false) {
+      widget.onSelectedElementsChanged?.call(<ElementRef>{id});
     }
   }
 
-  Map<String, LayoutBlock> _buildBlocks() {
-    return Map<String, LayoutBlock>.from(widget.elements)
+  Map<ElementRef, LayoutBlock> _buildBlocks() {
+    return Map<ElementRef, LayoutBlock>.from(widget.elements)
       ..addAll(_activeElements);
   }
 
@@ -273,13 +293,13 @@ class LayoutCanvasState extends State<LayoutCanvas> {
   }
 
   void _handleResizeStart(
-      ResizeHandleLocation position, int pointerId, String elementId) {
+      ResizeHandleLocation position, int pointerId, ElementRef id) {
     setState(() {
       _pointerPosition = const Point(100.0, 100.0);
     });
   }
 
-  Set<String> _hitTestSelectionBox(Rect selectionRect) {
+  Set<ElementRef> _hitTestSelectionBox(Rect selectionRect) {
     final hitRects = widget.elements.values
         .map((item) => _HitRect(rect: item.rectangle, blockId: item.id));
 
@@ -291,16 +311,20 @@ class LayoutCanvasState extends State<LayoutCanvas> {
   }
 
   void _startDragSelection(Offset? currentPos, Offset? delta) {
+    if (widget.allowDragSelection == false) {
+      return;
+    }
+
     // Initiate Drag Selection.
     setState(() {
       _isDragSelecting = true;
-      _dragSelectionPreviews = <String>{};
+      _dragSelectionPreviews = <ElementRef>{};
       _dragSelectAnchorPoint = currentPos;
       _dragSelectMousePoint = currentPos!.translate(delta!.dx, delta.dy);
     });
   }
 
-  void _handleRotateStart(int pointerId, String elementId) {
+  void _handleRotateStart(int pointerId, ElementRef elementId) {
     final existing = widget.elements[elementId]!;
 
     final rectangle = existing.rectangle;
@@ -314,14 +338,14 @@ class LayoutCanvasState extends State<LayoutCanvas> {
     });
   }
 
-  void _handleRotateDone(String blockId, int pointerId) {
+  void _handleRotateDone(ElementRef blockId, int pointerId) {
     setState(() {
       _pointerPosition = null;
     });
   }
 
-  void _handleRotate(
-      double deltaX, double deltaY, String primaryElementId, int pointerId) {
+  void _handleRotate(double deltaX, double deltaY, ElementRef primaryElementId,
+      int pointerId) {
     // TODO: The PrimaryElementId is the ID of the Element that is actually receiving the Mouse Events. As we iterate through the other elements,
     // we figure out the offset of their center points in relation to the primary element which we then apply as X and Y offsets to the atan2 operation.
     // This stops us getting the 'Googly Eye' issue when rotating multiple elements.
@@ -332,8 +356,8 @@ class LayoutCanvasState extends State<LayoutCanvas> {
         _pointerPosition!.x + (deltaX / widget.renderScale),
         _pointerPosition!.y + (deltaY / widget.renderScale));
 
-    final updatedActiveElements =
-        Map<String, LayoutBlock>.fromEntries(widget.selectedElements.map((id) {
+    final updatedActiveElements = Map<ElementRef, LayoutBlock>.fromEntries(
+        widget.selectedElements.map((id) {
       final existing = _activeElements[id] ?? widget.elements[id]!;
       final center = existing.rectangle.center;
 
@@ -385,7 +409,7 @@ class LayoutCanvasState extends State<LayoutCanvas> {
   }
 
   void _handleResizeHandleDragged(double deltaX, double deltaY,
-      ResizeHandleLocation physicalHandle, int pointerId, String blockId) {
+      ResizeHandleLocation physicalHandle, int pointerId, ElementRef blockId) {
     final renderDeltaX = deltaX / widget.renderScale;
     final renderDeltaY = deltaY / widget.renderScale;
 
@@ -458,7 +482,7 @@ class LayoutCanvasState extends State<LayoutCanvas> {
 
           final deltas = finalizedPrimaryElement.getDeltas(primaryElement);
 
-          _activeElements = Map<String, LayoutBlock>.fromEntries(
+          _activeElements = Map<ElementRef, LayoutBlock>.fromEntries(
               widget.selectedElements.map((id) {
             if (id == blockId) {
               return MapEntry(
@@ -525,7 +549,7 @@ class LayoutCanvasState extends State<LayoutCanvas> {
 
           final deltas = finalizedPrimaryElement.getDeltas(primaryElement);
 
-          _activeElements = Map<String, LayoutBlock>.fromEntries(
+          _activeElements = Map<ElementRef, LayoutBlock>.fromEntries(
               widget.selectedElements.map((id) {
             if (id == blockId) {
               return MapEntry(
@@ -597,7 +621,7 @@ class LayoutCanvasState extends State<LayoutCanvas> {
 
           final deltas = finalizedPrimaryElement.getDeltas(primaryElement);
 
-          _activeElements = Map<String, LayoutBlock>.fromEntries(
+          _activeElements = Map<ElementRef, LayoutBlock>.fromEntries(
               widget.selectedElements.map((id) {
             if (id == blockId) {
               return MapEntry(
@@ -669,7 +693,7 @@ class LayoutCanvasState extends State<LayoutCanvas> {
 
           final deltas = finalizedPrimaryElement.getDeltas(primaryElement);
 
-          _activeElements = Map<String, LayoutBlock>.fromEntries(
+          _activeElements = Map<ElementRef, LayoutBlock>.fromEntries(
             widget.selectedElements.map((id) {
               if (id == blockId) {
                 return MapEntry(
@@ -744,7 +768,7 @@ class LayoutCanvasState extends State<LayoutCanvas> {
 
           final deltas = finalizedPrimaryElement.getDeltas(primaryElement);
 
-          _activeElements = Map<String, LayoutBlock>.fromEntries(
+          _activeElements = Map<ElementRef, LayoutBlock>.fromEntries(
               widget.selectedElements.map((id) {
             if (id == blockId) {
               return MapEntry(
@@ -811,7 +835,7 @@ class LayoutCanvasState extends State<LayoutCanvas> {
 
           final deltas = finalizedPrimaryElement.getDeltas(primaryElement);
 
-          _activeElements = Map<String, LayoutBlock>.fromEntries(
+          _activeElements = Map<ElementRef, LayoutBlock>.fromEntries(
               widget.selectedElements.map((id) {
             if (id == blockId) {
               return MapEntry(
@@ -884,7 +908,7 @@ class LayoutCanvasState extends State<LayoutCanvas> {
 
           final deltas = finalizedPrimaryElement.getDeltas(primaryElement);
 
-          _activeElements = Map<String, LayoutBlock>.fromEntries(
+          _activeElements = Map<ElementRef, LayoutBlock>.fromEntries(
               widget.selectedElements.map((id) {
             if (id == blockId) {
               return MapEntry(
@@ -952,7 +976,7 @@ class LayoutCanvasState extends State<LayoutCanvas> {
 
           final deltas = finalizedPrimaryElement.getDeltas(primaryElement);
 
-          _activeElements = Map<String, LayoutBlock>.fromEntries(
+          _activeElements = Map<ElementRef, LayoutBlock>.fromEntries(
               widget.selectedElements.map((id) {
             if (id == blockId) {
               return MapEntry(
@@ -1024,12 +1048,13 @@ class LayoutCanvasState extends State<LayoutCanvas> {
     return 0;
   }
 
-  void _handlePositionChange(String uid, double rawDeltaX, double rawDeltaY) {
+  void _handlePositionChange(
+      ElementRef id, double rawDeltaX, double rawDeltaY) {
     final scaledDeltaX = rawDeltaX / widget.renderScale;
     final scaledDeltaY = rawDeltaY / widget.renderScale;
 
     // Snapping is enabled by Default, but at a fine grain level.
-    _handleSnappingPositionChange(uid, widget.selectedElements, _activeElements,
+    _handleSnappingPositionChange(id, widget.selectedElements, _activeElements,
         widget.elements, scaledDeltaX, scaledDeltaY);
   }
 
@@ -1044,13 +1069,13 @@ class LayoutCanvasState extends State<LayoutCanvas> {
   }
 
   void _handleSnappingPositionChange(
-      String uid,
-      Set<String> selectedElements,
-      Map<String, LayoutBlock> activeElements,
-      Map<String, LayoutBlock> elements,
+      ElementRef id,
+      Set<ElementRef> selectedElements,
+      Map<ElementRef, LayoutBlock> activeElements,
+      Map<ElementRef, LayoutBlock> elements,
       double scaledDeltaX,
       double scaledDeltaY) {
-    final primaryElement = activeElements[uid] ?? elements[uid]!;
+    final primaryElement = activeElements[id] ?? elements[id]!;
     final double deltaXSnapAccumulator = _deltaXSnapAccumulator +
         scaledDeltaX; // Get updated Delta Accumulators.
     final double deltaYSnapAccumulator = _deltaYSnapAccumulator +
@@ -1093,13 +1118,13 @@ class LayoutCanvasState extends State<LayoutCanvas> {
   /// Applies delta changes to all elements referenced by selectedElements.
   /// Iterates through selectedElements and copies from an activeElement if available otherwise falls back to
   /// copying from elements.
-  Map<String, LayoutBlock> _applyDeltaPositionUpdates(
-      Set<String> selectedElements,
-      Map<String, LayoutBlock> activeElements,
-      Map<String, LayoutBlock> elements,
+  Map<ElementRef, LayoutBlock> _applyDeltaPositionUpdates(
+      Set<ElementRef> selectedElements,
+      Map<ElementRef, LayoutBlock> activeElements,
+      Map<ElementRef, LayoutBlock> elements,
       double deltaX,
       double deltaY) {
-    return Map<String, LayoutBlock>.fromEntries(
+    return Map<ElementRef, LayoutBlock>.fromEntries(
         selectedElements.map((id) => MapEntry(
             id,
             activeElements[id]?.copyWith(
@@ -1141,7 +1166,7 @@ class LayoutCanvasState extends State<LayoutCanvas> {
 
 class _HitRect {
   final Rect rect;
-  final String blockId;
+  final ElementRef blockId;
 
   _HitRect({required this.rect, required this.blockId});
 }

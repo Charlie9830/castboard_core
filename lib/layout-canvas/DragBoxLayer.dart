@@ -4,48 +4,62 @@ import 'package:castboard_core/layout-canvas/DragSelectionBox.dart';
 import 'package:castboard_core/layout-canvas/LayoutBlock.dart';
 import 'package:castboard_core/layout-canvas/ResizeHandle.dart';
 import 'package:castboard_core/layout-canvas/RotateHandle.dart';
+import 'package:castboard_core/layout-canvas/drag_box_type.dart';
+import 'package:castboard_core/layout-canvas/element_ref.dart';
 import 'package:flutter/material.dart';
 
-typedef OnDragBoxClickCallback = void Function(String blockId, int pointerId);
-typedef OnDragBoxMouseUpCallback = void Function(String blockId, int pointerId);
-typedef OnDragBoxDoubleClickCallback = void Function(String blockId);
+typedef OnDragBoxClickCallback = void Function(
+    ElementRef blockId, int pointerId);
+typedef OnDragBoxMouseUpCallback = void Function(
+    ElementRef blockId, int pointerId);
+typedef OnDragBoxDoubleClickCallback = void Function(ElementRef blockId);
 typedef OnResizeDoneCallback = void Function(int pointerId);
 typedef OnResizeStartCallback = void Function(
-    ResizeHandleLocation handlePosition, int pointerId, String blockId);
+    ResizeHandleLocation handlePosition, int pointerId, ElementRef blockId);
 
 typedef OnDragBoxSecondaryMouseUpCallback = void Function(
-    String blockId, int pointerId, Offset offset);
+    ElementRef blockId, int pointerId, Offset offset);
 
-typedef OnRotateStartCallback = void Function(int pointerId, String blockId);
+typedef OnRotateStartCallback = void Function(
+    int pointerId, ElementRef blockId);
 
 typedef OnRotateCallback = void Function(
   double deltaX,
   double deltaY,
-  String blockId,
+  ElementRef blockId,
   int pointerId,
 );
 
 typedef OnRotateDoneCallback = void Function(
-  String blockId,
+  ElementRef blockId,
   int pointerId,
 );
 
-typedef OpenElementBuilder = Widget Function(BuildContext context, String id);
+typedef OpenElementBuilder = Widget Function(
+    BuildContext context, ElementRef id);
 
 class DragBoxLayer extends StatelessWidget {
   final bool interactive;
   final bool deferHitTestingToChildren;
-  final String openElementId;
-  final Map<String, LayoutBlock>? blocks;
-  final Set<String?>? selectedElementIds;
+  final bool clipping;
+  final DragBoxType dragBoxType;
+  final ElementRef openElementId;
+  final Map<ElementRef, LayoutBlock> blocks;
+  final Set<ElementRef> selectedElementIds;
   final double renderScale;
   final bool isDragSelecting;
   final double dragSelectXPos;
   final double dragSelectYPos;
   final double dragSelectWidth;
   final double dragSelectHeight;
-  final dynamic onPositionChange;
-  final dynamic onDragHandleDragged;
+  final void Function(double deltaX, double deltaY, ElementRef id)?
+      onPositionChange;
+  final void Function(
+      double deltaX,
+      double deltaY,
+      ResizeHandleLocation location,
+      int pointerId,
+      ElementRef id)? onDragHandleDragged;
   final OnResizeDoneCallback? onResizeDone;
   final OnDragBoxClickCallback? onDragBoxClick;
   final OnResizeStartCallback? onResizeStart;
@@ -60,11 +74,13 @@ class DragBoxLayer extends StatelessWidget {
   const DragBoxLayer({
     Key? key,
     this.interactive = true,
+    this.clipping = true,
     this.deferHitTestingToChildren = false,
-    this.openElementId = '',
-    this.blocks,
+    this.openElementId = const ElementRef.none(),
+    this.dragBoxType = DragBoxType.full,
+    this.blocks = const <ElementRef, LayoutBlock>{},
     required this.renderScale,
-    this.selectedElementIds,
+    this.selectedElementIds = const <ElementRef>{},
     this.isDragSelecting = true,
     this.dragSelectHeight = 100,
     this.dragSelectWidth = 100,
@@ -87,6 +103,7 @@ class DragBoxLayer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Stack(
+      clipBehavior: clipping ? Clip.hardEdge : Clip.none,
       children: [
         ..._positionBlocks(context),
         //..._drawDebugIndicators(),
@@ -111,7 +128,7 @@ class DragBoxLayer extends StatelessWidget {
   }
 
   List<Widget> _drawDragHandles() {
-    return blocks!.values.map((block) {
+    return blocks.values.map((block) {
       final blockId = block.id;
       return Positioned(
         left: (block.xPos * renderScale) - dragHandleWidth / 2,
@@ -125,30 +142,32 @@ class DragBoxLayer extends StatelessWidget {
           transform: Matrix4.rotationZ(block.rotation),
           origin: const Offset(0, rotateHandleTotalHeight / 2),
           alignment: Alignment.center,
-          child: DragHandles(
-            interactive: interactive,
-            selected: selectedElementIds!.contains(blockId),
-            height: (block.height * renderScale) + dragHandleHeight,
-            width: (block.width * renderScale) + dragHandleWidth,
-            onDrag: (deltaX, deltaY, position, pointerId) =>
-                onDragHandleDragged(
-                    deltaX, deltaY, position, pointerId, blockId),
-            onDragDone: (pointerId) => onResizeDone?.call(pointerId),
-            onDragStart: (handlePosition, pointerId) =>
-                onResizeStart?.call(handlePosition, pointerId, blockId),
-            onRotateStart: (pointerId) =>
-                onRotateStart?.call(pointerId, blockId),
-            onRotate: (deltaX, deltaY, pointerId) =>
-                onRotate?.call(deltaX, deltaY, blockId, pointerId),
-            onRotateDone: (pointerId) => onRotateDone?.call(blockId, pointerId),
-          ),
+          child: blockId == openElementId
+              ? const SizedBox.shrink()
+              : DragHandles(
+                  selected: selectedElementIds.contains(blockId),
+                  height: (block.height * renderScale) + dragHandleHeight,
+                  width: (block.width * renderScale) + dragHandleWidth,
+                  onDrag: (deltaX, deltaY, position, pointerId) =>
+                      onDragHandleDragged?.call(
+                          deltaX, deltaY, position, pointerId, blockId),
+                  onDragDone: (pointerId) => onResizeDone?.call(pointerId),
+                  onDragStart: (handlePosition, pointerId) =>
+                      onResizeStart?.call(handlePosition, pointerId, blockId),
+                  onRotateStart: (pointerId) =>
+                      onRotateStart?.call(pointerId, blockId),
+                  onRotate: (deltaX, deltaY, pointerId) =>
+                      onRotate?.call(deltaX, deltaY, blockId, pointerId),
+                  onRotateDone: (pointerId) =>
+                      onRotateDone?.call(blockId, pointerId),
+                ),
         ),
       );
     }).toList();
   }
 
   List<Widget> _drawDragBoxes() {
-    return blocks!.values.map((block) {
+    return blocks.values.map((block) {
       final blockId = block.id;
       return Positioned(
         left: (block.xPos * renderScale) - dragHandleWidth / 2,
@@ -165,7 +184,10 @@ class DragBoxLayer extends StatelessWidget {
               transform: Matrix4.rotationZ(block.rotation),
               alignment: Alignment.center,
               child: DragBox(
-                selected: selectedElementIds!.contains(blockId),
+                type: blockId == openElementId
+                    ? DragBoxType.min
+                    : DragBoxType.full,
+                selected: selectedElementIds.contains(blockId),
                 xPos: block.xPos * renderScale,
                 yPos: block.yPos * renderScale,
                 height: (block.height * renderScale) + dragHandleHeight,
@@ -189,12 +211,12 @@ class DragBoxLayer extends StatelessWidget {
   }
 
   void _handlePositionChange(
-      double xPosDelta, double yPosDelta, String? blockId) {
-    onPositionChange(xPosDelta, yPosDelta, blockId);
+      double xPosDelta, double yPosDelta, ElementRef blockId) {
+    onPositionChange?.call(xPosDelta, yPosDelta, blockId);
   }
 
   List<Widget> _positionBlocks(BuildContext context) {
-    return blocks!.values.map((block) {
+    return blocks.values.map((block) {
       return _positionBlock(block, context);
     }).toList();
   }

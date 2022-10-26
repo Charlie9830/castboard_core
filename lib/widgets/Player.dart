@@ -160,7 +160,7 @@ class Player extends StatelessWidget {
       child: LayoutCanvas(
         interactive: false,
         elements: buildElements(
-          slide: slide,
+          elements: slide.elements,
           actors: actors,
           tracks: tracks,
           trackRefsByName: trackRefsByName,

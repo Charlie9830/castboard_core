@@ -1,5 +1,6 @@
 import 'package:castboard_core/classes/LayoutElementChild.dart';
 import 'package:castboard_core/elements/TrackAssignmentInterface.dart';
+import 'package:castboard_core/layout-canvas/element_ref.dart';
 import 'package:castboard_core/models/TrackRef.dart';
 
 class HeadshotElementModel extends LayoutElementChild
@@ -30,7 +31,7 @@ class HeadshotElementModel extends LayoutElementChild
   }
 
   @override
-  LayoutElementChild copy() {
+  LayoutElementChild copy({ElementRef? parentId}) {
     return copyWith();
   }
 }

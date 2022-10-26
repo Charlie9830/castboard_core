@@ -1,4 +1,5 @@
 import 'package:castboard_core/layout-canvas/ResizeHandle.dart';
+import 'package:castboard_core/layout-canvas/drag_box_type.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
@@ -19,6 +20,7 @@ class DragBox extends StatelessWidget {
   final double? yPos;
   final double? width;
   final double? height;
+  final DragBoxType type;
   final OnClickCallback? onClick;
   final OnPositionChangeCallback? onPositionChange;
   final OnMouseUpCallback? onMouseUp;
@@ -27,6 +29,7 @@ class DragBox extends StatelessWidget {
 
   const DragBox({
     Key? key,
+    this.type = DragBoxType.full,
     this.width,
     this.xPos,
     this.yPos,
@@ -41,6 +44,17 @@ class DragBox extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final borders = {
+      DragBoxType.full: Border.all(
+          color: Theme.of(context).colorScheme.secondaryContainer,
+          width: 2.0,
+          style: selected ? BorderStyle.solid : BorderStyle.none),
+      DragBoxType.min: Border.all(
+        color: Colors.grey,
+        width: 1.0,
+      )
+    };
+
     return Stack(
       alignment: Alignment.center,
       children: [
@@ -72,12 +86,7 @@ class DragBox extends StatelessWidget {
                 onMouseUp?.call(pointerEvent.original!.pointer);
               },
               child: Container(
-                decoration: BoxDecoration(
-                    border: Border.all(
-                        color: Theme.of(context).colorScheme.secondaryContainer,
-                        width: 2.0,
-                        style:
-                            selected ? BorderStyle.solid : BorderStyle.none)),
+                decoration: BoxDecoration(border: borders[type]),
               ),
             ),
           ),

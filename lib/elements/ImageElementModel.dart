@@ -1,6 +1,7 @@
 import 'package:castboard_core/classes/PhotoRef.dart';
 
 import 'package:castboard_core/classes/LayoutElementChild.dart';
+import 'package:castboard_core/layout-canvas/element_ref.dart';
 
 class ImageElementModel extends LayoutElementChild {
   final ImageRef ref;
@@ -26,7 +27,7 @@ class ImageElementModel extends LayoutElementChild {
   }
 
   @override
-  LayoutElementChild copy() {
+  LayoutElementChild copy({ElementRef? parentId}) {
     return copyWith();
   }
 }

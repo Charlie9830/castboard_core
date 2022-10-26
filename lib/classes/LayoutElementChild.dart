@@ -15,6 +15,7 @@ import 'package:castboard_core/enum-converters/runAlignmentConverters.dart';
 import 'package:castboard_core/enum-converters/shapeElementTypeConverters.dart';
 import 'package:castboard_core/enum-converters/textAlignConverters.dart';
 import 'package:castboard_core/enum-converters/crossAxisAlignmentConverters.dart';
+import 'package:castboard_core/layout-canvas/element_ref.dart';
 import 'package:castboard_core/models/ColorModel.dart';
 import 'package:castboard_core/models/LayoutElementModel.dart';
 import 'package:castboard_core/models/TrackRef.dart';
@@ -35,7 +36,7 @@ abstract class LayoutElementChild {
 
   Map<String, dynamic> toMap();
 
-  LayoutElementChild copy();
+  LayoutElementChild copy({ElementRef? parentId});
 
   factory LayoutElementChild.fromMap(Map<String, dynamic>? map) {
     if (map == null) {
@@ -55,9 +56,7 @@ abstract class LayoutElementChild {
         runAlignment: parseRunAlignment(map['runAlignment']),
         wrapEnabled: map['wrapEnabled'],
         axis: parseAxis(map['axis']),
-        children: (map['children'] as List<dynamic>)
-            .map((child) => LayoutElementModel.fromMap(child))
-            .toList(),
+        children: _parseChildrenListToMap(map['children'] as List<dynamic>),
         runLoading:
             parseContainerRunLoading(map['runLoading'] ?? 'topOrLeftHeavy'),
       );
@@ -65,9 +64,7 @@ abstract class LayoutElementChild {
 
     if (elementType == 'group') {
       return GroupElementModel(
-        children: (map['children'] as List<dynamic>)
-            .map((child) => LayoutElementModel.fromMap(child))
-            .toList(),
+        children: _parseChildrenListToMap(map['children'] as List<dynamic>),
       );
     }
 
@@ -131,5 +128,13 @@ abstract class LayoutElementChild {
 
     throw Exception(
         'Invalid elementType parameter of LayoutElementChild found during deserialization. elementType = $elementType');
+  }
+
+  static Map<ElementRef, LayoutElementModel> _parseChildrenListToMap(
+      List<dynamic> children) {
+    final list = children.map((child) => LayoutElementModel.fromMap(child));
+
+    return Map<ElementRef, LayoutElementModel>.fromEntries(
+        list.map((item) => MapEntry(item.uid, item)));
   }
 }

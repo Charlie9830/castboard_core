@@ -1132,6 +1132,9 @@ class LayoutCanvasState extends State<LayoutCanvas> {
                   yPos: activeElements[id]!.yPos + deltaY,
                 ) ??
                 elements[id]!.copyWith(
+                  // TODO: The lines below are occasionaly throwing a Null check operator used on a null value error.
+                  // It seems like items can now appear in selectedElements that do not exist within elements. We should
+                  // start vetting Selected Elements or handle this exception gracefully.
                   xPos: elements[id]!.xPos + deltaX,
                   yPos: elements[id]!.yPos + deltaY,
                 ))));

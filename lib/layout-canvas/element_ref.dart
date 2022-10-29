@@ -1,3 +1,4 @@
+import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
 
 const String _separator = '/';
@@ -42,11 +43,37 @@ class ElementRef {
   bool get isEmpty => _ids.isEmpty;
   bool get isNotEmpty => !isEmpty;
   int get segments => _ids.length;
+  bool get isRoot => segments == 1;
   ElementRef get root =>
       isEmpty ? const ElementRef.none() : ElementRef.fromSingle(_ids.first);
   String get lastSegment => _ids.isNotEmpty ? _ids.last : '';
-  Iterator<String> get iterator => _ids.iterator;
   Iterable<String> get all => _ids;
+  ElementRef get parent => _ids.length >= 2
+      ? ElementRef(_ids.take(_ids.length - 1).toList())
+      : const ElementRef.none();
+
+  List<ElementRef> getSegments() {
+    return _ids.fold<List<ElementRef>>(
+      [],
+      (list, id) => list..add(ElementRef.fromParent(list.lastOrNull, id)),
+    );
+  }
+
+  List<ElementRef> getParents() {
+    if (isRoot) {
+      return <ElementRef>[];
+    }
+
+    final parents = [
+      parent,
+    ];
+
+    while (parents.last.isRoot == false) {
+      parents.add(parents.last.parent);
+    }
+
+    return parents;
+  }
 
   @override
   String toString() {

@@ -1,3 +1,4 @@
+import 'package:castboard_core/elements/GroupElementModel.dart';
 import 'package:castboard_core/elements/multi_child_element_model.dart';
 import 'package:castboard_core/layout-canvas/element_ref.dart';
 import 'package:flutter/material.dart';
@@ -128,5 +129,13 @@ class LayoutElementModel {
   Rect get rectangle {
     return Rect.fromPoints(
         Offset(xPos, yPos), Offset(xPos + width, yPos + height));
+  }
+
+  LayoutElementModel withRemovedChild(ElementRef id) {
+    if (child is MultiChildElementModel) {
+      return copyWith(child: (child as MultiChildElementModel).withRemovedChild(id));
+    }
+
+    return this;
   }
 }

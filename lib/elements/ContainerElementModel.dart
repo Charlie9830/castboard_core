@@ -105,7 +105,7 @@ class ContainerElementModel extends LayoutElementChild
   }
 
   @override
-  LayoutElementChild copyWithNewChildren(
+  LayoutElementChild copyWithNewChildrenCollection(
       Map<ElementRef, LayoutElementModel> children) {
     return copyWith(children: children);
   }

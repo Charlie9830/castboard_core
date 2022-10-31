@@ -9,7 +9,7 @@ abstract class MultiChildElementModel {
 
   LayoutElementChild withRemovedChild(ElementRef id);
 
-  LayoutElementChild copyWithNewChildren(
+  LayoutElementChild copyWithNewChildrenCollection(
       Map<ElementRef, LayoutElementModel> children);
 
   LayoutElementChild copyWithUpdatedChild(

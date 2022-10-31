@@ -40,6 +40,10 @@ class ElementRef {
     return ElementRef(_ids.toList()..remove(parentSegment));
   }
 
+  ElementRef reparented(ElementRef newParent) {
+    return ElementRef.fromParent(newParent, lastSegment);
+  }
+
   bool get isEmpty => _ids.isEmpty;
   bool get isNotEmpty => !isEmpty;
   int get segments => _ids.length;

@@ -7,6 +7,7 @@ class ContainerItem extends StatelessWidget {
   final bool selected;
   final Size size;
   final int index;
+  final bool deferHitTestingToChild;
 
   const ContainerItem({
     Key? key,
@@ -15,6 +16,7 @@ class ContainerItem extends StatelessWidget {
     required this.index,
     required this.size,
     this.selected = false,
+    this.deferHitTestingToChild = false,
   }) : super(key: key);
 
   @override
@@ -24,16 +26,19 @@ class ContainerItem extends StatelessWidget {
 
   ContainerItem copyWith({
     Widget? child,
-    ElementRef? dragId,
+    ElementRef? id,
     int? index,
     Size? size,
     bool? selected,
+    bool? deferHitTestingToChild,
   }) {
     return ContainerItem(
-      id: dragId ?? this.id,
+      id: id ?? this.id,
       index: index ?? this.index,
       size: size ?? this.size,
       selected: selected ?? this.selected,
+      deferHitTestingToChild:
+          deferHitTestingToChild ?? this.deferHitTestingToChild,
       child: child ?? this.child,
     );
   }

@@ -65,11 +65,9 @@ class LayoutElementModel {
     required double x,
     required double y,
   }) {
-    // TODO: Why do we use Minus here? Everywhere we call this we have to first multiply the value by
-    // -1 to force it to a negative integer.
     return copyWith(
-      xPos: xPos - x,
-      yPos: yPos - y,
+      xPos: xPos + x,
+      yPos: yPos + y,
     );
   }
 
@@ -133,9 +131,24 @@ class LayoutElementModel {
 
   LayoutElementModel withRemovedChild(ElementRef id) {
     if (child is MultiChildElementModel) {
-      return copyWith(child: (child as MultiChildElementModel).withRemovedChild(id));
+      return copyWith(
+          child: (child as MultiChildElementModel).withRemovedChild(id));
     }
 
     return this;
+  }
+
+  @override
+  String toString() {
+    return '''
+    \n
+    [LayoutElementModel]
+    uid: $uid
+    child-type: ${child.runtimeType},
+    dimensions: $width x $height
+    position: $xPos , $yPos,
+    child: ${child.toString()}
+    \n
+    ''';
   }
 }

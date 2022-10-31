@@ -41,4 +41,14 @@ class SlideDataModel {
       slideOrientation: parseSlideOrientation(map['slideOrientation']),
     );
   }
+
+  SlideDataModel copyWith({
+    Map<String, SlideModel>? slides,
+    SlideOrientation? slideOrientation,
+  }) {
+    return SlideDataModel(
+      slides: slides ?? this.slides,
+      slideOrientation: slideOrientation ?? this.slideOrientation,
+    );
+  }
 }

@@ -9,5 +9,11 @@ abstract class MultiChildElementModel {
 
   LayoutElementChild withRemovedChild(ElementRef id);
 
+  LayoutElementChild copyWithNewChildren(
+      Map<ElementRef, LayoutElementModel> children);
+
+  LayoutElementChild copyWithUpdatedChild(
+      ElementRef id, LayoutElementModel element);
+
   MultiChildElementModel(this.children);
 }

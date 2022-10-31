@@ -9,14 +9,15 @@ typedef OnDragEnd = void Function(DraggerDetails? candidateDetails);
 typedef FeedbackBuilder = Widget Function(BuildContext context);
 
 class Dragger extends StatelessWidget {
-  final Widget? child;
-  final Axis? axis;
+  final Widget child;
+  final Axis axis;
   final bool targetOnly;
   final DraggerDetails? dragData;
   final OnHover? onHover;
   final dynamic onDragStart;
   final OnDragEnd? onDragEnd;
   final FeedbackBuilder? feedbackBuilder;
+  final bool deferHitTestingToChild;
 
   const Dragger({
     Key? key,
@@ -28,6 +29,7 @@ class Dragger extends StatelessWidget {
     this.onHover,
     this.onDragStart,
     this.onDragEnd,
+    this.deferHitTestingToChild = false,
   }) : super(key: key);
 
   @override
@@ -80,23 +82,28 @@ class Dragger extends StatelessWidget {
                 : const SizedBox.shrink(),
             childWhenDragging: const SizedBox.shrink(),
             data: dragData,
-            onDragStarted: () => onDragStart?.call(),
-            onDragEnd: (_) => onDragEnd?.call(dragData),
-            child: child!,
+            onDragStarted:
+                deferHitTestingToChild ? null : () => onDragStart?.call(),
+            onDragEnd: deferHitTestingToChild
+                ? null
+                : (_) => onDragEnd?.call(dragData),
+            maxSimultaneousDrags: deferHitTestingToChild ? 0 : null,
+            child: child,
           )
       ],
     );
   }
 
-  Widget _wrapAxisContainer({Axis? axis, List<Widget>? children}) {
+  Widget _wrapAxisContainer(
+      {required Axis axis, required List<Widget> children}) {
     switch (axis) {
       case Axis.horizontal:
         return Row(
-          children: children!,
+          children: children,
         );
       case Axis.vertical:
         return Column(
-          children: children!,
+          children: children,
         );
       default:
         throw Exception(

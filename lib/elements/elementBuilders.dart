@@ -41,20 +41,12 @@ Map<ElementRef, LayoutBlock> buildElements({
   ElementRef openElementId = const ElementRef.none(),
   List<String> reference = const [],
   CastChangeModel? castChange,
-  Map<ActorRef, ActorModel>? actors,
+  Map<ActorRef, ActorModel> actors = const {},
   Map<String, TrackRef> trackRefsByName = const {},
-  Map<TrackRef, TrackModel>? tracks,
+  Map<TrackRef, TrackModel> tracks = const {},
   OnContainerItemsReorder? onContainerItemsReorder,
   ElementRef highlightedContainerId = const ElementRef.none(),
   bool isInSlideEditor = false,
-  dynamic onContainerItemClick,
-  Set<ElementRef>? selectedElementIds,
-  OnItemActionCallback? onContainerItemEvict,
-  OnItemActionCallback? onContainerItemCopy,
-  OnItemActionCallback? onContainerItemPaste,
-  OnItemActionCallback? onContainerItemDelete,
-  OnContainerItemDoubleClick? onContainerItemDoubleClick,
-  OpenContainerItemBuilder? openContainerItemBuilder,
 }) {
   return Map<ElementRef, LayoutBlock>.fromEntries(
     elements.values.where((element) => _shouldBuild(element, castChange)).map(
@@ -82,17 +74,6 @@ Map<ElementRef, LayoutBlock> buildElements({
               isInSlideEditor: isInSlideEditor,
               isEditingContainer: isEditingContainer,
               isHighlighted: isEditingContainer || highlightedContainerId == id,
-              onContainerItemsReorder: (itemId, oldIndex, newIndex) =>
-                  onContainerItemsReorder?.call(itemId, oldIndex, newIndex),
-              onItemClick: onContainerItemClick,
-              onItemCopy: onContainerItemCopy,
-              onItemPaste: onContainerItemPaste,
-              selectedElements: selectedElementIds,
-              onItemEvict: onContainerItemEvict,
-              onItemDelete: onContainerItemDelete,
-              onContainerItemDoubleClick: (event, itemId) =>
-                  onContainerItemDoubleClick?.call(itemId, event),
-              openContainerItemBuilder: openContainerItemBuilder,
             ),
           ),
         );
@@ -107,22 +88,14 @@ Widget _buildChild({
   BuildContext? context, // Context is only required by the Slide Editor.
   LayoutElementChild? element,
   CastChangeModel? castChange,
-  Map<ActorRef, ActorModel>? actors = const {},
+  Map<ActorRef, ActorModel> actors = const {},
   required Map<String, TrackRef> trackRefsByName,
-  Map<TrackRef, TrackModel>? tracks = const {},
+  Map<TrackRef, TrackModel> tracks = const {},
   OnContainerItemsReorder? onContainerItemsReorder,
   bool isEditingContainer = false,
   bool isInSlideEditor = false,
   bool isHighlighted = false,
-  OnItemActionCallback? onItemClick,
-  OnItemActionCallback? onItemEvict,
-  OnItemActionCallback? onItemCopy,
-  OnItemActionCallback? onItemPaste,
-  OnItemActionCallback? onItemDelete,
-  OnItemDoubleClickCallback? onContainerItemDoubleClick,
-  Set<ElementRef>? selectedElements = const <ElementRef>{},
   EdgeInsets elementPadding = EdgeInsets.zero,
-  OpenContainerItemBuilder? openContainerItemBuilder,
 }) {
   withPadding(Widget child) => Padding(
         padding: elementPadding,
@@ -130,54 +103,17 @@ Widget _buildChild({
       );
 
   if (element is ContainerElementModel) {
-    int index = 0;
-
-    final containerItems =
-        element.runLoading == ContainerRunLoading.bottomOrRightHeavy
-            ? element.children.values.toList().reversed
-            : element.children.values.toList();
-
-    return withPadding(ContainerElement(
-      isEditing: isEditingContainer,
-      showBorder: isInSlideEditor,
-      showHighlight: isHighlighted,
-      mainAxisAlignment: element.mainAxisAlignment,
-      crossAxisAlignment: element.crossAxisAlignment,
-      runAlignment: element.runAlignment,
-      runLoading: element.runLoading,
-      allowWrap: element.wrapEnabled,
-      axis: element.axis,
-      onOrderChanged: (id, oldIndex, newIndex) =>
-          onContainerItemsReorder?.call(id, oldIndex, newIndex),
-      onItemClick: onItemClick,
-      onItemEvict: onItemEvict,
-      onItemCopy: onItemCopy,
-      onItemPaste: onItemPaste,
-      onItemDelete: onItemDelete,
-      onItemDoubleClick: onContainerItemDoubleClick,
-      items: containerItems
-          .where((child) => _shouldBuild(child, castChange))
-          .map((child) {
-        final id = child.uid;
-        return ContainerItem(
-          id: id,
-          index: index++,
-          selected: selectedElements != null && selectedElements.contains(id),
-          size: Size(child.width, child.height),
-          child: id == openElementId && openContainerItemBuilder != null
-              ? _callContainerItemBuilder(context, id, openContainerItemBuilder)
-              : _buildChild(
-                  parentReference: id,
-                  element: child.child,
-                  castChange: castChange,
-                  actors: actors,
-                  trackRefsByName: trackRefsByName,
-                  tracks: tracks,
-                  elementPadding: _buildEdgeInsets(child),
-                ),
-        );
-      }).toList(),
-    ));
+    return buildContainer(
+        isEditingContainer: isEditingContainer,
+        isInSlideEditor: isInSlideEditor,
+        isHighlighted: isHighlighted,
+        element: element,
+        castChange: castChange,
+        openElementId: openElementId,
+        context: context,
+        actors: actors,
+        trackRefsByName: trackRefsByName,
+        tracks: tracks);
   }
 
   if (element is GroupElementModel) {
@@ -208,12 +144,6 @@ Widget _buildChild({
   }
 
   if (element is HeadshotElementModel) {
-    if (tracks == null) {
-      return withPadding(const HeadshotFallback(
-        reason: HeadshotFallbackReason.noTrack,
-      ));
-    }
-
     final track = tracks[element.trackRef];
 
     if (track == null) {
@@ -276,6 +206,78 @@ Widget _buildChild({
   }
 
   return SizedBox.fromSize(size: Size.zero);
+}
+
+Widget buildContainer({
+  required bool isEditingContainer,
+  required bool isInSlideEditor,
+  required bool isHighlighted,
+  required ContainerElementModel element,
+  OnItemActionCallback? onItemClick,
+  OnItemActionCallback? onItemEvict,
+  OnItemActionCallback? onItemCopy,
+  OnItemActionCallback? onItemPaste,
+  OnItemActionCallback? onItemDelete,
+  OnItemDoubleClickCallback? onContainerItemDoubleClick,
+  CastChangeModel? castChange,
+  Set<ElementRef> selectedElements = const {},
+  required ElementRef openElementId,
+  OpenContainerItemBuilder? openContainerItemBuilder,
+  BuildContext? context,
+  required Map<ActorRef, ActorModel> actors,
+  required Map<String, TrackRef> trackRefsByName,
+  required Map<TrackRef, TrackModel> tracks,
+  bool deferHitTestingToChildren = false,
+}) {
+  final containerItems =
+      element.runLoading == ContainerRunLoading.bottomOrRightHeavy
+          ? element.children.values.toList().reversed
+          : element.children.values.toList();
+
+  return ContainerElement(
+    isEditing: isEditingContainer,
+    showBorder: isInSlideEditor,
+    showHighlight: isHighlighted,
+    mainAxisAlignment: element.mainAxisAlignment,
+    crossAxisAlignment: element.crossAxisAlignment,
+    runAlignment: element.runAlignment,
+    runLoading: element.runLoading,
+    allowWrap: element.wrapEnabled,
+    axis: element.axis,
+    onItemClick: onItemClick,
+    onItemEvict: onItemEvict,
+    onItemCopy: onItemCopy,
+    onItemPaste: onItemPaste,
+    onItemDelete: onItemDelete,
+    onItemDoubleClick: onContainerItemDoubleClick,
+    items: containerItems
+        .where((child) => _shouldBuild(child, castChange))
+        .map((child) {
+      final id = child.uid;
+      int index = 0;
+      
+      final deferToOpenItemBuilder =
+          id == openElementId && openContainerItemBuilder != null;
+      return ContainerItem(
+        id: id,
+        index: index++,
+        selected: selectedElements.contains(id),
+        size: Size(child.width, child.height),
+        deferHitTestingToChild: deferToOpenItemBuilder,
+        child: deferToOpenItemBuilder == true
+            ? _callContainerItemBuilder(context, id, openContainerItemBuilder!)
+            : _buildChild(
+                parentReference: id,
+                element: child.child,
+                castChange: castChange,
+                actors: actors,
+                trackRefsByName: trackRefsByName,
+                tracks: tracks,
+                elementPadding: _buildEdgeInsets(child),
+              ),
+      );
+    }).toList(),
+  );
 }
 
 Widget _callContainerItemBuilder(BuildContext? context, ElementRef itemId,

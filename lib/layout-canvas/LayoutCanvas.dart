@@ -46,6 +46,7 @@ class LayoutCanvas extends StatefulWidget {
   final OpenElementBuilder? openElementBuilder;
   final OnElementSecondaryClickCallback? onElementSecondaryClick;
   final bool allowDragSelection;
+  final void Function()? onBackstopPressed;
 
   const LayoutCanvas({
     Key? key,
@@ -67,6 +68,7 @@ class LayoutCanvas extends StatefulWidget {
     this.openElementBuilder,
     this.onElementSecondaryClick,
     this.allowDragSelection = true,
+    this.onBackstopPressed,
   }) : super(key: key);
 
   @override
@@ -124,10 +126,8 @@ class LayoutCanvasState extends State<LayoutCanvas> {
                         widget.deferHitTestingToChildren == false)
                     ? _handleBackstopPointerMove
                     : null,
-                onPointerDown: (widget.interactive &&
-                        widget.deferHitTestingToChildren == false)
-                    ? _handleBackstopPointerDown
-                    : null,
+                onPointerDown:
+                    widget.interactive ? _handleBackstopPointerDown : null,
               ),
               DragBoxLayer(
                   interactive: widget.interactive,
@@ -212,6 +212,8 @@ class LayoutCanvasState extends State<LayoutCanvas> {
   }
 
   _handleBackstopPointerDown(PointerDownEvent pointerEvent) {
+    widget.onBackstopPressed?.call();
+
     if (widget.deferHitTestingToChildren == true) {
       return;
     }

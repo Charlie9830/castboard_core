@@ -153,6 +153,7 @@ class ContainerElementState extends State<ContainerElement> {
                   item: item,
                   axis: Axis.horizontal,
                   renderScale: renderScale,
+                  deferHitTestingToChild: item.deferHitTestingToChild,
                   child: item.child,
                 ),
               ),
@@ -182,6 +183,7 @@ class ContainerElementState extends State<ContainerElement> {
                   item: item,
                   axis: Axis.vertical,
                   renderScale: renderScale,
+                  deferHitTestingToChild: item.deferHitTestingToChild,
                   child: item.child,
                 ),
               ),
@@ -203,10 +205,11 @@ class ContainerElementState extends State<ContainerElement> {
     required double renderScale,
     required Widget child,
     required Axis axis,
+    required deferHitTestingToChild,
   }) {
     if (isEditing) {
       return Listener(
-        onPointerDown: (event) => _handleDraggerPointerDown(event, item.id),
+        onPointerDown: deferHitTestingToChild ? null : (event) => _handleDraggerPointerDown(event, item.id),
         child: Container(
           color: item.selected ? Colors.grey.withAlpha(64) : null,
           foregroundDecoration: BoxDecoration(
@@ -217,6 +220,7 @@ class ContainerElementState extends State<ContainerElement> {
                   ),
           ),
           child: Dragger(
+            deferHitTestingToChild: item.deferHitTestingToChild,
             axis: axis,
             targetOnly: item.id == _shadowId,
             feedbackBuilder: (_) => _buildFeedback(

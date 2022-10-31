@@ -57,4 +57,18 @@ class GroupElementModel extends LayoutElementChild
       children: Map<ElementRef, LayoutElementModel>.from(children)..remove(id),
     );
   }
+
+  @override
+  LayoutElementChild copyWithNewChildren(
+      Map<ElementRef, LayoutElementModel> children) {
+    return copyWith(children: children);
+  }
+
+  @override
+  LayoutElementChild copyWithUpdatedChild(
+      ElementRef id, LayoutElementModel element) {
+    return copyWith(
+        children: Map<ElementRef, LayoutElementModel>.from(children)
+          ..update(id, (_) => element));
+  }
 }

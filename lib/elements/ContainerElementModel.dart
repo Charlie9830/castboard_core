@@ -117,4 +117,12 @@ class ContainerElementModel extends LayoutElementChild
         children: Map<ElementRef, LayoutElementModel>.from(children)
           ..update(id, (_) => element));
   }
+
+  @override
+  LayoutElementChild copyWithUpdatedChildren(
+      Map<ElementRef, LayoutElementModel> children) {
+    return copyWith(
+        children: Map<ElementRef, LayoutElementModel>.from(children)
+          ..addAll(children));
+  }
 }

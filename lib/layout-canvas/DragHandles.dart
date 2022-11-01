@@ -31,7 +31,6 @@ typedef OnRotateDoneCallback = void Function(int pointerId);
 class DragHandles extends StatelessWidget {
   final bool interactive;
   final bool selected;
-  final bool showHandles;
   final double width;
   final double height;
   final OnResizeHandleDragStartCallback? onDragStart;
@@ -44,7 +43,6 @@ class DragHandles extends StatelessWidget {
   const DragHandles({
     Key? key,
     this.interactive = true,
-    this.showHandles = true,
     required this.width,
     required this.height,
     this.onDrag,
@@ -62,7 +60,7 @@ class DragHandles extends StatelessWidget {
         top: 0,
         left: width / 2 - rotateHandleWidth / 2,
         child: RotateHandle(
-          interactive: interactive,
+          interactive: interactive && selected,
           selected: selected,
           onDragStart: (pointerId) => onRotateStart?.call(pointerId),
           onDrag: (deltaX, deltaY, pointerId) =>
@@ -74,7 +72,7 @@ class DragHandles extends StatelessWidget {
       top: rotateHandleTotalHeight,
       left: 0,
       child: ResizeHandle(
-        interactive: interactive,
+        interactive: interactive && selected,
         selected: selected,
         cursor: SystemMouseCursors.resizeUpLeft,
         onDrag: _handleTopLeftDrag,
@@ -88,7 +86,7 @@ class DragHandles extends StatelessWidget {
         top: rotateHandleTotalHeight,
         left: width / 2 - dragHandleWidth / 2,
         child: ResizeHandle(
-          interactive: interactive,
+          interactive: interactive && selected,
           selected: selected,
           cursor: SystemMouseCursors.resizeUpDown,
           onDrag: _handleTopCenterDrag,
@@ -101,7 +99,7 @@ class DragHandles extends StatelessWidget {
       top: rotateHandleTotalHeight,
       left: width - dragHandleWidth,
       child: ResizeHandle(
-        interactive: interactive,
+        interactive: interactive && selected,
         selected: selected,
         cursor: SystemMouseCursors.resizeUpRight,
         onDrag: _handleTopRightDrag,
@@ -115,7 +113,7 @@ class DragHandles extends StatelessWidget {
         top: height / 2 - dragHandleHeight / 2 + rotateHandleTotalHeight,
         left: width - dragHandleWidth,
         child: ResizeHandle(
-          interactive: interactive,
+          interactive: interactive && selected,
           selected: selected,
           cursor: SystemMouseCursors.resizeLeftRight,
           onDrag: _handleMiddleRightDrag,
@@ -128,7 +126,7 @@ class DragHandles extends StatelessWidget {
       top: height - dragHandleHeight + rotateHandleTotalHeight,
       left: width - dragHandleWidth,
       child: ResizeHandle(
-        interactive: interactive,
+        interactive: interactive && selected,
         selected: selected,
         cursor: SystemMouseCursors.resizeDownRight,
         onDrag: _handleBottomRightDrag,
@@ -142,7 +140,7 @@ class DragHandles extends StatelessWidget {
       top: height - dragHandleHeight + rotateHandleTotalHeight,
       left: width / 2 - dragHandleWidth / 2,
       child: ResizeHandle(
-        interactive: interactive,
+        interactive: interactive && selected,
         selected: selected,
         cursor: SystemMouseCursors.resizeUpDown,
         onDrag: _handleBottomCenterDrag,
@@ -156,7 +154,7 @@ class DragHandles extends StatelessWidget {
       top: height - dragHandleHeight + rotateHandleTotalHeight,
       left: 0,
       child: ResizeHandle(
-        interactive: interactive,
+        interactive: interactive && selected,
         selected: selected,
         cursor: SystemMouseCursors.resizeDownLeft,
         onDrag: _handleBottomLeftDrag,
@@ -170,7 +168,7 @@ class DragHandles extends StatelessWidget {
       top: height / 2 - dragHandleHeight / 2 + rotateHandleTotalHeight,
       left: 0,
       child: ResizeHandle(
-        interactive: interactive,
+        interactive: interactive && selected,
         selected: selected,
         cursor: SystemMouseCursors.resizeLeftRight,
         onDrag: _handleMiddleLeftDrag,

@@ -25,7 +25,7 @@ typedef OnElementsChangedCallback = void Function(
 typedef OnPlaceCallback = void Function(double xPos, double yPos);
 typedef OnElementDoubleClickedCallback = void Function(ElementRef elementId);
 typedef OnElementSecondaryClickCallback = void Function(
-    ElementRef? elementId, Offset position);
+    ElementRef? elementId, Offset globalPosition, Offset localPosition);
 
 class LayoutCanvas extends StatefulWidget {
   final bool interactive;
@@ -162,9 +162,11 @@ class LayoutCanvasState extends State<LayoutCanvas> {
                   onRotateStart: _handleRotateStart,
                   onRotate: _handleRotate,
                   onRotateDone: _handleRotateDone,
-                  onDragBoxSecondaryMouseDown: (blockId, pointerId, position) {
+                  onDragBoxSecondaryMouseDown:
+                      (blockId, pointerId, globalPosition, localPosition) {
                     _notifySelection(blockId);
-                    widget.onElementSecondaryClick?.call(blockId, position);
+                    widget.onElementSecondaryClick
+                        ?.call(blockId, globalPosition, localPosition);
                   }),
             ],
           ),
@@ -220,7 +222,8 @@ class LayoutCanvasState extends State<LayoutCanvas> {
 
     // Secondary Mouse Button Press
     if (pointerEvent.buttons == kSecondaryMouseButton) {
-      widget.onElementSecondaryClick?.call(null, pointerEvent.position);
+      widget.onElementSecondaryClick
+          ?.call(null, pointerEvent.position, pointerEvent.localPosition);
     }
 
     // Clear Selections.

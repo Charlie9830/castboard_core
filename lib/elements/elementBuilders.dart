@@ -213,6 +213,7 @@ Widget buildContainer({
   required bool isInSlideEditor,
   required bool isHighlighted,
   required ContainerElementModel element,
+  OnContainerItemsReorder? onItemReorder,
   OnItemActionCallback? onItemClick,
   OnItemActionCallback? onItemEvict,
   OnItemActionCallback? onItemCopy,
@@ -233,7 +234,8 @@ Widget buildContainer({
       element.runLoading == ContainerRunLoading.bottomOrRightHeavy
           ? element.children.values.toList().reversed
           : element.children.values.toList();
-
+  int index = 0;
+  
   return ContainerElement(
     isEditing: isEditingContainer,
     showBorder: isInSlideEditor,
@@ -250,12 +252,12 @@ Widget buildContainer({
     onItemPaste: onItemPaste,
     onItemDelete: onItemDelete,
     onItemDoubleClick: onContainerItemDoubleClick,
+    onOrderChanged: onItemReorder,
     items: containerItems
         .where((child) => _shouldBuild(child, castChange))
         .map((child) {
       final id = child.uid;
-      int index = 0;
-      
+
       final deferToOpenItemBuilder =
           id == openElementId && openContainerItemBuilder != null;
       return ContainerItem(

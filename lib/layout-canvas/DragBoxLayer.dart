@@ -17,8 +17,8 @@ typedef OnResizeDoneCallback = void Function(int pointerId);
 typedef OnResizeStartCallback = void Function(
     ResizeHandleLocation handlePosition, int pointerId, ElementRef blockId);
 
-typedef OnDragBoxSecondaryMouseUpCallback = void Function(
-    ElementRef blockId, int pointerId, Offset offset);
+typedef OnDragBoxSecondaryMouseDownCallback = void Function(ElementRef blockId,
+    int pointerId, Offset globalPosition, Offset localPosition);
 
 typedef OnRotateStartCallback = void Function(
     int pointerId, ElementRef blockId);
@@ -69,7 +69,7 @@ class DragBoxLayer extends StatelessWidget {
   final OnDragBoxMouseUpCallback? onDragBoxMouseUp;
   final OnDragBoxDoubleClickCallback? onDragBoxDoubleClick;
   final OpenElementBuilder? openElementBuilder;
-  final OnDragBoxSecondaryMouseUpCallback? onDragBoxSecondaryMouseDown;
+  final OnDragBoxSecondaryMouseDownCallback? onDragBoxSecondaryMouseDown;
 
   const DragBoxLayer({
     Key? key,
@@ -199,9 +199,10 @@ class DragBoxLayer extends StatelessWidget {
                 onClick: (pointerId) =>
                     onDragBoxClick?.call(blockId, pointerId),
                 onDoubleClick: () => onDragBoxDoubleClick?.call(blockId),
-                onSecondaryMouseDown: (pointerId, offset) =>
-                    onDragBoxSecondaryMouseDown?.call(
-                        blockId, pointerId, offset),
+                onSecondaryMouseDown:
+                    (pointerId, globalPosition, localPosition) =>
+                        onDragBoxSecondaryMouseDown?.call(
+                            blockId, pointerId, globalPosition, localPosition),
               ),
             ),
           ),

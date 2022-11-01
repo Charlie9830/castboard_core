@@ -10,7 +10,7 @@ typedef OnDoubleClickCallback = void Function();
 typedef OnMouseUpCallback = void Function(int pointerId);
 
 typedef OnSecondaryMouseDownCallback = void Function(
-    int pointerId, Offset position);
+    int pointerId, Offset globalPosition, Offset localPosition);
 
 typedef OnPositionChangeCallback = void Function(double xDelta, double yDelta);
 
@@ -66,8 +66,8 @@ class DragBox extends StatelessWidget {
             child: Listener(
               onPointerDown: (pointerEvent) {
                 if (pointerEvent.buttons == kSecondaryMouseButton) {
-                  onSecondaryMouseDown?.call(
-                      pointerEvent.original!.pointer, pointerEvent.position);
+                  onSecondaryMouseDown?.call(pointerEvent.original!.pointer,
+                      pointerEvent.position, pointerEvent.localPosition);
                 } else {
                   onClick?.call(pointerEvent.original!.pointer);
                 }

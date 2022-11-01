@@ -18,10 +18,12 @@ class Dragger extends StatelessWidget {
   final OnDragEnd? onDragEnd;
   final FeedbackBuilder? feedbackBuilder;
   final bool deferHitTestingToChild;
+  final ElementRef id;
 
   const Dragger({
     Key? key,
     required this.child,
+    required this.id,
     this.feedbackBuilder,
     this.axis = Axis.horizontal,
     this.targetOnly = false,
@@ -75,6 +77,7 @@ class Dragger extends StatelessWidget {
         // Draggable.
         if (targetOnly == false)
           LongPressDraggable<DraggerDetails>(
+            key: ValueKey(id),
             delay: const Duration(milliseconds: 200),
             dragAnchorStrategy: pointerDragAnchorStrategy,
             feedback: feedbackBuilder != null

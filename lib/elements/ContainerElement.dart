@@ -211,7 +211,8 @@ class ContainerElementState extends State<ContainerElement> {
       return Listener(
         onPointerDown: deferHitTestingToChild ? null : (event) => _handleDraggerPointerDown(event, item.id),
         child: Container(
-          color: item.selected ? Colors.grey.withAlpha(64) : null,
+          color: item.selected ? Colors.grey.withAlpha(64) : Colors.transparent, // Colors.transparent is used so the container
+          // will expand to fill, otherwise it will shirink and break the behaviour of the Pointer Listeners.
           foregroundDecoration: BoxDecoration(
             border: item.selected
                 ? Border.all(color: Theme.of(context).colorScheme.secondary)
@@ -220,6 +221,7 @@ class ContainerElementState extends State<ContainerElement> {
                   ),
           ),
           child: Dragger(
+            id: item.id,
             deferHitTestingToChild: item.deferHitTestingToChild,
             axis: axis,
             targetOnly: item.id == _shadowId,
@@ -316,6 +318,7 @@ class ContainerElementState extends State<ContainerElement> {
     }
 
     if (event.buttons == kPrimaryButton) {
+
       if (_lastTapDown != null && _lastTapDown!.itemId == itemId) {
         final now = DateTime.now();
         if (now.difference(_lastTapDown!.timestamp).inMilliseconds < 500) {

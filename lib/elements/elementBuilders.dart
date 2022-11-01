@@ -219,6 +219,7 @@ Widget buildContainer({
   OnItemActionCallback? onItemCopy,
   OnItemActionCallback? onItemPaste,
   OnItemActionCallback? onItemDelete,
+  OnItemActionCallback? onItemEdit,
   OnItemDoubleClickCallback? onContainerItemDoubleClick,
   CastChangeModel? castChange,
   Set<ElementRef> selectedElements = const {},
@@ -235,7 +236,7 @@ Widget buildContainer({
           ? element.children.values.toList().reversed
           : element.children.values.toList();
   int index = 0;
-  
+
   return ContainerElement(
     isEditing: isEditingContainer,
     showBorder: isInSlideEditor,
@@ -252,6 +253,7 @@ Widget buildContainer({
     onItemPaste: onItemPaste,
     onItemDelete: onItemDelete,
     onItemDoubleClick: onContainerItemDoubleClick,
+    onItemEdit: onItemEdit,
     onOrderChanged: onItemReorder,
     items: containerItems
         .where((child) => _shouldBuild(child, castChange))

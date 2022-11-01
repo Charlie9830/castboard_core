@@ -48,6 +48,7 @@ class ContainerElement extends StatefulWidget {
   final OnItemActionCallback? onItemCopy;
   final OnItemActionCallback? onItemPaste;
   final OnItemActionCallback? onItemDelete;
+  final OnItemActionCallback? onItemEdit;
   final OnItemDoubleClickCallback? onItemDoubleClick;
 
   const ContainerElement({
@@ -69,6 +70,7 @@ class ContainerElement extends StatefulWidget {
     this.onItemPaste,
     this.onItemDelete,
     this.onItemDoubleClick,
+    this.onItemEdit,
   }) : super(key: key);
 
   @override
@@ -209,9 +211,14 @@ class ContainerElementState extends State<ContainerElement> {
   }) {
     if (isEditing) {
       return Listener(
-        onPointerDown: deferHitTestingToChild ? null : (event) => _handleDraggerPointerDown(event, item.id),
+        onPointerDown: deferHitTestingToChild
+            ? null
+            : (event) => _handleDraggerPointerDown(event, item.id),
         child: Container(
-          color: item.selected ? Colors.grey.withAlpha(64) : Colors.transparent, // Colors.transparent is used so the container
+          color: item.selected
+              ? Colors.grey.withAlpha(64)
+              : Colors
+                  .transparent, // Colors.transparent is used so the container
           // will expand to fill, otherwise it will shirink and break the behaviour of the Pointer Listeners.
           foregroundDecoration: BoxDecoration(
             border: item.selected
@@ -311,6 +318,11 @@ class ContainerElementState extends State<ContainerElement> {
                   label: 'Delete',
                   shortcut: ShortcutLabel.delete,
                   onTap: () => widget.onItemDelete?.call(itemId),
+                ),
+                ContextMenuItemDivider(),
+                ContextMenuItem(
+                  label: 'Edit Item',
+                  onTap: () => widget.onItemEdit?.call(itemId),
                 )
               ],
             );
@@ -318,7 +330,6 @@ class ContainerElementState extends State<ContainerElement> {
     }
 
     if (event.buttons == kPrimaryButton) {
-
       if (_lastTapDown != null && _lastTapDown!.itemId == itemId) {
         final now = DateTime.now();
         if (now.difference(_lastTapDown!.timestamp).inMilliseconds < 500) {

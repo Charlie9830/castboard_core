@@ -56,6 +56,10 @@ class ElementRef {
       ? ElementRef(_ids.take(_ids.length - 1).toList())
       : const ElementRef.none();
 
+  bool isDecendentOf(ElementRef parent) {
+    return _path.contains(parent._path);
+  }
+
   List<ElementRef> getSegments() {
     return _ids.fold<List<ElementRef>>(
       [],

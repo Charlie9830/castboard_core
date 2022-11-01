@@ -129,6 +129,8 @@ class LayoutElementModel {
         Offset(xPos, yPos), Offset(xPos + width, yPos + height));
   }
 
+  Size get size => Size(width, height);
+
   LayoutElementModel withRemovedChild(ElementRef id) {
     if (child is MultiChildElementModel) {
       return copyWith(

@@ -34,11 +34,11 @@ class ContainerElementModel extends LayoutElementChild
     Axis? axis,
     ContainerRunLoading? runLoading,
   })  : children = children ?? <ElementRef, LayoutElementModel>{},
-        mainAxisAlignment = mainAxisAlignment ?? MainAxisAlignment.center,
+        mainAxisAlignment = mainAxisAlignment ?? MainAxisAlignment.spaceEvenly,
         crossAxisAlignment = crossAxisAlignment ?? CrossAxisAlignment.center,
         axis = axis ?? Axis.horizontal,
-        runAlignment = runAlignment ?? WrapAlignment.start,
-        wrapEnabled = wrapEnabled ?? false,
+        runAlignment = runAlignment ?? WrapAlignment.center,
+        wrapEnabled = wrapEnabled ?? true,
         runLoading = runLoading ?? ContainerRunLoading.topOrLeftHeavy,
         super(updateContracts: <PropertyUpdateContracts>{
           PropertyUpdateContracts.container

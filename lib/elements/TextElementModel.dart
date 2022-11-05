@@ -100,7 +100,7 @@ class TextElementModel extends LayoutElementChild {
       'underline': underline,
       'alignment': convertTextAlign(alignment),
       'color': ColorModel.fromColor(color).toMap(),
-      'shadowColor': ColorModel.fromColor(color).toMap(),
+      'shadowColor': ColorModel.fromColor(shadowColor).toMap(),
       'shadowXOffset': shadowXOffset,
       'shadowYOffset': shadowYOffset,
       'shadowBlurRadius': shadowBlurRadius,

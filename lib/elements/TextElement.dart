@@ -37,17 +37,17 @@ class TextElementStyle {
   final double shadowBlurRadius;
 
   TextElementStyle({
-    this.alignment = TextAlign.center,
-    this.color = Colors.black,
-    this.fontFamily = 'Arial',
-    this.fontSize = 12,
-    this.bold = false,
-    this.italics = false,
-    this.underline = false,
-    this.shadowBlurRadius = 0,
-    this.shadowColor = Colors.black,
-    this.shadowXOffset = 0,
-    this.shadowYOffset = 0,
+    required this.alignment,
+    required this.color,
+    required this.fontFamily,
+    required this.fontSize,
+    required this.bold,
+    required this.italics,
+    required this.underline,
+    required this.shadowBlurRadius,
+    required this.shadowColor,
+    required this.shadowXOffset,
+    required this.shadowYOffset,
   });
 
   TextStyle asTextStyle(double renderScale) {

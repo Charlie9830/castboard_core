@@ -120,6 +120,10 @@ class TextElementModel extends LayoutElementChild {
         underline: underline,
         alignment: alignment,
         color: color,
+        shadowBlurRadius: shadowBlurRadius,
+        shadowColor: shadowColor,
+        shadowXOffset: shadowXOffset,
+        shadowYOffset: shadowYOffset,
       );
 
   static bool _hasInterpolation(String? input) {

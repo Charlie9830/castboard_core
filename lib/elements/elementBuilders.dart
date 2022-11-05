@@ -179,13 +179,18 @@ Widget _buildChild({
       TextElement(
         text: text,
         style: TextElementStyle(
-            alignment: element.alignment,
-            color: element.color,
-            fontFamily: element.fontFamily,
-            fontSize: element.fontSize,
-            bold: element.bold,
-            italics: element.italics,
-            underline: element.underline),
+          alignment: element.alignment,
+          color: element.color,
+          fontFamily: element.fontFamily,
+          fontSize: element.fontSize,
+          bold: element.bold,
+          italics: element.italics,
+          underline: element.underline,
+          shadowBlurRadius: element.shadowBlurRadius,
+          shadowColor: element.shadowColor,
+          shadowXOffset: element.shadowXOffset,
+          shadowYOffset: element.shadowYOffset,
+        ),
       ),
     );
   }

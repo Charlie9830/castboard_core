@@ -19,6 +19,7 @@ import 'package:castboard_core/layout-canvas/element_ref.dart';
 import 'package:castboard_core/models/ColorModel.dart';
 import 'package:castboard_core/models/LayoutElementModel.dart';
 import 'package:castboard_core/models/TrackRef.dart';
+import 'package:flutter/material.dart';
 
 enum PropertyUpdateContracts {
   textData,
@@ -78,6 +79,12 @@ abstract class LayoutElementChild {
         underline: map['underline'],
         alignment: parseTextAlign(map['alignment']),
         color: ColorModel.fromMap(map['color']).toColor(),
+        shadowColor: map['shadowColor'] != null
+            ? ColorModel.fromMap(map['shadowColor']).toColor()
+            : Colors.black,
+        shadowXOffset: map['shadowXOffset'] ?? 0,
+        shadowYOffset: map['shadowYOffset'] ?? 0,
+        shadowBlurRadius: map['shadowBlurRadius'] ?? 0,
       );
     }
 
@@ -91,6 +98,10 @@ abstract class LayoutElementChild {
         underline: map['underline'],
         alignment: parseTextAlign(map['alignment']),
         color: ColorModel.fromMap(map['color']).toColor(),
+        shadowColor: map['shadowColor'] ?? Colors.black,
+        shadowXOffset: map['shadowXOffset'] ?? 0,
+        shadowYOffset: map['shadowYOffset'] ?? 0,
+        shadowBlurRadius: map['shadowBlurRadius'] ?? 0,
       );
     }
 
@@ -104,6 +115,10 @@ abstract class LayoutElementChild {
         underline: map['underline'],
         alignment: parseTextAlign(map['alignment']),
         color: ColorModel.fromMap(map['color']).toColor(),
+        shadowColor: map['shadowColor'] ?? Colors.black,
+        shadowXOffset: map['shadowXOffset'] ?? 0,
+        shadowYOffset: map['shadowYOffset'] ?? 0,
+        shadowBlurRadius: map['shadowBlurRadius'] ?? 0,
       );
     }
 

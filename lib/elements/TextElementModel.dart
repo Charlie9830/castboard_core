@@ -1,10 +1,10 @@
+import 'package:flutter/material.dart';
+
+import 'package:castboard_core/classes/LayoutElementChild.dart';
 import 'package:castboard_core/elements/TextElement.dart';
 import 'package:castboard_core/enum-converters/textAlignConverters.dart';
 import 'package:castboard_core/layout-canvas/element_ref.dart';
 import 'package:castboard_core/models/ColorModel.dart';
-import 'package:flutter/material.dart';
-
-import 'package:castboard_core/classes/LayoutElementChild.dart';
 
 class TextElementModel extends LayoutElementChild {
   final String text;
@@ -16,6 +16,10 @@ class TextElementModel extends LayoutElementChild {
   final TextAlign alignment;
   final Color color;
   final bool needsInterpolation;
+  final Color shadowColor;
+  final double shadowXOffset;
+  final double shadowYOffset;
+  final double shadowBlurRadius;
 
   TextElementModel({
     Set<PropertyUpdateContracts>? propertyUpdateContracts,
@@ -29,6 +33,10 @@ class TextElementModel extends LayoutElementChild {
     TextAlign? alignment,
     Color? color,
     bool? needsInterpolation,
+    Color? shadowColor,
+    double? shadowXOffset,
+    double? shadowYOffset,
+    double? shadowBlurRadius,
   })  : text = text ?? '',
         fontFamily = fontFamily ?? 'Arial',
         fontSize = fontSize ?? 48,
@@ -38,6 +46,10 @@ class TextElementModel extends LayoutElementChild {
         alignment = alignment ?? TextAlign.center,
         color = color ?? Colors.black,
         needsInterpolation = _hasInterpolation(text),
+        shadowColor = shadowColor ?? Colors.black,
+        shadowBlurRadius = shadowBlurRadius ?? 0,
+        shadowXOffset = shadowXOffset ?? 0,
+        shadowYOffset = shadowYOffset ?? 0,
         super(
             updateContracts: propertyUpdateContracts ??
                 <PropertyUpdateContracts>{
@@ -55,6 +67,10 @@ class TextElementModel extends LayoutElementChild {
     bool? underline,
     TextAlign? alignment,
     Color? color,
+    Color? shadowColor,
+    double? shadowXOffset,
+    double? shadowYOffset,
+    double? shadowBlurRadius,
   }) {
     return TextElementModel(
       text: text ?? this.text,
@@ -65,6 +81,10 @@ class TextElementModel extends LayoutElementChild {
       underline: underline ?? this.underline,
       alignment: alignment ?? this.alignment,
       color: color ?? this.color,
+      shadowColor: shadowColor ?? this.shadowColor,
+      shadowXOffset: shadowXOffset ?? this.shadowXOffset,
+      shadowYOffset: shadowYOffset ?? this.shadowYOffset,
+      shadowBlurRadius: shadowBlurRadius ?? this.shadowBlurRadius,
     );
   }
 
@@ -80,6 +100,10 @@ class TextElementModel extends LayoutElementChild {
       'underline': underline,
       'alignment': convertTextAlign(alignment),
       'color': ColorModel.fromColor(color).toMap(),
+      'shadowColor': ColorModel.fromColor(color).toMap(),
+      'shadowXOffset': shadowXOffset,
+      'shadowYOffset': shadowYOffset,
+      'shadowBlurRadius': shadowBlurRadius,
     };
   }
 

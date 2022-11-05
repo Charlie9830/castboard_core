@@ -23,6 +23,10 @@ class ActorElementModel extends TextElementModel
     bool underline = false,
     TextAlign alignment = TextAlign.center,
     Color color = Colors.white,
+    Color shadowColor = Colors.black,
+    double shadowXOffset = 0,
+    double shadowYOffset = 0,
+    double shadowBlurRadius = 0,
   }) : super(
             text: '',
             fontFamily: fontFamily,
@@ -32,6 +36,10 @@ class ActorElementModel extends TextElementModel
             underline: underline,
             alignment: alignment,
             color: color,
+            shadowColor: shadowColor,
+            shadowXOffset: shadowXOffset,
+            shadowYOffset: shadowYOffset,
+            shadowBlurRadius: shadowBlurRadius,
             propertyUpdateContracts: <PropertyUpdateContracts>{
               PropertyUpdateContracts.textStyle,
               PropertyUpdateContracts.trackAssignment,
@@ -49,6 +57,10 @@ class ActorElementModel extends TextElementModel
     bool? underline,
     TextAlign? alignment,
     Color? color,
+    Color? shadowColor,
+    double? shadowXOffset,
+    double? shadowYOffset,
+    double? shadowBlurRadius,
   }) {
     return ActorElementModel(
       trackRef: trackRef ?? this.trackRef,
@@ -60,6 +72,10 @@ class ActorElementModel extends TextElementModel
       underline: underline ?? this.underline,
       alignment: alignment ?? this.alignment,
       color: color ?? this.color,
+      shadowColor: shadowColor ?? this.shadowColor,
+      shadowXOffset: shadowXOffset ?? this.shadowXOffset,
+      shadowYOffset: shadowYOffset ?? this.shadowYOffset,
+      shadowBlurRadius: shadowBlurRadius ?? this.shadowBlurRadius,
     );
   }
 
@@ -76,6 +92,10 @@ class ActorElementModel extends TextElementModel
       'underline': underline,
       'alignment': convertTextAlign(alignment),
       'color': ColorModel.fromColor(color).toMap(),
+      'shadowColor': ColorModel.fromColor(color).toMap(),
+      'shadowXOffset': shadowXOffset,
+      'shadowYOffset': shadowYOffset,
+      'shadowBlurRadius': shadowBlurRadius,
     };
   }
 

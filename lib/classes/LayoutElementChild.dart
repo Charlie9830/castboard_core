@@ -98,7 +98,9 @@ abstract class LayoutElementChild {
         underline: map['underline'],
         alignment: parseTextAlign(map['alignment']),
         color: ColorModel.fromMap(map['color']).toColor(),
-        shadowColor: map['shadowColor'] ?? Colors.black,
+        shadowColor: map['shadowColor'] != null
+            ? ColorModel.fromMap(map['shadowColor']).toColor()
+            : Colors.black,
         shadowXOffset: map['shadowXOffset'] ?? 0,
         shadowYOffset: map['shadowYOffset'] ?? 0,
         shadowBlurRadius: map['shadowBlurRadius'] ?? 0,
@@ -115,7 +117,9 @@ abstract class LayoutElementChild {
         underline: map['underline'],
         alignment: parseTextAlign(map['alignment']),
         color: ColorModel.fromMap(map['color']).toColor(),
-        shadowColor: map['shadowColor'] ?? Colors.black,
+        shadowColor: map['shadowColor'] != null
+            ? ColorModel.fromMap(map['shadowColor']).toColor()
+            : Colors.black,
         shadowXOffset: map['shadowXOffset'] ?? 0,
         shadowYOffset: map['shadowYOffset'] ?? 0,
         shadowBlurRadius: map['shadowBlurRadius'] ?? 0,

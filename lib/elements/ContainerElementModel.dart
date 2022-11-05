@@ -37,7 +37,7 @@ class ContainerElementModel extends LayoutElementChild
         mainAxisAlignment = mainAxisAlignment ?? MainAxisAlignment.spaceEvenly,
         crossAxisAlignment = crossAxisAlignment ?? CrossAxisAlignment.center,
         axis = axis ?? Axis.horizontal,
-        runAlignment = runAlignment ?? WrapAlignment.center,
+        runAlignment = runAlignment ?? WrapAlignment.spaceEvenly,
         wrapEnabled = wrapEnabled ?? true,
         runLoading = runLoading ?? ContainerRunLoading.topOrLeftHeavy,
         super(updateContracts: <PropertyUpdateContracts>{

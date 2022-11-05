@@ -55,7 +55,7 @@ class LayoutCanvas extends StatefulWidget {
     this.dragBoxType = DragBoxType.full,
     this.showGrid = false,
     this.clipping = true,
-    this.gridSize = 10,
+    this.gridSize = 5,
     this.elements = const {},
     this.selectedElements = const {},
     this.openElementId = const ElementRef.none(),

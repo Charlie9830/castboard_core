@@ -9,10 +9,11 @@ import 'package:castboard_core/secondary_context_menu/context_menu_item.dart';
 import 'package:castboard_core/secondary_context_menu/secondary_context_menu.dart';
 import 'package:castboard_core/secondary_context_menu/shortcut_label.dart';
 import 'package:castboard_core/show_overlay.dart';
+import 'package:castboard_core/utils/line_breaking.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
-const ElementRef _shadowId = ElementRef.shadow();
+const ElementRef _kShadowId = ElementRef.shadow();
 
 const Map<MainAxisAlignment, WrapAlignment> _alignmentMapping = {
   MainAxisAlignment.start: WrapAlignment.start,
@@ -31,17 +32,23 @@ typedef OnItemActionCallback = void Function(ElementRef itemId);
 typedef OnItemDoubleClickCallback = void Function(
     PointerEvent event, ElementRef itemId);
 
+const MainAxisAlignment _kDefaultMainAxisAlignment =
+    MainAxisAlignment.spaceEvenly;
+const CrossAxisAlignment _kDefaultCrossAxisAlignment =
+    CrossAxisAlignment.stretch;
+const WrapAlignment _kDefaultRunAlignment = WrapAlignment.spaceEvenly;
+
 class ContainerElement extends StatefulWidget {
   final bool isEditing;
   final bool showHighlight;
   final bool showBorder;
   final bool allowWrap;
-  final MainAxisAlignment? mainAxisAlignment;
-  final CrossAxisAlignment? crossAxisAlignment;
-  final WrapAlignment? runAlignment;
+  final MainAxisAlignment mainAxisAlignment;
+  final CrossAxisAlignment crossAxisAlignment;
+  final WrapAlignment runAlignment;
   final Axis axis;
   final ContainerRunLoading runLoading;
-  final List<ContainerItem>? items;
+  final List<ContainerItem> items;
   final OnOrderChanged? onOrderChanged;
   final OnItemActionCallback? onItemClick;
   final OnItemActionCallback? onItemEvict;
@@ -56,13 +63,13 @@ class ContainerElement extends StatefulWidget {
     this.isEditing = false,
     this.showHighlight = false,
     this.showBorder = false,
-    this.mainAxisAlignment,
-    this.crossAxisAlignment,
-    this.runAlignment,
+    this.mainAxisAlignment = _kDefaultMainAxisAlignment,
+    this.crossAxisAlignment = _kDefaultCrossAxisAlignment,
+    this.runAlignment = _kDefaultRunAlignment,
     this.runLoading = ContainerRunLoading.topOrLeftHeavy,
     this.allowWrap = false,
     this.axis = Axis.horizontal,
-    this.items,
+    this.items = const [],
     this.onOrderChanged,
     this.onItemClick,
     this.onItemEvict,
@@ -89,24 +96,27 @@ class ContainerElementState extends State<ContainerElement> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      foregroundDecoration: _getForegroundDecoration(),
-      child: Stack(
-        fit: StackFit.expand,
-        children: [
-          BackstopListener(
-            onPointerDown: widget.isEditing ? _handleBackstopPointerDown : null,
-          ),
-          _getChild(context),
-          if (widget.showBorder)
-            const Positioned(
-              top: 2,
-              right: 2,
-              child: _EditingLabel(),
+    return LayoutBuilder(builder: (context, constraints) {
+      return Container(
+        foregroundDecoration: _getForegroundDecoration(),
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            BackstopListener(
+              onPointerDown:
+                  widget.isEditing ? _handleBackstopPointerDown : null,
             ),
-        ],
-      ),
-    );
+            _getChild(context, constraints),
+            if (widget.showBorder)
+              const Positioned(
+                top: 2,
+                right: 2,
+                child: _EditingLabel(),
+              ),
+          ],
+        ),
+      );
+    });
   }
 
   BoxDecoration? _getForegroundDecoration() {
@@ -128,69 +138,79 @@ class ContainerElementState extends State<ContainerElement> {
     return null;
   }
 
-  Widget _getChild(BuildContext context) {
+  Widget _getChild(BuildContext context, BoxConstraints constraints) {
     final items = _isDragging ? _activeItems : widget.items;
-    final renderScale = RenderScale.of(context)!.scale;
+    final renderScale = RenderScale.of(context)!.scale!;
+
+    // Delegate to fetch the Item Width or Height depending on the provdied axis.
+    double getItemLength(ContainerItem item) => item.id == _kShadowId
+        ? 0
+        : widget.axis == Axis.horizontal
+            ? item.size.width
+            : item.size.height;
+
+    // Use the 'Minimum Raggedness Divide and Conquer' algorithm to determine how to layout each item into run.
+    final layoutIndexes = MinimumRaggedness.divide(
+        items.map((item) => getItemLength(item) * renderScale).toList(),
+        widget.axis == Axis.horizontal
+            ? constraints.maxWidth
+            : constraints.maxHeight);
+
+    // Take the List<List<int>> type returned by the layout algorithm and convert that to widgets.
+    List<List<Widget>> children = layoutIndexes
+        .map((run) => run.map((itemIndex) {
+              final item = items[itemIndex];
+              final scaledItemSize = item.size * renderScale;
+
+              return _wrapVisibility(
+                widget.isEditing,
+                item: item,
+                visible: item.id != _candidateId,
+                child: Container(
+                  alignment: Alignment.center,
+                  width: scaledItemSize.width,
+                  height: scaledItemSize.height,
+                  child: _wrapDragger(
+                    widget.isEditing,
+                    item: item,
+                    axis: Axis.horizontal,
+                    renderScale: renderScale,
+                    deferHitTestingToChild: item.deferHitTestingToChild,
+                    child: item.child,
+                  ),
+                ),
+              );
+            }).toList())
+        .toList();
+
+    children = widget.runLoading == ContainerRunLoading.bottomOrRightHeavy
+        ? children.reversed.toList()
+        : children;
 
     switch (widget.axis) {
       case Axis.horizontal:
-        return _HorizontalContainer(
-          mainAxisAlignment: widget.mainAxisAlignment,
-          crossAxisAlignment: widget.crossAxisAlignment,
-          allowWrap: widget.allowWrap,
-          runAlignment: widget.runAlignment,
-          runLoading: widget.runLoading,
-          children: items!.map((item) {
-            final scaledItemSize = item.size * renderScale!;
-            return _wrapVisibility(
-              widget.isEditing,
-              item: item,
-              visible: item.id != _candidateId,
-              child: Container(
-                alignment: Alignment.center,
-                width: scaledItemSize.width,
-                height: scaledItemSize.height,
-                child: _wrapDragger(
-                  widget.isEditing,
-                  item: item,
-                  axis: Axis.horizontal,
-                  renderScale: renderScale,
-                  deferHitTestingToChild: item.deferHitTestingToChild,
-                  child: item.child,
-                ),
-              ),
-            );
-          }).toList(),
+        return OverflowBox(
+          maxHeight: double.infinity,
+          child: _HorizontalContainer(
+            mainAxisAlignment: widget.mainAxisAlignment,
+            crossAxisAlignment: widget.crossAxisAlignment,
+            allowWrap: widget.allowWrap,
+            runAlignment: widget.runAlignment,
+            runLoading: widget.runLoading,
+            children: children,
+          ),
         );
 
       case Axis.vertical:
-        return _VerticalContainer(
-          mainAxisAlignment: widget.mainAxisAlignment,
-          crossAxisAlignment: widget.crossAxisAlignment,
-          allowWrap: widget.allowWrap,
-          runAlignment: widget.runAlignment,
-          runLoading: widget.runLoading,
-          children: items!.map((item) {
-            final scaledItemSize = item.size * renderScale!;
-            return _wrapVisibility(
-              widget.isEditing,
-              item: item,
-              visible: item.id != _candidateId,
-              child: Container(
-                alignment: Alignment.center,
-                width: scaledItemSize.width,
-                height: scaledItemSize.height,
-                child: _wrapDragger(
-                  widget.isEditing,
-                  item: item,
-                  axis: Axis.vertical,
-                  renderScale: renderScale,
-                  deferHitTestingToChild: item.deferHitTestingToChild,
-                  child: item.child,
-                ),
-              ),
-            );
-          }).toList(),
+        return OverflowBox(
+          maxWidth: double.infinity,
+          child: _VerticalContainer(
+              mainAxisAlignment: widget.mainAxisAlignment,
+              crossAxisAlignment: widget.crossAxisAlignment,
+              allowWrap: widget.allowWrap,
+              runAlignment: widget.runAlignment,
+              runLoading: widget.runLoading,
+              children: children),
         );
 
       default:
@@ -231,7 +251,7 @@ class ContainerElementState extends State<ContainerElement> {
             id: item.id,
             deferHitTestingToChild: item.deferHitTestingToChild,
             axis: axis,
-            targetOnly: item.id == _shadowId,
+            targetOnly: item.id == _kShadowId,
             feedbackBuilder: (_) => _buildFeedback(
                 renderScale, item.size * renderScale, item.child),
             onDragStart: () => _handleDragStart(item.id, item.index, item.size),
@@ -369,7 +389,7 @@ class ContainerElementState extends State<ContainerElement> {
       return;
     }
 
-    if (underItemId == _shadowId) {
+    if (underItemId == _kShadowId) {
       // Candidate is hovering above it's own Shadow.
       return;
     }
@@ -543,7 +563,7 @@ class ContainerElementState extends State<ContainerElement> {
 
   bool _isShadowAlreadyInPlace(List<ContainerItem> items, int targetIndex) {
     if (targetIndex >= 0 && targetIndex < items.length) {
-      return items[targetIndex].id == _shadowId;
+      return items[targetIndex].id == _kShadowId;
     } else {
       return false;
     }
@@ -591,7 +611,7 @@ class ContainerElementState extends State<ContainerElement> {
 
   ContainerItem _buildShadow(int index, Size size) {
     return ContainerItem(
-      id: _shadowId,
+      id: _kShadowId,
       index: index,
       size: size,
       child: const _ItemShadow(),
@@ -614,87 +634,110 @@ class _ItemShadow extends StatelessWidget {
   }
 }
 
-class _HorizontalContainer extends StatelessWidget {
-  final MainAxisAlignment? mainAxisAlignment;
-  final CrossAxisAlignment? crossAxisAlignment;
-  final WrapAlignment? runAlignment;
-  final ContainerRunLoading? runLoading;
-  final bool allowWrap;
+class _BalancedContainer extends StatelessWidget {
+  final List<List<Widget>> children;
 
-  final List<Widget> children;
+  const _BalancedContainer({Key? key, required this.children})
+      : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      children: children
+          .map((rowChildren) => Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: rowChildren,
+              ))
+          .toList(),
+    );
+  }
+}
+
+class _HorizontalContainer extends StatelessWidget {
+  final MainAxisAlignment mainAxisAlignment;
+  final CrossAxisAlignment crossAxisAlignment;
+  final WrapAlignment runAlignment;
+  final ContainerRunLoading runLoading;
+  final bool allowWrap;
+  final List<List<Widget>> children;
 
   const _HorizontalContainer({
     Key? key,
-    this.mainAxisAlignment,
-    this.crossAxisAlignment,
-    this.runAlignment,
-    this.runLoading,
-    this.allowWrap = false,
-    this.children = const <Widget>[],
+    this.mainAxisAlignment = MainAxisAlignment.spaceEvenly,
+    this.crossAxisAlignment = CrossAxisAlignment.center,
+    this.runAlignment = WrapAlignment.spaceEvenly,
+    this.runLoading = ContainerRunLoading.bottomOrRightHeavy,
+    this.allowWrap = true,
+    this.children = const [],
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     if (allowWrap) {
-      final concreteRunLoading =
-          runLoading ?? ContainerRunLoading.bottomOrRightHeavy;
-
-      return Wrap(
-        alignment: _alignmentMapping[mainAxisAlignment!]!,
-        runAlignment: runAlignment ?? WrapAlignment.start,
-        direction: Axis.horizontal,
-        verticalDirection: getVerticalDirection(concreteRunLoading),
-        textDirection: getTextDirection(concreteRunLoading),
-        children: children,
+      return Column(
+        mainAxisAlignment: _convertToMainAxisAlignment(runAlignment),
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: children.map((row) {
+          return Row(
+            mainAxisAlignment: mainAxisAlignment,
+            crossAxisAlignment: crossAxisAlignment,
+            verticalDirection: getVerticalDirection(runLoading),
+            textDirection: getTextDirection(runLoading),
+            children: row.map((child) => child).toList(),
+          );
+        }).toList(),
       );
     }
 
     return Row(
-      mainAxisAlignment: mainAxisAlignment ?? MainAxisAlignment.center,
-      crossAxisAlignment: crossAxisAlignment ?? CrossAxisAlignment.center,
-      children: children,
+      mainAxisAlignment: mainAxisAlignment,
+      crossAxisAlignment: crossAxisAlignment,
+      children: children.expand((element) => element).toList(),
     );
   }
 }
 
 class _VerticalContainer extends StatelessWidget {
-  final MainAxisAlignment? mainAxisAlignment;
-  final CrossAxisAlignment? crossAxisAlignment;
-  final List<Widget?>? children;
-  final WrapAlignment? runAlignment;
-  final ContainerRunLoading? runLoading;
+  final MainAxisAlignment mainAxisAlignment;
+  final CrossAxisAlignment crossAxisAlignment;
+  final WrapAlignment runAlignment;
+  final ContainerRunLoading runLoading;
   final bool allowWrap;
+  final List<List<Widget>> children;
 
-  const _VerticalContainer(
-      {Key? key,
-      this.mainAxisAlignment,
-      this.crossAxisAlignment,
-      this.runAlignment,
-      this.allowWrap = false,
-      this.runLoading,
-      this.children})
-      : super(key: key);
+  const _VerticalContainer({
+    Key? key,
+    this.mainAxisAlignment = MainAxisAlignment.spaceEvenly,
+    this.crossAxisAlignment = CrossAxisAlignment.center,
+    this.runAlignment = WrapAlignment.spaceEvenly,
+    this.runLoading = ContainerRunLoading.bottomOrRightHeavy,
+    this.allowWrap = true,
+    this.children = const [],
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     if (allowWrap) {
-      final concreteRunLoading =
-          runLoading ?? ContainerRunLoading.bottomOrRightHeavy;
-
-      return Wrap(
-        alignment: _alignmentMapping[mainAxisAlignment!]!,
-        runAlignment: runAlignment ?? WrapAlignment.start,
-        direction: Axis.vertical,
-        verticalDirection: getVerticalDirection(concreteRunLoading),
-        textDirection: getTextDirection(concreteRunLoading),
-        children: children as List<Widget>? ?? const [],
+      return Row(
+        mainAxisAlignment: _convertToMainAxisAlignment(runAlignment),
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: children.map((row) {
+          return Column(
+            mainAxisAlignment: mainAxisAlignment,
+            crossAxisAlignment: crossAxisAlignment,
+            verticalDirection: getVerticalDirection(runLoading),
+            textDirection: getTextDirection(runLoading),
+            children: row.map((child) => child).toList(),
+          );
+        }).toList(),
       );
     }
 
-    return Column(
-      mainAxisAlignment: mainAxisAlignment ?? MainAxisAlignment.center,
-      crossAxisAlignment: crossAxisAlignment ?? CrossAxisAlignment.center,
-      children: children as List<Widget>? ?? const [],
+    return Row(
+      mainAxisAlignment: mainAxisAlignment,
+      crossAxisAlignment: crossAxisAlignment,
+      children: children.expand((element) => element).toList(),
     );
   }
 }
@@ -733,5 +776,22 @@ class _EditingLabel extends StatelessWidget {
               .caption!
               .copyWith(color: Colors.black, fontSize: 24 * renderScale)),
     );
+  }
+}
+
+MainAxisAlignment _convertToMainAxisAlignment(WrapAlignment wrapAlignment) {
+  switch (wrapAlignment) {
+    case WrapAlignment.start:
+      return MainAxisAlignment.start;
+    case WrapAlignment.end:
+      return MainAxisAlignment.end;
+    case WrapAlignment.center:
+      return MainAxisAlignment.center;
+    case WrapAlignment.spaceBetween:
+      return MainAxisAlignment.spaceBetween;
+    case WrapAlignment.spaceAround:
+      return MainAxisAlignment.spaceAround;
+    case WrapAlignment.spaceEvenly:
+      return MainAxisAlignment.spaceEvenly;
   }
 }

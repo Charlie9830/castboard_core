@@ -574,7 +574,7 @@ class ContainerElementState extends State<ContainerElement> {
     setState(() {
       _isDragging = true;
       _activeItems = _withRebuiltIndices(
-        widget.items!.toList()
+        widget.items.toList()
           ..insert(candidateHomeIndex,
               _buildShadow(candidateHomeIndex, candidateSize)),
       );

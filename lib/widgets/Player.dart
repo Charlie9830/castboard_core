@@ -60,7 +60,11 @@ class Player extends StatelessWidget {
 
     final windowSize = sizeOverride ?? _getWindowSize(context);
 
-    assert(sizeOverride != null && renderScaleOverride != null,
+    // Assert codependtness of sizeOverride and renderScaleOverride. If one is set, both must be set.
+    assert(
+        (sizeOverride != null || renderScaleOverride != null)
+            ? sizeOverride != null && renderScaleOverride != null
+            : true,
         "sizeOverride and renderScaleOverride are codependent. If one is set, the other must also be set");
 
     // Determine the Render scale. If sizeOverride is provided, use the renderScaleOverride otherwise

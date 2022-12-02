@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:quiver/core.dart';
+import 'package:path/path.dart' as p;
 
 class FontRef {
   final String uid;
@@ -25,6 +26,13 @@ class FontRef {
     return false;
   }
 
+  factory FontRef.fromString(String source) {
+    return FontRef(
+      p.basenameWithoutExtension(source),
+      p.extension(source),
+    );
+  }
+
   Map<String, dynamic> toMap() {
     return {
       'uid': uid,
@@ -36,7 +44,7 @@ class FontRef {
     if (map == null) {
       return const FontRef.none();
     }
-    
+
     return FontRef(
       map['uid'],
       map['ext'],

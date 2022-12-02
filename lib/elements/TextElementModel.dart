@@ -126,6 +126,8 @@ class TextElementModel extends LayoutElementChild {
         shadowYOffset: shadowYOffset,
       );
 
+  String get cssStyle => style.asCss;
+
   static bool _hasInterpolation(String? input) {
     if (input == null) return false;
 

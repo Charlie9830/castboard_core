@@ -1,5 +1,6 @@
 import 'package:castboard_core/elements/TextAligner.dart';
 import 'package:castboard_core/inherited/RenderScaleProvider.dart';
+import 'package:castboard_core/utils/css_helpers.dart';
 import 'package:flutter/material.dart';
 
 class TextElement extends StatelessWidget {
@@ -65,6 +66,17 @@ class TextElementStyle {
             blurRadius: shadowBlurRadius * renderScale));
   }
 
+  String get asCss => '''
+    color: ${convertToCssColor(color)};
+    text-align: ${convertToCssTextAlign(alignment)};
+    font-family: $fontFamily;
+    font-size: ${fontSize}px;
+    font-style: ${italics ? 'italic' : 'normal'};
+    font-weight: ${bold ? 'bold' : 'normal'};
+    text-decoration: ${underline ? 'underline' : 'initial'};
+    text-shadow: ${_getTextShadowCssValue(x: shadowXOffset, y: shadowYOffset, color: shadowColor, blurRadius: shadowBlurRadius)};
+''';
+
   List<Shadow>? _getTextShadow({
     required double x,
     required double y,
@@ -76,5 +88,18 @@ class TextElementStyle {
     }
 
     return [Shadow(color: color, blurRadius: blurRadius, offset: Offset(x, y))];
+  }
+
+  String _getTextShadowCssValue({
+    required double x,
+    required double y,
+    required Color color,
+    required double blurRadius,
+  }) {
+    if (x == 0 && y == 0) {
+      return 'none';
+    }
+
+    return '${x}px ${y}px ${blurRadius}px ${convertToCssColor(color)}';
   }
 }

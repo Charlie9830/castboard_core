@@ -18,6 +18,8 @@ class ImageElementModel extends LayoutElementChild {
     );
   }
 
+  
+
   @override
   Map<String, dynamic> toMap() {
     return {

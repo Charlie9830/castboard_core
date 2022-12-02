@@ -142,7 +142,7 @@ class ContainerElementState extends State<ContainerElement> {
     final items = _isDragging ? _activeItems : widget.items;
     final renderScale = RenderScale.of(context)!.scale!;
 
-    // Delegate to fetch the Item Width or Height depending on the provdied axis.
+    // Delegate to fetch the Item Width or Height depending on the provided axis.
     double getItemLength(ContainerItem item) => item.id == _kShadowId
         ? 0
         : widget.axis == Axis.horizontal

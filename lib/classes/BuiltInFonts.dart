@@ -31,4 +31,8 @@ class BuiltInFonts {
     "Tinos",
     "Vollkorn",
   ];
+
+  static final Set<String> _asSet = fonts.toSet();
+
+  static bool lookup(String familyName) => _asSet.contains(familyName);
 }

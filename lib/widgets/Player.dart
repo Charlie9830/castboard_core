@@ -1,4 +1,4 @@
-import 'package:castboard_core/elements/backgroundBuilder.dart';
+import 'package:castboard_core/elements/background/get_background_decoration.dart';
 import 'package:castboard_core/elements/elementBuilders.dart';
 import 'package:castboard_core/enums.dart';
 import 'package:castboard_core/layout-canvas/LayoutCanvas.dart';
@@ -10,6 +10,7 @@ import 'package:castboard_core/models/TrackModel.dart';
 import 'package:castboard_core/models/SlideModel.dart';
 import 'package:castboard_core/models/TrackRef.dart';
 import 'package:castboard_core/slide-viewport/SlideViewport.dart';
+import 'package:castboard_core/utils/get_fitted_render_scale.dart';
 import 'package:flutter/material.dart';
 
 const double _basePauseIndicatorSize = 124;
@@ -72,7 +73,7 @@ class Player extends StatelessWidget {
     double renderScale = 1.0;
 
     if (sizeOverride == null) {
-      renderScale = _getFittedRenderScale(windowSize, actualSlideSize);
+      renderScale = getFittedRenderScale(windowSize, actualSlideSize);
     } else {
       renderScale =
           renderScaleOverride!; // Null safety protected by the assert statement.
@@ -157,7 +158,7 @@ class Player extends StatelessWidget {
       slideHeight: actualSlideSize.height.toInt(),
       enableScrolling: false,
       slideRenderScale: renderScale,
-      background: getBackground(
+      background: getBackgroundDecoration(
         slides,
         currentSlideId,
       ),
@@ -182,13 +183,5 @@ class Player extends StatelessWidget {
 
   Size _getWindowSize(BuildContext context) {
     return MediaQuery.of(context).size;
-  }
-
-  // Calculates a render scale that Fits the content into the available window size.
-  double _getFittedRenderScale(Size windowSize, Size desiredSlideSize) {
-    final xRatio = windowSize.width / desiredSlideSize.width;
-    final yRatio = windowSize.height / desiredSlideSize.height;
-
-    return xRatio < yRatio ? xRatio : yRatio;
   }
 }

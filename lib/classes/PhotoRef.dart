@@ -1,14 +1,15 @@
 import 'dart:convert';
 
 import 'package:quiver/core.dart';
+import 'package:path/path.dart' as p;
 
 // TODO: Refactor the file name to ImageRef.
 
 // TODO: Explore making uid and ext non nullable.
 
 class ImageRef {
-  final String? uid;
-  final String? ext;
+  final String uid;
+  final String ext;
 
   ImageRef(this.uid, this.ext);
 
@@ -42,6 +43,17 @@ class ImageRef {
     return ImageRef(
       map['uid'],
       map['ext'],
+    );
+  }
+
+  factory ImageRef.fromFilename(String fileName) {
+    if (fileName.contains('.') == false) {
+      return const ImageRef.none();
+    }
+
+    return ImageRef(
+      p.basenameWithoutExtension(fileName),
+      p.extension(fileName),
     );
   }
 

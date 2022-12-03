@@ -3,6 +3,7 @@ import 'dart:convert';
 enum MessageType {
   unknown,
   payload,
+  slideIndex,
 }
 
 class MessageModel {
@@ -38,6 +39,8 @@ MessageType _parseMessageType(String? messageType) {
   switch (messageType) {
     case 'payload':
       return MessageType.payload;
+    case 'slideIndex':
+      return MessageType.slideIndex;
   }
 
   return MessageType.unknown;

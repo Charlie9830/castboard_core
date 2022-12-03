@@ -396,14 +396,14 @@ String _buildContainerElement({
     return '''
   <div ${HTMLElementMapping.containerElement}
   style="width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: ${convertRunAlignmentToJustifyContent(runAlignment)}">
-    ${children.map((run) => _buildHorizontalContainer(mainAxisAlignment: mainAxisAlignment, crossAxisAlignment: crossAxisAlignment, children: run))}
+    ${children.map((run) => _buildHorizontalContainer(mainAxisAlignment: mainAxisAlignment, crossAxisAlignment: crossAxisAlignment, children: run)).join('\n')}
   </div>
 ''';
   } else {
     return '''
   <div ${HTMLElementMapping.containerElement}
   style="width: 100%; height: 100%; display: flex; flex-direction: row; justify-content: ${convertRunAlignmentToJustifyContent(runAlignment)}">
-    ${children.map((run) => _buildVerticalContainer(mainAxisAlignment: mainAxisAlignment, crossAxisAlignment: crossAxisAlignment, children: run))}
+    ${children.map((run) => _buildVerticalContainer(mainAxisAlignment: mainAxisAlignment, crossAxisAlignment: crossAxisAlignment, children: run)).join('\n')}
   </div>
 ''';
   }
@@ -413,9 +413,20 @@ String _buildHorizontalContainer(
     {required MainAxisAlignment mainAxisAlignment,
     required CrossAxisAlignment crossAxisAlignment,
     required List<String> children}) {
+  // Build the children using a dom.Element otherwise we get weird HTML behaviour.
+  final runChildren = children.map((item) => dom.Element.html(item).outerHtml);
+
   return '''
-  <div style="width: 100%; height: 100%; display: flex; flex-direction: row; justify-content: ${convertToJustifyContent(mainAxisAlignment)}; align-items: ${convertToAlignItems(crossAxisAlignment)};">
-  ${children.join('\n')}
+  <div ${HTMLElementMapping.horizontalLayoutContainer}
+  style="
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: row;
+  justify-content: ${convertToJustifyContent(mainAxisAlignment)};
+  align-items: ${convertToAlignItems(crossAxisAlignment)};
+  ">
+  ${runChildren.join('\n')}
   </div>
 ''';
 }
@@ -424,9 +435,20 @@ String _buildVerticalContainer(
     {required MainAxisAlignment mainAxisAlignment,
     required CrossAxisAlignment crossAxisAlignment,
     required List<String> children}) {
+  // Build the children using a dom.Element otherwise we get weird HTML behaviour.
+  final runChildren = children.map((item) => dom.Element.html(item).outerHtml);
+
   return '''
-  <div style="width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: ${convertToJustifyContent(mainAxisAlignment)}; align-items: ${convertToAlignItems(crossAxisAlignment)};">
-  ${children.join('\n')}
+  <div ${HTMLElementMapping.horizontalLayoutContainer}
+  style="
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: ${convertToJustifyContent(mainAxisAlignment)};
+  align-items: ${convertToAlignItems(crossAxisAlignment)};
+  ">
+  ${runChildren.join('\n')}
   </div>
 ''';
 }

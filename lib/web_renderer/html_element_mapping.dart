@@ -9,8 +9,9 @@ class HTMLElementMapping {
   static final String groupElement = '$_kAttr${_wrapValue("group")}';
   static final String containerElement = '$_kAttr${_wrapValue("container")}';
   static final String backgroundElement = '$_kAttr${_wrapValue("background")}';
-  static final String unimplementElement = '$_kAttr${_wrapValue("unimplemented")}';
+  static final String unimplementedElement = '$_kAttr${_wrapValue("unimplemented")}';
   static final String textAligner = '$_kAttr${_wrapValue("text-aligner")}';
   static final String elementCanvas = '$_kAttr${_wrapValue("element-canvas")}';
-
+  static final String horizontalLayoutContainer = '$_kAttr${_wrapValue("horizontal-layout-container")}';
+  static final String verticalLayoutContainer = '$_kAttr${_wrapValue("vertical-layout-container")}';
 }

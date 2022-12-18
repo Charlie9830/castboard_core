@@ -80,4 +80,23 @@ class GroupElementModel extends LayoutElementChild
         ..addAll(children),
     );
   }
+
+  @override
+  LayoutElementChild copyWithUpdatedParentId(ElementRef parentId) {
+    return copyWithNewChildrenCollection(
+        Map<ElementRef, LayoutElementModel>.fromEntries(
+            children.values.map((element) {
+      if (element.child is MultiChildElementModel) {
+        final child = element.child as MultiChildElementModel;
+        final newId = ElementRef.fromParent(parentId, element.uid.lastSegment);
+
+        return MapEntry(newId,
+            element.copyWith(child: child.copyWithUpdatedParentId(newId)));
+      } else {
+        // Standard Child.
+        final newId = ElementRef.fromParent(parentId, element.uid.lastSegment);
+        return MapEntry(newId, element.copyWith(uid: newId));
+      }
+    })));
+  }
 }

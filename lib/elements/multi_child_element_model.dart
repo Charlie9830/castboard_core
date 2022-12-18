@@ -20,4 +20,6 @@ abstract class MultiChildElementModel {
   );
 
   MultiChildElementModel(this.children);
+
+  LayoutElementChild copyWithUpdatedParentId(ElementRef parentId);
 }

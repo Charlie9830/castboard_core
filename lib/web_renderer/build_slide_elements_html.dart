@@ -5,6 +5,7 @@ import 'package:castboard_core/elements/ContainerElementModel.dart';
 import 'package:castboard_core/elements/ImageElementModel.dart';
 import 'package:castboard_core/elements/ShapeElementModel.dart';
 import 'package:castboard_core/utils/get_fitted_render_scale.dart';
+import 'package:castboard_core/web_renderer/dom_element_factory.dart';
 import 'package:castboard_core/web_renderer/html_element_mapping.dart';
 import 'package:castboard_core/enums.dart';
 import 'package:castboard_core/elements/GroupElementModel.dart';
@@ -64,17 +65,29 @@ String _buildElement({
   Map<TrackRef, TrackModel> tracks = const {},
   bool ignorePosition = false,
 }) {
-  return '''
-  <div style="
+  final domElement = DomElementFactory.buildDiv(style: '''
   position: ${ignorePosition ? 'relative' : 'absolute'};
-  left: ${ignorePosition ? 0 : element.xPos}px;
-  top: ${ignorePosition ? 0 : element.yPos}px;
+  left: ${_computeAbsoluteLeftOffset(element, ignorePosition)};
+  top: ${_computeAbsoluteTopOffset(element, ignorePosition)};
   width: ${element.width}px;
   height: ${element.height}px;
-  transform: rotate(${element.rotation}rad);">
-              ${_buildChild(urlPrefix: urlPrefix, element: element.child, parent: element, trackRefsByName: trackRefsByName, actors: actors, castChange: castChange, tracks: tracks)}
-            </div>
-''';
+  transform: rotate(${element.rotation}rad);
+''');
+
+  domElement.append(
+    dom.Element.html(
+      _buildChild(
+          urlPrefix: urlPrefix,
+          element: element.child,
+          parent: element,
+          trackRefsByName: trackRefsByName,
+          actors: actors,
+          castChange: castChange,
+          tracks: tracks),
+    ),
+  );
+
+  return domElement.outerHtml;
 }
 
 String _buildChild({
@@ -99,7 +112,7 @@ String _buildChild({
         .join('\n');
 
     return '''
-    <div ${HTMLElementMapping.groupElement}>
+    <div ${HTMLElementMapping.groupElement} style="position: relative">
       $innerHtml
     </div>
 ''';
@@ -143,6 +156,7 @@ String _buildChild({
         crossAxisAlignment: element.crossAxisAlignment,
         runAlignment: element.runAlignment,
         wrapEnabled: element.wrapEnabled,
+        runLoading: element.runLoading,
         axis: element.axis,
         children: children);
   }
@@ -375,6 +389,7 @@ String _buildContainerElement({
   required CrossAxisAlignment crossAxisAlignment,
   required WrapAlignment runAlignment,
   required bool wrapEnabled,
+  required ContainerRunLoading runLoading,
   required Axis axis,
   required List<List<String>> children,
 }) {
@@ -383,27 +398,41 @@ String _buildContainerElement({
       return _buildHorizontalContainer(
           mainAxisAlignment: mainAxisAlignment,
           crossAxisAlignment: crossAxisAlignment,
+          runLoading: runLoading,
           children: children.expand((i) => i).toList());
     } else {
       return _buildVerticalContainer(
           mainAxisAlignment: mainAxisAlignment,
           crossAxisAlignment: crossAxisAlignment,
+          runLoading: runLoading,
           children: children.expand((i) => i).toList());
     }
   }
 
   if (axis == Axis.horizontal) {
+    // Horizontal Container
     return '''
   <div ${HTMLElementMapping.containerElement}
-  style="width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: ${convertRunAlignmentToJustifyContent(runAlignment)}">
-    ${children.map((run) => _buildHorizontalContainer(mainAxisAlignment: mainAxisAlignment, crossAxisAlignment: crossAxisAlignment, children: run)).join('\n')}
+  style="width: 100%; height: 100%; display: flex; flex-direction: ${runLoading == ContainerRunLoading.topOrLeftHeavy ? 'column' : 'column-reverse'}; justify-content: ${convertRunAlignmentToJustifyContent(runAlignment)}">
+    ${children.map((run) => _buildHorizontalContainer(
+              mainAxisAlignment: mainAxisAlignment,
+              crossAxisAlignment: crossAxisAlignment,
+              runLoading: runLoading,
+              children: run,
+            )).join('\n')}
   </div>
 ''';
   } else {
+    // Vertical Container
     return '''
   <div ${HTMLElementMapping.containerElement}
-  style="width: 100%; height: 100%; display: flex; flex-direction: row; justify-content: ${convertRunAlignmentToJustifyContent(runAlignment)}">
-    ${children.map((run) => _buildVerticalContainer(mainAxisAlignment: mainAxisAlignment, crossAxisAlignment: crossAxisAlignment, children: run)).join('\n')}
+  style="width: 100%; height: 100%; display: flex; flex-direction: ${runLoading == ContainerRunLoading.topOrLeftHeavy ? 'row' : 'row-reverse'}; justify-content: ${convertRunAlignmentToJustifyContent(runAlignment)}">
+    ${children.map((run) => _buildVerticalContainer(
+              mainAxisAlignment: mainAxisAlignment,
+              crossAxisAlignment: crossAxisAlignment,
+              runLoading: runLoading,
+              children: run,
+            )).join('\n')}
   </div>
 ''';
   }
@@ -412,6 +441,7 @@ String _buildContainerElement({
 String _buildHorizontalContainer(
     {required MainAxisAlignment mainAxisAlignment,
     required CrossAxisAlignment crossAxisAlignment,
+    required ContainerRunLoading runLoading,
     required List<String> children}) {
   // Build the children using a dom.Element otherwise we get weird HTML behaviour.
   final runChildren = children.map((item) => dom.Element.html(item).outerHtml);
@@ -422,7 +452,7 @@ String _buildHorizontalContainer(
   width: 100%;
   height: 100%;
   display: flex;
-  flex-direction: row;
+  flex-direction: ${runLoading == ContainerRunLoading.bottomOrRightHeavy ? 'row-reverse' : 'row'};
   justify-content: ${convertToJustifyContent(mainAxisAlignment)};
   align-items: ${convertToAlignItems(crossAxisAlignment)};
   ">
@@ -434,6 +464,7 @@ String _buildHorizontalContainer(
 String _buildVerticalContainer(
     {required MainAxisAlignment mainAxisAlignment,
     required CrossAxisAlignment crossAxisAlignment,
+    required ContainerRunLoading runLoading,
     required List<String> children}) {
   // Build the children using a dom.Element otherwise we get weird HTML behaviour.
   final runChildren = children.map((item) => dom.Element.html(item).outerHtml);
@@ -444,7 +475,7 @@ String _buildVerticalContainer(
   width: 100%;
   height: 100%;
   display: flex;
-  flex-direction: column;
+  flex-direction: ${runLoading == ContainerRunLoading.bottomOrRightHeavy ? 'column-reverse' : 'column'};
   justify-content: ${convertToJustifyContent(mainAxisAlignment)};
   align-items: ${convertToAlignItems(crossAxisAlignment)};
   ">
@@ -459,4 +490,38 @@ double _smallerOf(double a, double b) {
   } else {
     return a;
   }
+}
+
+String _computeAbsoluteLeftOffset(
+    LayoutElementModel element, bool ignorePosition) {
+  if (ignorePosition) {
+    return '0px';
+  }
+
+  if (element.child is ShapeElementModel) {
+    // CSS Applies the border and overflows it over the Right and bottom edges, as opposed to Flutter that applies it to all
+    // sides equally. Therefore we need to adjust the final position of the shape if it has a lineweight value.
+    final lineWeight = (element.child as ShapeElementModel).lineWeight;
+
+    return '${element.xPos - lineWeight}px';
+  }
+
+  return '${element.xPos}px';
+}
+
+String _computeAbsoluteTopOffset(
+    LayoutElementModel element, bool ignorePosition) {
+  if (ignorePosition) {
+    return '0px';
+  }
+
+  if (element.child is ShapeElementModel) {
+    // CSS Applies the border and overflows it over the Right and bottom edges, as opposed to Flutter that applies it to all
+    // sides equally. Therefore we need to adjust the final position of the shape if it has a lineweight value.
+    final lineWeight = (element.child as ShapeElementModel).lineWeight;
+
+    return '${element.yPos - lineWeight}px';
+  }
+
+  return '${element.yPos}px';
 }

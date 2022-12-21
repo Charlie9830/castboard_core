@@ -29,6 +29,17 @@ class ManifestModel {
     this.isDemoShow = false,
   });
 
+  const ManifestModel.blank()
+      : validationKey = '',
+        showId = '',
+        fileName = '',
+        created = '',
+        modified = '',
+        createdByVersion = '',
+        fileVersion = 1,
+        requiredFonts = const [],
+        isDemoShow = false;
+
   Map<String, dynamic> toMap() {
     return {
       'validationKey': kManifestModelValidationKeyValue,

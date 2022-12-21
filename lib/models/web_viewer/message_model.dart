@@ -4,6 +4,7 @@ enum MessageType {
   unknown,
   payload,
   slideIndex,
+  noShow,
 }
 
 class MessageModel {
@@ -41,6 +42,8 @@ MessageType _parseMessageType(String? messageType) {
       return MessageType.payload;
     case 'slideIndex':
       return MessageType.slideIndex;
+    case 'noShow':
+      return MessageType.noShow;
   }
 
   return MessageType.unknown;

@@ -67,10 +67,10 @@ String _buildElement({
 }) {
   final domElement = DomElementFactory.buildDiv(style: '''
   position: ${ignorePosition ? 'relative' : 'absolute'};
-  left: ${_computeAbsoluteLeftOffset(element, ignorePosition)};
-  top: ${_computeAbsoluteTopOffset(element, ignorePosition)};
-  width: ${element.width}px;
-  height: ${element.height}px;
+  left: ${ignorePosition ? 0 : element.xPos}px;
+  top: ${ignorePosition ? 0 : element.yPos}px;
+  width: ${_computeAbsoluteWidth(element)};
+  height: ${_computeAbsoluteHeight(element)};
   transform: rotate(${element.rotation}rad);
 ''');
 
@@ -492,36 +492,26 @@ double _smallerOf(double a, double b) {
   }
 }
 
-String _computeAbsoluteLeftOffset(
-    LayoutElementModel element, bool ignorePosition) {
-  if (ignorePosition) {
-    return '0px';
-  }
-
+String _computeAbsoluteWidth(LayoutElementModel element) {
   if (element.child is ShapeElementModel) {
     // CSS Applies the border and overflows it over the Right and bottom edges, as opposed to Flutter that applies it to all
     // sides equally. Therefore we need to adjust the final position of the shape if it has a lineweight value.
     final lineWeight = (element.child as ShapeElementModel).lineWeight;
 
-    return '${element.xPos - lineWeight}px';
+    return '${element.width - (lineWeight * 2)}px';
   }
 
-  return '${element.xPos}px';
+  return '${element.width}px';
 }
 
-String _computeAbsoluteTopOffset(
-    LayoutElementModel element, bool ignorePosition) {
-  if (ignorePosition) {
-    return '0px';
-  }
-
+String _computeAbsoluteHeight(LayoutElementModel element) {
   if (element.child is ShapeElementModel) {
     // CSS Applies the border and overflows it over the Right and bottom edges, as opposed to Flutter that applies it to all
     // sides equally. Therefore we need to adjust the final position of the shape if it has a lineweight value.
     final lineWeight = (element.child as ShapeElementModel).lineWeight;
 
-    return '${element.yPos - lineWeight}px';
+    return '${element.height - (lineWeight * 2)}px';
   }
 
-  return '${element.yPos}px';
+  return '${element.height}px';
 }

@@ -23,8 +23,7 @@ class Player extends StatelessWidget {
   final CastChangeModel displayedCastChange;
   final String currentSlideId;
   final String nextSlideId;
-  final SlideSizeModel slideSize;
-  final SlideOrientation slideOrientation;
+  final Size actualSlideSize;
   final bool playing;
   final bool offstageUpcomingSlides;
   final Size? sizeOverride;
@@ -39,8 +38,7 @@ class Player extends StatelessWidget {
     required this.trackRefsByName,
     required this.displayedCastChange,
     required this.currentSlideId,
-    required this.slideSize,
-    required this.slideOrientation,
+    required this.actualSlideSize,
     required this.nextSlideId,
     this.renderScaleOverride,
     this.sizeOverride,
@@ -56,8 +54,7 @@ class Player extends StatelessWidget {
     }
 
     // Calculate the playing area.
-    final actualSlideSize =
-        sizeOverride ?? _getDesiredSlideSize(slideSize, slideOrientation);
+    final concreteSlideSize = sizeOverride ?? actualSlideSize;
 
     final windowSize = sizeOverride ?? _getWindowSize(context);
 
@@ -73,7 +70,7 @@ class Player extends StatelessWidget {
     double renderScale = 1.0;
 
     if (sizeOverride == null) {
-      renderScale = getFittedRenderScale(windowSize, actualSlideSize);
+      renderScale = getFittedRenderScale(windowSize, concreteSlideSize);
     } else {
       renderScale =
           renderScaleOverride!; // Null safety protected by the assert statement.
@@ -85,7 +82,7 @@ class Player extends StatelessWidget {
         // Primary Viewport.
         buildSlideViewport(
             slide: slides[currentSlideId]!,
-            actualSlideSize: actualSlideSize,
+            actualSlideSize: concreteSlideSize,
             renderScale: renderScale),
         // Offstaged Viewport, preRenders the next Slide.
         if (slides[nextSlideId] != null && offstageUpcomingSlides == true)
@@ -93,7 +90,7 @@ class Player extends StatelessWidget {
             offstage: true,
             child: buildSlideViewport(
               slide: slides[nextSlideId]!,
-              actualSlideSize: actualSlideSize,
+              actualSlideSize: concreteSlideSize,
               renderScale: renderScale,
             ),
           ),
@@ -174,11 +171,6 @@ class Player extends StatelessWidget {
         renderScale: renderScale,
       ),
     );
-  }
-
-  Size _getDesiredSlideSize(
-      SlideSizeModel slideSize, SlideOrientation orientation) {
-    return slideSize.orientated(orientation).toSize();
   }
 
   Size _getWindowSize(BuildContext context) {

@@ -35,8 +35,8 @@ class UnderstudySlidesPayloadModel {
       slides: List<UnderstudySlideModel>.from(
           map['slides']?.map((x) => UnderstudySlideModel.fromMap(x))),
       fontManifest: UnderstudyFontManifest.fromMap(map['fontManifest']),
-      width: int.tryParse(map['width']) ?? 1920,
-      height: int.tryParse(map['height']) ?? 1080,
+      width: map['width'] ?? 1920,
+      height: map['height'] ?? 1080,
     );
   }
 

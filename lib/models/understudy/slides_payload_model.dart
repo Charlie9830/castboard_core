@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:castboard_core/models/web_viewer/web_viewer_font_manifest.dart';
+import 'package:castboard_core/models/understudy/web_viewer_font_manifest.dart';
 
 import 'html_slide_model.dart';
 

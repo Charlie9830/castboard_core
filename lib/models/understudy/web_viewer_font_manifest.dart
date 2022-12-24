@@ -2,7 +2,7 @@ import 'dart:convert';
 
 import 'package:castboard_core/classes/BuiltInFonts.dart';
 import 'package:castboard_core/models/FontModel.dart';
-import 'package:castboard_core/models/web_viewer/web_viewer_font.dart';
+import 'package:castboard_core/models/understudy/web_viewer_font.dart';
 import 'package:collection/collection.dart';
 
 class WebViewerFontManifest {

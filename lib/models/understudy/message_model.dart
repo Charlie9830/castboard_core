@@ -1,17 +1,17 @@
 import 'dart:convert';
 
-enum MessageType {
+enum UnderstudyMessageType {
   unknown,
   payload,
   slideIndex,
   noShow,
 }
 
-class MessageModel {
-  final MessageType type;
+class UnderstudyMessageModel {
+  final UnderstudyMessageType type;
   final String payload;
 
-  MessageModel({
+  UnderstudyMessageModel({
     required this.type,
     required this.payload,
   });
@@ -23,8 +23,8 @@ class MessageModel {
     };
   }
 
-  factory MessageModel.fromMap(Map<String, dynamic> map) {
-    return MessageModel(
+  factory UnderstudyMessageModel.fromMap(Map<String, dynamic> map) {
+    return UnderstudyMessageModel(
       type: _parseMessageType(map['type']),
       payload: map['payload'] ?? '',
     );
@@ -32,19 +32,19 @@ class MessageModel {
 
   String toJson() => json.encode(toMap());
 
-  factory MessageModel.fromJson(String source) =>
-      MessageModel.fromMap(json.decode(source));
+  factory UnderstudyMessageModel.fromJson(String source) =>
+      UnderstudyMessageModel.fromMap(json.decode(source));
 }
 
-MessageType _parseMessageType(String? messageType) {
+UnderstudyMessageType _parseMessageType(String? messageType) {
   switch (messageType) {
     case 'payload':
-      return MessageType.payload;
+      return UnderstudyMessageType.payload;
     case 'slideIndex':
-      return MessageType.slideIndex;
+      return UnderstudyMessageType.slideIndex;
     case 'noShow':
-      return MessageType.noShow;
+      return UnderstudyMessageType.noShow;
   }
 
-  return MessageType.unknown;
+  return UnderstudyMessageType.unknown;
 }

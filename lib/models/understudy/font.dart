@@ -1,11 +1,11 @@
 import 'dart:convert';
 
-class WebViewerFont {
+class UnderstudyFont {
   final String familyName;
   final bool isBuiltIn;
   final String source;
 
-  WebViewerFont({
+  UnderstudyFont({
     required this.familyName,
     required this.isBuiltIn,
     required this.source,
@@ -19,8 +19,8 @@ class WebViewerFont {
     };
   }
 
-  factory WebViewerFont.fromMap(Map<String, dynamic> map) {
-    return WebViewerFont(
+  factory UnderstudyFont.fromMap(Map<String, dynamic> map) {
+    return UnderstudyFont(
       familyName: map['familyName'] ?? '',
       isBuiltIn: map['isBuiltIn'] ?? false,
       source: map['source'] ?? '',
@@ -29,6 +29,6 @@ class WebViewerFont {
 
   String toJson() => json.encode(toMap());
 
-  factory WebViewerFont.fromJson(String source) =>
-      WebViewerFont.fromMap(json.decode(source));
+  factory UnderstudyFont.fromJson(String source) =>
+      UnderstudyFont.fromMap(json.decode(source));
 }

@@ -1,18 +1,22 @@
 import 'dart:convert';
 
-import 'package:castboard_core/models/understudy/web_viewer_font_manifest.dart';
+import 'package:castboard_core/models/understudy/font_manifest.dart';
 
-import 'html_slide_model.dart';
+import 'slide_model.dart';
 
-class SlidesPayloadModel {
+class UnderstudySlidesPayloadModel {
   final int currentSlideIndex;
-  final List<HTMLSlideModel> slides;
-  final WebViewerFontManifest fontManifest;
+  final List<UnderstudySlideModel> slides;
+  final UnderstudyFontManifest fontManifest;
+  final int width;
+  final int height;
 
-  SlidesPayloadModel({
+  UnderstudySlidesPayloadModel({
     required this.currentSlideIndex,
     required this.slides,
     required this.fontManifest,
+    required this.width,
+    required this.height,
   });
 
   Map<String, dynamic> toMap() {
@@ -20,20 +24,24 @@ class SlidesPayloadModel {
       'currentSlideIndex': currentSlideIndex,
       'slides': slides.map((x) => x.toMap()).toList(),
       'fontManifest': fontManifest.toMap(),
+      'width': width,
+      'height': height,
     };
   }
 
-  factory SlidesPayloadModel.fromMap(Map<String, dynamic> map) {
-    return SlidesPayloadModel(
+  factory UnderstudySlidesPayloadModel.fromMap(Map<String, dynamic> map) {
+    return UnderstudySlidesPayloadModel(
       currentSlideIndex: map['currentSlideIndex']?.toInt() ?? 0,
-      slides: List<HTMLSlideModel>.from(
-          map['slides']?.map((x) => HTMLSlideModel.fromMap(x))),
-      fontManifest: WebViewerFontManifest.fromMap(map['fontManifest']),
+      slides: List<UnderstudySlideModel>.from(
+          map['slides']?.map((x) => UnderstudySlideModel.fromMap(x))),
+      fontManifest: UnderstudyFontManifest.fromMap(map['fontManifest']),
+      width: int.tryParse(map['width']) ?? 1920,
+      height: int.tryParse(map['height']) ?? 1080,
     );
   }
 
   String toJson() => json.encode(toMap());
 
-  factory SlidesPayloadModel.fromJson(String source) =>
-      SlidesPayloadModel.fromMap(json.decode(source));
+  factory UnderstudySlidesPayloadModel.fromJson(String source) =>
+      UnderstudySlidesPayloadModel.fromMap(json.decode(source));
 }

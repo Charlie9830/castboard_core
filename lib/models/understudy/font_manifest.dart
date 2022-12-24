@@ -2,25 +2,25 @@ import 'dart:convert';
 
 import 'package:castboard_core/classes/BuiltInFonts.dart';
 import 'package:castboard_core/models/FontModel.dart';
-import 'package:castboard_core/models/understudy/web_viewer_font.dart';
+import 'package:castboard_core/models/understudy/font.dart';
 import 'package:collection/collection.dart';
 
-class WebViewerFontManifest {
-  final List<WebViewerFont> fonts;
+class UnderstudyFontManifest {
+  final List<UnderstudyFont> fonts;
 
-  WebViewerFontManifest({
+  UnderstudyFontManifest({
     required this.fonts,
   });
 
-  factory WebViewerFontManifest.fromList(
+  factory UnderstudyFontManifest.fromList(
       {required List<String> requiredFontFamilies,
       required List<FontModel> customFonts,
       required String urlPrefix}) {
-    return WebViewerFontManifest(
+    return UnderstudyFontManifest(
         fonts: requiredFontFamilies.map((family) {
       if (BuiltInFonts.lookup(family) == true) {
         // Built in Font.
-        return WebViewerFont(
+        return UnderstudyFont(
             familyName: family,
             source: Uri.encodeFull('$urlPrefix/fonts/builtin/$family'),
             isBuiltIn: true);
@@ -32,13 +32,13 @@ class WebViewerFontManifest {
         // An element may reference a custom font that isn't loaded. So be careful about
         // using it.
         if (customFont == null) {
-          return WebViewerFont(
+          return UnderstudyFont(
               familyName: 'unknown',
               source: '/fonts/unknown',
               isBuiltIn: false);
         }
 
-        return WebViewerFont(
+        return UnderstudyFont(
             familyName: family,
             source: Uri.encodeFull(
                 '$urlPrefix/fonts/custom/${customFont.ref.basename}'),
@@ -53,15 +53,15 @@ class WebViewerFontManifest {
     };
   }
 
-  factory WebViewerFontManifest.fromMap(Map<String, dynamic> map) {
-    return WebViewerFontManifest(
-      fonts: List<WebViewerFont>.from(
-          map['fonts']?.map((x) => WebViewerFont.fromMap(x))),
+  factory UnderstudyFontManifest.fromMap(Map<String, dynamic> map) {
+    return UnderstudyFontManifest(
+      fonts: List<UnderstudyFont>.from(
+          map['fonts']?.map((x) => UnderstudyFont.fromMap(x))),
     );
   }
 
   String toJson() => json.encode(toMap());
 
-  factory WebViewerFontManifest.fromJson(String source) =>
-      WebViewerFontManifest.fromMap(json.decode(source));
+  factory UnderstudyFontManifest.fromJson(String source) =>
+      UnderstudyFontManifest.fromMap(json.decode(source));
 }

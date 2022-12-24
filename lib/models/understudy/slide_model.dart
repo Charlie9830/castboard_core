@@ -1,10 +1,10 @@
 import 'dart:convert';
 
-class HTMLSlideModel {
+class UnderstudySlideModel {
   final double holdTime;
   final String html;
 
-  HTMLSlideModel({
+  UnderstudySlideModel({
     required this.holdTime,
     required this.html,
   });
@@ -16,8 +16,8 @@ class HTMLSlideModel {
     };
   }
 
-  factory HTMLSlideModel.fromMap(Map<String, dynamic> map) {
-    return HTMLSlideModel(
+  factory UnderstudySlideModel.fromMap(Map<String, dynamic> map) {
+    return UnderstudySlideModel(
       holdTime: map['holdTime']?.toDouble() ?? 5.0,
       html: map['html'] ?? '',
     );
@@ -25,6 +25,6 @@ class HTMLSlideModel {
 
   String toJson() => json.encode(toMap());
 
-  factory HTMLSlideModel.fromJson(String source) =>
-      HTMLSlideModel.fromMap(json.decode(source));
+  factory UnderstudySlideModel.fromJson(String source) =>
+      UnderstudySlideModel.fromMap(json.decode(source));
 }

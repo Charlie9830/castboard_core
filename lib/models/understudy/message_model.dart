@@ -5,6 +5,7 @@ enum UnderstudyMessageType {
   payload,
   slideIndex,
   noShow,
+  clientId,
 }
 
 class UnderstudyMessageModel {
@@ -44,6 +45,8 @@ UnderstudyMessageType _parseMessageType(String? messageType) {
       return UnderstudyMessageType.slideIndex;
     case 'noShow':
       return UnderstudyMessageType.noShow;
+    case 'clientId':
+      return UnderstudyMessageType.clientId;
   }
 
   return UnderstudyMessageType.unknown;

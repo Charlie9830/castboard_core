@@ -104,7 +104,7 @@ class Storage {
                   editorStorageRootDirName))
               .create()
           : await Directory(p.join(
-                  (await getApplicationsDocumentDirectoryShim()).path,
+                  (await getApplicationSupportDirectoryShim()).path,
                   performerStorageRootDirName))
               .create();
     } catch (e, stacktrace) {
@@ -153,6 +153,10 @@ class Storage {
 
     LoggingManager.instance.storage
         .info("Storage initialization completed succesfully");
+  }
+
+  File getPerformerSettingsFile() {
+    return _appStoragePaths.performerSettingsFile;
   }
 
   File getPackageUpdateStatusFile() {

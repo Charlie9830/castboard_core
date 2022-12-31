@@ -11,7 +11,7 @@ class PerformerDeviceModel {
   final String ipAddress;
   final int port;
   final PerformerConnectivityState connectivityState;
-  final String deviceName;
+  final String deviceName = 'Performer';
   final String showName;
   final String softwareVersion;
   final Set<String> discoveryMethods;
@@ -20,7 +20,6 @@ class PerformerDeviceModel {
     required this.ipAddress,
     required this.port,
     required this.connectivityState,
-    required this.deviceName,
     required this.showName,
     required this.softwareVersion,
     required this.discoveryMethods,
@@ -31,13 +30,11 @@ class PerformerDeviceModel {
     required this.port,
     required this.discoveryMethods,
   })  : connectivityState = PerformerConnectivityState.partial,
-        deviceName = '',
         showName = '',
         softwareVersion = '';
 
   /// Fills out only [deviceName], [showName] and [softwareVersion]. All other values are throwaways.
   PerformerDeviceModel.detailsOnly({
-    required this.deviceName,
     required this.showName,
     required this.softwareVersion,
   })  : connectivityState = PerformerConnectivityState.partial,
@@ -64,7 +61,6 @@ class PerformerDeviceModel {
       port: map['port']?.toInt() ?? 0,
       connectivityState:
           parsePerformerConnectivityState(map['connectivityState']),
-      deviceName: map['deviceName'] ?? '',
       showName: map['showName'] ?? '',
       softwareVersion: map['softwareVersion'] ?? '',
       discoveryMethods: discoveryMethods,
@@ -90,7 +86,6 @@ class PerformerDeviceModel {
         ipAddress: ipAddress ?? this.ipAddress,
         port: port ?? this.port,
         connectivityState: connectivityState ?? this.connectivityState,
-        deviceName: deviceName ?? this.deviceName,
         showName: showName ?? this.showName,
         softwareVersion: softwareVersion ?? this.softwareVersion,
         discoveryMethods: discoveryMethods == null

@@ -177,7 +177,7 @@ class DragBoxLayer extends StatelessWidget {
         child: IgnorePointer(
           ignoring: blockId == openElementId,
           child: MouseRegion(
-            cursor: blockId == openElementId
+            cursor: blockId == openElementId || interactive == false
                 ? MouseCursor.defer
                 : SystemMouseCursors.move,
             child: Transform(

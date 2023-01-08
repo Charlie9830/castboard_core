@@ -150,11 +150,12 @@ class ContainerElementState extends State<ContainerElement> {
             : item.size.height;
 
     // Use the 'Minimum Raggedness Divide and Conquer' algorithm to determine how to layout each item into run.
+    final maxAvailableLength = widget.axis == Axis.horizontal
+        ? constraints.maxWidth / renderScale
+        : constraints.maxHeight;
+
     final layoutIndexes = MinimumRaggedness.divide(
-        items.map((item) => getItemLength(item) * renderScale).toList(),
-        widget.axis == Axis.horizontal
-            ? constraints.maxWidth
-            : constraints.maxHeight);
+        items.map((item) => getItemLength(item)).toList(), maxAvailableLength);
 
     // Take the List<List<int>> type returned by the layout algorithm and convert that to widgets.
     List<List<Widget>> children = layoutIndexes

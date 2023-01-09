@@ -51,7 +51,7 @@ import 'package:castboard_core/storage/StorageException.dart';
 import 'package:path/path.dart' as p;
 
 // Storage root names
-const editorStorageRootDirName = "com.charliehall.castboard-designer";
+const designerStorageRootDirName = "com.charliehall.castboard-designer";
 const performerStorageRootDirName = "com.charliehall.castboard-performer";
 
 // Staging Directory Base Name.
@@ -101,7 +101,7 @@ class Storage {
     try {
       rootDir = mode == StorageMode.editor
           ? await Directory(p.join((await getTemporaryDirectoryShim()).path,
-                  editorStorageRootDirName))
+                  designerStorageRootDirName))
               .create()
           : await Directory(p.join(
                   (await getApplicationSupportDirectoryShim()).path,

@@ -17,7 +17,7 @@ class AppStoragePaths {
   late File backupStatus;
   late File backupFile;
   late File lastDesignerExportSettingsFile;
-  late File updateStatusFile;
+  late File updateStatusFile; // Used for both Designer and Performer.
   late File performerSettingsFile;
 
   AppStoragePaths(String rootPath) {

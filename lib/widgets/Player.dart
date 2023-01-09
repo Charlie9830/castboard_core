@@ -76,27 +76,30 @@ class Player extends StatelessWidget {
           renderScaleOverride!; // Null safety protected by the assert statement.
     }
 
-    return Stack(
-      fit: StackFit.passthrough,
-      children: [
-        // Primary Viewport.
-        buildSlideViewport(
-            slide: slides[currentSlideId]!,
-            actualSlideSize: concreteSlideSize,
-            renderScale: renderScale),
-        // Offstaged Viewport, preRenders the next Slide.
-        if (slides[nextSlideId] != null && offstageUpcomingSlides == true)
-          Offstage(
-            offstage: true,
-            child: buildSlideViewport(
-              slide: slides[nextSlideId]!,
+    return DefaultTextStyle(
+      style: Theme.of(context).textTheme.bodyMedium!, // Provides a DefaultTextStyle without having to use a Scaffold. Ensures Text Underlines render correctly.
+      child: Stack(
+        fit: StackFit.passthrough,
+        children: [
+          // Primary Viewport.
+          buildSlideViewport(
+              slide: slides[currentSlideId]!,
               actualSlideSize: concreteSlideSize,
-              renderScale: renderScale,
+              renderScale: renderScale),
+          // Offstaged Viewport, preRenders the next Slide.
+          if (slides[nextSlideId] != null && offstageUpcomingSlides == true)
+            Offstage(
+              offstage: true,
+              child: buildSlideViewport(
+                slide: slides[nextSlideId]!,
+                actualSlideSize: concreteSlideSize,
+                renderScale: renderScale,
+              ),
             ),
-          ),
-        _buildPauseIndicator(renderScale),
-        if (showDemoIndicator) _buildDemoIndicator(context, renderScale)
-      ],
+          _buildPauseIndicator(renderScale),
+          if (showDemoIndicator) _buildDemoIndicator(context, renderScale)
+        ],
+      ),
     );
   }
 

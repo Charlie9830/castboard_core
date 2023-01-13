@@ -8,12 +8,14 @@ class RemoteShowData {
   final ShowModificationData? showModificationData;
   final PlaybackStateData playbackState;
   final ManifestModel? manifest;
+  final bool softwareUpdateReady;
 
   RemoteShowData({
     required this.showData,
     required this.playbackState,
     this.manifest,
     this.showModificationData,
+    this.softwareUpdateReady = false,
   });
 
   Map<String, dynamic> toMap() {
@@ -23,18 +25,19 @@ class RemoteShowData {
       'showModificationData': showModificationData?.toMap() ??
           ShowModificationData.initial().toMap(),
       'manifest': manifest?.toMap(),
+      'softwareUpdateReady': softwareUpdateReady,
     };
   }
 
   factory RemoteShowData.fromMap(Map<String, dynamic> map) {
     return RemoteShowData(
-      showData: ShowDataModel.fromMap(map['showData']),
-      playbackState: PlaybackStateData.fromMap(map['playbackState']),
-      showModificationData:
-          ShowModificationData.fromMap(map['showModificationData']),
-      manifest: map['manifest'] != null
-          ? ManifestModel.fromMap(map['manifest'])
-          : null,
-    );
+        showData: ShowDataModel.fromMap(map['showData']),
+        playbackState: PlaybackStateData.fromMap(map['playbackState']),
+        showModificationData:
+            ShowModificationData.fromMap(map['showModificationData']),
+        manifest: map['manifest'] != null
+            ? ManifestModel.fromMap(map['manifest'])
+            : null,
+        softwareUpdateReady: map['softwareUpdateReady']);
   }
 }

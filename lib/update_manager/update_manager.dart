@@ -102,7 +102,7 @@ class UpdateManager {
       // Convert the Status file Version string to a Version object for comparison.
       final statusVersion = Version.parse(versionString);
 
-      // Conver the current running version string to a Version object for comparison.
+      // Convert the current running version string to a Version object for comparison.
       final runningVersion = Version.parse(currentVersion);
 
       // Compare the version objects. If they resolve as the same, then we have succesfully updated to the version recorded in the update status file.
@@ -135,6 +135,7 @@ class UpdateManager {
   }
 
   Future<UpdateCheckResult> checkForUpdates() async {
+    return UpdateCheckResult(status: UpdateStatus.readyToInstall);
     // First check if we have any already downloaded packages ready to go. If we do,
     // We will keep it in our pocket as a Fallback for if we are unable to contact the
     // update server.

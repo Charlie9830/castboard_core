@@ -24,7 +24,7 @@ class LocalUpdatePackageModel {
       '${p.basenameWithoutExtension(path)}.json');
 
   static Version _extractVersionFromFileName(String fileName) {
-    // File name will be of the schema Castboard_Designer_{Platform}_{Major}_{Minor}_{Patch}.
+    // File name will be of the schema Castboard_Designer|Performer_{Platform}_{Major}_{Minor}_{Patch}.
     final regex = RegExp(r'(_\d+)');
 
     final matches = regex.allMatches(fileName).toList();

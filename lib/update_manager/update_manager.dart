@@ -135,7 +135,6 @@ class UpdateManager {
   }
 
   Future<UpdateCheckResult> checkForUpdates() async {
-    return UpdateCheckResult(status: UpdateStatus.readyToInstall);
     // First check if we have any already downloaded packages ready to go. If we do,
     // We will keep it in our pocket as a Fallback for if we are unable to contact the
     // update server.
@@ -146,8 +145,6 @@ class UpdateManager {
 
     // Address of the Update Manifest File.
     final manifestAddress = _getManifestAddress();
-
-    print(manifestAddress);
 
     LoggingManager.instance.autoUpdate.info(
         'Checking for software updates from ${manifestAddress.toString()}');

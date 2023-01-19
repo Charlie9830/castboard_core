@@ -63,10 +63,9 @@ class LastDesignerExportSettingsModel {
       compressionRatio: map['compressionRatio']?.toInt() ?? 0,
       overwriteExisting: map['overwriteExisting'] ?? false,
       interpolationType: parseImageInterpolationType(map['interpolationType']),
-      disabledSlideIds:
-          ((map['disabledSlideIds'] ?? <String>[]) as List<dynamic>)
-              .map((item) => item as String)
-              .toSet(),
+      disabledSlideIds: ((map['disabledSlideIds'] ?? []) as List<dynamic>)
+          .whereType<String>()
+          .toSet(),
       clearExisting: map['clearExisting'] ?? false,
     );
   }

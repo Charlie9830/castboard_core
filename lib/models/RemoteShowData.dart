@@ -1,12 +1,12 @@
 import 'package:castboard_core/models/ManifestModel.dart';
-import 'package:castboard_core/models/RemoteCastChangeData.dart';
+import 'package:castboard_core/models/playback_state_model.dart';
 import 'package:castboard_core/models/ShowDataModel.dart';
 import 'package:castboard_core/models/ShowModificationData.dart';
 
 class RemoteShowData {
   final ShowDataModel showData;
   final ShowModificationData? showModificationData;
-  final PlaybackStateData playbackState;
+  final PlaybackStateModel playbackState;
   final ManifestModel? manifest;
   final bool softwareUpdateReady;
 
@@ -32,7 +32,7 @@ class RemoteShowData {
   factory RemoteShowData.fromMap(Map<String, dynamic> map) {
     return RemoteShowData(
         showData: ShowDataModel.fromMap(map['showData']),
-        playbackState: PlaybackStateData.fromMap(map['playbackState']),
+        playbackState: PlaybackStateModel.fromMap(map['playbackState']),
         showModificationData:
             ShowModificationData.fromMap(map['showModificationData']),
         manifest: map['manifest'] != null

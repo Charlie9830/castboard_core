@@ -13,7 +13,7 @@ import 'package:castboard_core/models/ActorRef.dart';
 import 'package:castboard_core/models/FontModel.dart';
 import 'package:castboard_core/models/ManifestModel.dart';
 import 'package:castboard_core/models/PresetModel.dart';
-import 'package:castboard_core/models/RemoteCastChangeData.dart';
+import 'package:castboard_core/models/playback_state_model.dart';
 import 'package:castboard_core/models/SlideSizeModel.dart';
 import 'package:castboard_core/models/TrackIndex.dart';
 import 'package:castboard_core/models/TrackModel.dart';
@@ -530,7 +530,7 @@ class Storage {
 
   Future<bool> updatePerformerShowData({
     required ShowDataModel showData,
-    required PlaybackStateData playbackState,
+    required PlaybackStateModel playbackState,
   }) async {
     LoggingManager.instance.storage.info("Updating Performer show data");
 
@@ -601,8 +601,8 @@ class Storage {
         ? const SlideDataModel()
         : SlideDataModel.fromMap(rawSlideData!);
     final playbackState = rawPlaybackState == null
-        ? const PlaybackStateData.initial()
-        : PlaybackStateData.fromMap(rawPlaybackState!);
+        ? const PlaybackStateModel.initial()
+        : PlaybackStateModel.fromMap(rawPlaybackState!);
 
     final data = ImportedShowData(
         manifest: manifest,
@@ -750,7 +750,7 @@ class Storage {
     required Map<String, SlideModel> slides,
     required SlideOrientation slideOrientation,
     required ManifestModel manifest,
-    PlaybackStateData? playbackState,
+    PlaybackStateModel? playbackState,
     required File targetFile,
   }) async {
     // Flag that we are writing to storage.
@@ -810,7 +810,7 @@ class Storage {
 
   Future<void> _stagePlaybackState(
     File targetFile,
-    PlaybackStateData? playbackState,
+    PlaybackStateModel? playbackState,
   ) async {
     final data = playbackState?.toMap() ?? {};
 

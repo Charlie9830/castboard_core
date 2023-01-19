@@ -16,6 +16,7 @@ import 'package:flutter/material.dart';
 const double _basePauseIndicatorSize = 124;
 
 class Player extends StatelessWidget {
+  final bool noSlides;
   final Map<String, SlideModel> slides;
   final Map<TrackRef, TrackModel> tracks;
   final Map<String, TrackRef> trackRefsByName;
@@ -32,6 +33,7 @@ class Player extends StatelessWidget {
 
   const Player({
     Key? key,
+    this.noSlides = false,
     required this.slides,
     required this.tracks,
     required this.actors,
@@ -49,8 +51,12 @@ class Player extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (slides[currentSlideId] == null) {
-      return const Text('Current Slide is Null');
+    if (noSlides == true) {
+      return const _NoSlidesFallback();
+    }
+
+    if (currentSlideId.isEmpty || slides[currentSlideId] == null) {
+      return const _UnknownErrorFallback();
     }
 
     // Calculate the playing area.
@@ -77,7 +83,9 @@ class Player extends StatelessWidget {
     }
 
     return DefaultTextStyle(
-      style: Theme.of(context).textTheme.bodyMedium!, // Provides a DefaultTextStyle without having to use a Scaffold. Ensures Text Underlines render correctly.
+      style: Theme.of(context)
+          .textTheme
+          .bodyMedium!, // Provides a DefaultTextStyle without having to use a Scaffold. Ensures Text Underlines render correctly.
       child: Stack(
         fit: StackFit.passthrough,
         children: [
@@ -178,5 +186,40 @@ class Player extends StatelessWidget {
 
   Size _getWindowSize(BuildContext context) {
     return MediaQuery.of(context).size;
+  }
+}
+
+class _UnknownErrorFallback extends StatelessWidget {
+  const _UnknownErrorFallback({
+    Key? key,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Icon(Icons.sentiment_dissatisfied, size: 32),
+        ],
+      ),
+    );
+  }
+}
+
+class _NoSlidesFallback extends StatelessWidget {
+  const _NoSlidesFallback({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+        const Icon(Icons.slideshow, size: 32),
+        const SizedBox(
+          height: 16,
+        ),
+        Text('No Slides', style: Theme.of(context).textTheme.headline6),
+      ]),
+    );
   }
 }

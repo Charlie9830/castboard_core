@@ -1,5 +1,6 @@
 import 'package:castboard_core/layout-canvas/element_ref.dart';
 import 'package:castboard_core/models/ColorModel.dart';
+import 'package:castboard_core/models/SlideMetadataModel.dart';
 import 'package:flutter/material.dart';
 
 import 'package:castboard_core/classes/PhotoRef.dart';
@@ -81,6 +82,14 @@ class SlideModel {
       usePreviousBackground: map['usePreviousBackground'] ?? false,
       holdTime: map['holdTime'] ?? 1,
       elements: _mapElements(map['elements']),
+    );
+  }
+
+  SlideMetadataModel toMetadata() {
+    return SlideMetadataModel(
+      slideId: uid,
+      slideName: name,
+      index: index,
     );
   }
 

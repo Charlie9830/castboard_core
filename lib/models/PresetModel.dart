@@ -4,7 +4,7 @@ import 'package:castboard_core/models/CastChangeModel.dart';
 import 'package:castboard_core/models/ColorModel.dart';
 import 'package:flutter/material.dart';
 
-const _defaultBuiltInPresetId = 'DEFAULT-BUILT-IN-PRESET';
+const kdefaultBuiltInPresetId = 'DEFAULT-BUILT-IN-PRESET';
 
 final List<ColorModel> colorTags = [
   ColorModel.fromColor(Colors.black),
@@ -51,7 +51,7 @@ class PresetModel {
   });
 
   const PresetModel.builtIn()
-      : uid = _defaultBuiltInPresetId,
+      : uid = kdefaultBuiltInPresetId,
         name = 'Default',
         details = '',
         castChange = const CastChangeModel.initial(),
@@ -98,7 +98,7 @@ class PresetModel {
     );
   }
 
-  bool get isBuiltIn => uid == _defaultBuiltInPresetId;
+  bool get isBuiltIn => uid == kdefaultBuiltInPresetId;
 
   String toJson() => json.encode(toMap());
 

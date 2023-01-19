@@ -1,4 +1,3 @@
-import 'package:castboard_core/classes/PhotoRef.dart';
 import 'package:castboard_core/elements/background/slide_background.dart';
 import 'package:castboard_core/models/SlideModel.dart';
 

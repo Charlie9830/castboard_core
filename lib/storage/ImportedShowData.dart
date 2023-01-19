@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:castboard_core/models/ActorIndex.dart';
 import 'package:castboard_core/models/ActorRef.dart';
 import 'package:castboard_core/models/ManifestModel.dart';
-import 'package:castboard_core/models/RemoteCastChangeData.dart';
+import 'package:castboard_core/models/playback_state_model.dart';
 import 'package:castboard_core/models/ShowDataModel.dart';
 import 'package:castboard_core/models/TrackIndex.dart';
 import 'package:castboard_core/models/TrackRef.dart';
@@ -16,7 +16,7 @@ class ImportedShowData {
   final ManifestModel manifest;
   final SlideDataModel slideData;
   final ShowDataModel showData;
-  final PlaybackStateData? playbackState;
+  final PlaybackStateModel? playbackState;
 
   ImportedShowData({
     required this.manifest,
@@ -29,7 +29,7 @@ class ImportedShowData {
     ManifestModel? manifest,
     SlideDataModel? slideData,
     ShowDataModel? showData,
-    PlaybackStateData? playbackState,
+    PlaybackStateModel? playbackState,
   }) {
     return ImportedShowData(
       manifest: manifest ?? this.manifest,

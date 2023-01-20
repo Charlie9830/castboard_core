@@ -5,7 +5,7 @@ import 'package:castboard_core/models/TrackIndex.dart';
 import 'package:castboard_core/models/TrackModel.dart';
 import 'package:castboard_core/models/TrackOrIndexViewModel.dart';
 import 'package:castboard_core/models/TrackRef.dart';
-import 'package:castboard_core/utils/isMobile.dart';
+import 'package:castboard_core/utils/is_mobile_layout.dart';
 import 'package:castboard_core/widgets/SearchDropdown.dart';
 import 'package:castboard_core/widgets/cast-change-details/NoTracksOrArtistsFallback.dart';
 import 'package:flutter/material.dart';
@@ -127,14 +127,14 @@ class CastChangeDetails extends StatelessWidget {
           track.ref, actorRef ?? const ActorRef.blank()),
       itemsBuilder: (context) {
         return [
-          if (isMobile(context) == false) ...<SearchDropdownItem>[
+          if (isMobileLayout(context) == false) ...<SearchDropdownItem>[
             _buildUnassignedOption(context),
             _buildTrackCutOption(context),
           ],
           ..._mapActorOptions(context),
         ];
       },
-      specialOptionsBuilder: isMobile(context)
+      specialOptionsBuilder: isMobileLayout(context)
           ? (context, onSelect) {
               return Padding(
                 padding: const EdgeInsets.only(bottom: 8.0, left: 8.0),

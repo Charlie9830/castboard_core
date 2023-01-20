@@ -1,4 +1,5 @@
-import 'package:castboard_core/utils/isMobile.dart';
+import 'package:castboard_core/utils/is_mobile_layout.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -43,7 +44,7 @@ class SearchDropdownState extends State<SearchDropdown> {
   }
 
   void _handleOpen(BuildContext context, SearchDropdownItem? selectedItem) {
-    if (isMobile(context)) {
+    if (isMobileLayout(context)) {
       _handleMobileOpen(context, selectedItem);
     } else {
       _handleDesktopOpen(context, selectedItem);
@@ -92,6 +93,7 @@ class SearchDropdownState extends State<SearchDropdown> {
             value: selectedItem,
             items: widget.itemsBuilder.call(context),
             onChanged: _handleValueChanged,
+            onCloseButtonPressed: () => _handleClose(),
             specialOptions: widget.specialOptionsBuilder
                 ?.call(context, (value) => _handleValueChanged(value)),
           ));
@@ -116,7 +118,7 @@ class SearchDropdownState extends State<SearchDropdown> {
   }
 
   void _handleClose() {
-    if (isMobile(context)) {
+    if (isMobileLayout(context)) {
       Navigator.of(context).pop();
     } else {
       _entry?.remove();
@@ -134,7 +136,6 @@ class SearchDropdownState extends State<SearchDropdown> {
     final renderedWidth = screenWidth - leftOffset;
 
     if (renderedWidth < minimumWidth) {
-      
       // Popup isn't going to comfortably fit.
       return leftOffset - minimumWidth > 0 ? leftOffset - minimumWidth : 0;
     }
@@ -195,22 +196,44 @@ class __SearchDropdownContentState extends State<_SearchDropdownContent> {
 
   // Non Flutter Tracked State.
   bool _initalizing = true;
+  late String _lastTextValue;
+
+  late final _actions;
 
   @override
   void initState() {
+    _actions = {
+      DismissIntent: CallbackAction<DismissIntent>(
+          onInvoke: (intent) => widget.onCloseButtonPressed?.call())
+    };
+
     _controller = TextEditingController()..value = _getFullTextSelection();
+    _lastTextValue = _controller.text;
 
     _controller.addListener(() {
       // Requesting Focus to the textField Triggers this callback. Which messes things up if it runs before any text
       // has actually changed (Causes a premature filtering of items). _initalizing is a check flag to ensure we ignore
       // the first time this listener is called.
-      if (_initalizing == false) {
+      // Additionally moving the carror with the arrow keys will trigger this callback. Therefore we check to see if the actual
+      // text value has meaningfully changed.
+      if (_initalizing == false && _controller.text != _lastTextValue) {
+        final filtered = _filterItems(_controller.text, widget.items);
+
+        // Keep the highlighted Item if it still exists within the filtered results, otherwise null it.
+        final highlightedItem =
+            filtered.indexWhere((item) => item.value == widget.value?.value) !=
+                    -1
+                ? widget.value
+                : null;
+
         setState(() {
-          _options = _filterItems(_controller.text, widget.items);
+          _options = filtered;
+          _highlightedItem = highlightedItem;
         });
       }
 
       _initalizing = false;
+      _lastTextValue = _controller.text;
     });
 
     _options = widget.items.toList();
@@ -240,8 +263,8 @@ class __SearchDropdownContentState extends State<_SearchDropdownContent> {
     // Don't autofocus the searchfield on Mobile. This is due to a bug when running on iOS, opening the keyboard more then 3 times seems to
     // case Safari to incorrectly report the Keyboard open property. Therefore when opening from the 4th attempt onwards, Flutter adds far to much
     // padding to the bottom of the list, as if it's accounting for two keyboards stacked ontop of eachother.
-    // Also don't call isMobile in initState(), it depends on context which isnt' instantiated in time.
-    if (isMobile(context) == false) {
+    // Also don't call isMobileLayout in initState(), it depends on context which isnt' instantiated in time.
+    if (isMobileLayout(context) == false) {
       _textFieldFocusNode.requestFocus();
     }
 
@@ -250,59 +273,65 @@ class __SearchDropdownContentState extends State<_SearchDropdownContent> {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding:
-          EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
-      child: _withKeyboardListener(
-          child: _AdaptiveContentLayout(
-        onDialogCloseButtonPressed: widget.onCloseButtonPressed,
-        searchField: Column(
-          children: [
-            if (widget.specialOptions != null) widget.specialOptions!,
-            TextField(
-              controller: _controller,
-              focusNode: _textFieldFocusNode,
-              decoration: const InputDecoration(
-                suffixIcon: Icon(Icons.search),
-                border: OutlineInputBorder(
-                  borderSide: BorderSide(),
+    return Actions(
+      actions: _actions,
+      child: Padding(
+        padding:
+            EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+        child: _withKeyboardListener(
+            child: _AdaptiveContentLayout(
+          onDialogCloseButtonPressed: widget.onCloseButtonPressed,
+          searchField: Column(
+            children: [
+              if (widget.specialOptions != null) widget.specialOptions!,
+              TextField(
+                controller: _controller,
+                focusNode: _textFieldFocusNode,
+                decoration: const InputDecoration(
+                  suffixIcon: Icon(Icons.search),
+                  border: OutlineInputBorder(
+                    borderSide: BorderSide(),
+                  ),
                 ),
+                onSubmitted: kIsWeb
+                    ? (value) => _handleEnterPress()
+                    : null, // For some reason Enter keys on Web don't trigger the RawKeyboardListener.
+                onEditingComplete:
+                    isMobileLayout(context) ? () => _handleEnterPress() : null,
               ),
-              onEditingComplete:
-                  isMobile(context) ? () => _handleEnterPress() : null,
-            ),
-          ],
-        ),
-        listView: ListView.builder(
-          itemCount: _options.length,
-          itemBuilder: (context, index) {
-            final item = _options[index];
-            return ConstrainedBox(
-              constraints: const BoxConstraints(minHeight: 36, maxHeight: 48),
-              key: ValueKey(item.value),
-              child: Container(
-                padding: isMobile(context)
-                    ? const EdgeInsets.only(left: 8)
-                    : EdgeInsets.zero,
-                color: _highlightedItem?.value == item.value
-                    ? Theme.of(context).highlightColor
-                    : null,
-                child: ListTile(
-                  title: item.child,
-                  onTap: item.interactive
-                      ? () => widget.onChanged(item.value)
+            ],
+          ),
+          listView: ListView.builder(
+            itemCount: _options.length,
+            itemBuilder: (context, index) {
+              final item = _options[index];
+              return ConstrainedBox(
+                constraints: const BoxConstraints(minHeight: 36, maxHeight: 48),
+                key: ValueKey(item.value),
+                child: Container(
+                  padding: isMobileLayout(context)
+                      ? const EdgeInsets.only(left: 8)
+                      : EdgeInsets.zero,
+                  color: _highlightedItem?.value == item.value
+                      ? Theme.of(context).highlightColor
                       : null,
+                  child: ListTile(
+                    title: item.child,
+                    onTap: item.interactive
+                        ? () => widget.onChanged(item.value)
+                        : null,
+                  ),
                 ),
-              ),
-            );
-          },
-        ),
-      )),
+              );
+            },
+          ),
+        )),
+      ),
     );
   }
 
   Widget _withKeyboardListener({required Widget child}) {
-    if (isMobile(context)) {
+    if (isMobileLayout(context)) {
       return child;
     } else {
       return RawKeyboardListener(
@@ -315,6 +344,10 @@ class __SearchDropdownContentState extends State<_SearchDropdownContent> {
 
   void _handleDesktopKey(RawKeyEvent event) {
     if (event is RawKeyDownEvent) {
+      if (event.logicalKey == LogicalKeyboardKey.escape) {
+        widget.onCloseButtonPressed?.call();
+      }
+
       if (event.logicalKey == LogicalKeyboardKey.enter) {
         _handleEnterPress();
       }
@@ -380,6 +413,12 @@ class __SearchDropdownContentState extends State<_SearchDropdownContent> {
             .where((item) => item.value == _highlightedItem!.value)
             .isNotEmpty) {
       widget.onChanged(_highlightedItem!.value);
+    }
+
+    if (_options.isEmpty) {
+      // TextField will automatically give up focus on an Enter press, which will block further keyboard input.
+      // Therefore if there arent any options available, we request focus so that we stay in focus.
+      _textFieldFocusNode.requestFocus();
     }
   }
 
@@ -476,7 +515,7 @@ class _AdaptiveContentLayout extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (isMobile(context)) {
+    if (isMobileLayout(context)) {
       return Container(
         padding: const EdgeInsets.only(left: 8, right: 8, bottom: 8),
         child: Material(
@@ -485,7 +524,7 @@ class _AdaptiveContentLayout extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 _DialogTitle(
-                  showCloseButton: isMobile(context),
+                  showCloseButton: isMobileLayout(context),
                   onCloseButtonPressed: onDialogCloseButtonPressed,
                 ),
                 Expanded(child: listView),

@@ -50,6 +50,7 @@ class ManifestModel {
       'createdByVersion': createdByVersion,
       'fileVersion': fileVersion,
       'requiredFonts': requiredFonts.map((item) => item.toMap()).toList(),
+      'isDemoShow': isDemoShow,
     };
   }
 
@@ -65,6 +66,7 @@ class ManifestModel {
       requiredFonts: ((map['requiredFonts'] ?? <dynamic>[]) as List<dynamic>)
           .map((font) => FontModel.fromMap(font))
           .toList(),
+      isDemoShow: map['isDemoShow'] ?? false,
     );
   }
 

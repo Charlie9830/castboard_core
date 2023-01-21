@@ -2,16 +2,23 @@ import 'package:castboard_core/models/PresetModel.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 
+enum ColorTagSelectorLabelPosition {
+  top,
+  bottom,
+}
+
 class ColorTagSelector extends StatelessWidget {
   final int selectedColorIndex;
   final void Function(int index)? onChange;
   final bool leftAligned;
+  final ColorTagSelectorLabelPosition labelPosition;
 
   const ColorTagSelector({
     Key? key,
     this.selectedColorIndex = -1,
     this.leftAligned = false,
     this.onChange,
+    this.labelPosition = ColorTagSelectorLabelPosition.bottom,
   }) : super(key: key);
 
   @override
@@ -20,6 +27,10 @@ class ColorTagSelector extends StatelessWidget {
       crossAxisAlignment:
           leftAligned ? CrossAxisAlignment.start : CrossAxisAlignment.center,
       children: [
+        if (labelPosition == ColorTagSelectorLabelPosition.top) ...[
+          Text('Color Tag', style: Theme.of(context).textTheme.caption),
+          const SizedBox(height: 4),
+        ],
         Wrap(children: [
           // Clear Value
           InkWell(
@@ -36,8 +47,10 @@ class ColorTagSelector extends StatelessWidget {
             );
           }).toList(),
         ]),
-        const SizedBox(height: 4),
-        Text('Color Tag', style: Theme.of(context).textTheme.caption)
+        if (labelPosition == ColorTagSelectorLabelPosition.bottom) ...[
+          const SizedBox(height: 4),
+          Text('Color Tag', style: Theme.of(context).textTheme.caption)
+        ]
       ],
     );
   }

@@ -27,6 +27,7 @@ import 'package:html/dom.dart' as dom;
 
 dom.Element buildSlideElementsHtml({
   required String urlPrefix,
+  bool showDemoDisclaimer = false,
   SlideModel? slide,
   CastChangeModel? castChange,
   Map<ActorRef, ActorModel> actors = const {},
@@ -51,6 +52,10 @@ dom.Element buildSlideElementsHtml({
         actors: actors,
         castChange: castChange,
         tracks: tracks)));
+  }
+
+  if (showDemoDisclaimer) {
+    elementCanvas.append(dom.Element.html(_buildDisclaimerOverlay()));
   }
 
   return elementCanvas;
@@ -514,4 +519,24 @@ String _computeAbsoluteHeight(LayoutElementModel element) {
   }
 
   return '${element.height}px';
+}
+
+String _buildDisclaimerOverlay() {
+  final element = DomElementFactory.buildDiv(style: '''
+position: absolute;
+color: rgba(255,255,255,0.75);
+width: 1920px;
+height: 1080px;
+display: flex;
+font-family: Poppins;
+flex-direction: row;
+justify-content: center;
+font-size: 120pt;
+align-items: center;
+transform: rotate(45deg);
+''');
+
+  element.text = 'Demonstration File';
+
+  return element.outerHtml;
 }

@@ -7,6 +7,7 @@ class SystemConfig {
   final String playerBuildSignature;
   final String versionCodename;
   final int serverPort;
+  final String deviceId;
 
   SystemConfig({
     required this.playShowOnIdle,
@@ -15,6 +16,7 @@ class SystemConfig {
     required this.playerVersion,
     required this.versionCodename,
     required this.serverPort,
+    required this.deviceId,
   });
 
   SystemConfig.defaults()
@@ -23,7 +25,8 @@ class SystemConfig {
         playerBuildSignature = '',
         playerBuildNumber = '',
         versionCodename = '',
-        serverPort = 0;
+        serverPort = 0,
+        deviceId = '';
 
   Map<String, dynamic> toMap() {
     return {
@@ -33,6 +36,7 @@ class SystemConfig {
       'playerBuildSignature': playerBuildSignature,
       'versionCodename': versionCodename,
       'serverPort': serverPort,
+      'deviceId': deviceId,
     };
   }
 
@@ -43,7 +47,8 @@ class SystemConfig {
         playerVersion: map['playerVersion'] ?? '',
         playerBuildSignature: map['playerBuildSignature'] ?? '',
         versionCodename: map['versionCodename'] ?? '',
-        serverPort: map['serverPort'] ?? 0);
+        serverPort: map['serverPort'] ?? 0,
+        deviceId: map['deviceId'] ?? '');
   }
 
   SystemConfig copyWith({
@@ -53,14 +58,16 @@ class SystemConfig {
     bool? playShowOnIdle,
     String? versionCodename,
     int? serverPort,
+    String? deviceId,
   }) {
     return SystemConfig(
       playShowOnIdle: playShowOnIdle ?? this.playShowOnIdle,
-      playerVersion: playerVersion ?? this.playerBuildNumber,
+      playerVersion: playerVersion ?? this.playerVersion,
       playerBuildNumber: playerBuildNumber ?? this.playerBuildNumber,
       playerBuildSignature: playerBuildSignature ?? this.playerBuildSignature,
       versionCodename: versionCodename ?? this.versionCodename,
       serverPort: serverPort ?? this.serverPort,
+      deviceId: deviceId ?? this.deviceId,
     );
   }
 }

@@ -10,7 +10,6 @@ import 'package:path/path.dart' as p;
 const String _logFileExtension = '.log';
 const String _logFileName = 'runlog';
 const int _logFileSizeLimit = 1000000; // 1 megabyte.
-const int _logFileMessageLimitMod = 1000;
 
 class LoggingManager {
   static late LoggingManager _instance;
@@ -36,9 +35,6 @@ class LoggingManager {
 
   // Queue to catch and buffer any messages that come through whilst the IOSink is unavaiable (Such as when we are exporting it to file).
   final Queue<String> _messageQueue = Queue<String>();
-
-  // Captures how many messages have been written to file. We use this to determine if it is time to switch to a new file.
-  final int _sessionMessageCount = 0;
 
   LoggingManager({
     required Directory logsDir,
@@ -93,6 +89,8 @@ class LoggingManager {
     final logsDir = await _getLogsDirectory(directoryName);
     final file = await _getLogFile(logsDir);
 
+    print(file.path);
+
     // ignore: close_sinks
     final sink = file.openWrite(mode: FileMode.append);
 
@@ -106,7 +104,7 @@ class LoggingManager {
   }
 
   Future<void> close() async {
-    return await _closeSink();
+    await _closeSink();
   }
 
   Future<File> exportLogs({
@@ -141,24 +139,15 @@ class LoggingManager {
     return targetFile;
   }
 
-  Future<void> _maybeEnumerateLogFile() async {
-    if (await _logFile.length() > _logFileSizeLimit) {
-      await _closeSink();
-      _logFile = await LoggingManager._getLogFile(_logsDir);
-      _logFileSink = _logFile.openWrite(mode: FileMode.append);
-      _flushMessageQueueToFile();
-    }
-    return;
-  }
-
-  Future<void> _closeSink() async {
+  Future<bool> _closeSink() async {
     if (_logFileSink == null) {
-      return;
+      return true;
     }
 
     await _logFileSink!.flush();
     await _logFileSink!.close();
     _logFileSink = null;
+    return true;
   }
 
   void _handleLogRecord(LogRecord record) {
@@ -210,16 +199,10 @@ class LoggingManager {
       // The Log File sink is currently closed. This could be because we are currently exporting it. Add the message to the Queue
       // in order to be appended to the file next time the Sink is opened.
       _messageQueue.add(message);
-    } else {
-      if (_checkFileSize()) {
-        await _maybeEnumerateLogFile();
-      }
-      _logFileSink!.write(message);
+      return;
     }
-  }
 
-  bool _checkFileSize() {
-    return _sessionMessageCount % _logFileMessageLimitMod == 0;
+    _logFileSink!.write(message);
   }
 
   void _throwDebugException(LogRecord record) {
@@ -270,8 +253,12 @@ class LoggingManager {
     if (_messageQueue.isEmpty || _logFileSink == null) {
       return;
     } else {
+      // Capture the Queue state as it is currently.
+      final queueState = _messageQueue.toList();
+      _messageQueue.clear();
+
       final Iterable<Future<void>> writeRequests =
-          _messageQueue.map((message) => _write(message));
+          queueState.map((message) => _write(message));
 
       await Future.wait(writeRequests);
       return;
@@ -309,7 +296,7 @@ class LoggingManager {
   }
 
   static int _getLogFileNumber(String logFileName) {
-    final trimmed = logFileName.replaceAll(r"\D", '');
+    final trimmed = logFileName.replaceAll(RegExp(r'\D'), '');
 
     final int? result = int.tryParse(trimmed);
 

@@ -11,7 +11,7 @@ class PerformerDeviceModel {
   final String ipAddress;
   final int port;
   final PerformerConnectivityState connectivityState;
-  final String deviceName = 'Performer';
+  final String deviceName;
   final String deviceId;
   final String showName;
   final String softwareVersion;
@@ -25,12 +25,14 @@ class PerformerDeviceModel {
     required this.softwareVersion,
     required this.deviceId,
     required this.hostName,
+    required this.deviceName,
   });
 
   PerformerDeviceModel.partial({
     required this.ipAddress,
     required this.port,
     required this.deviceId,
+    required this.deviceName,
   })  : connectivityState = PerformerConnectivityState.partial,
         showName = '',
         softwareVersion = '',
@@ -41,6 +43,7 @@ class PerformerDeviceModel {
     required this.showName,
     required this.softwareVersion,
     required this.deviceId,
+    required this.deviceName,
   })  : connectivityState = PerformerConnectivityState.partial,
         ipAddress = '0.0.0.0',
         port = 0,
@@ -70,6 +73,7 @@ class PerformerDeviceModel {
       softwareVersion: map['softwareVersion'] ?? '',
       deviceId: map['deviceId'] ?? '',
       hostName: map['hostName'] ?? '',
+      deviceName: map['deviceName'] ?? '',
     );
   }
 
@@ -96,6 +100,7 @@ class PerformerDeviceModel {
       softwareVersion: softwareVersion ?? this.softwareVersion,
       deviceId: deviceId ?? this.deviceId,
       hostName: hostName ?? this.hostName,
+      deviceName: deviceName ?? this.deviceName,
     );
   }
 

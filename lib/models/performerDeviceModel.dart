@@ -44,9 +44,9 @@ class PerformerDeviceModel {
     required this.softwareVersion,
     required this.deviceId,
     required this.deviceName,
+    required this.port,
   })  : connectivityState = PerformerConnectivityState.partial,
         ipAddress = '0.0.0.0',
-        port = 0,
         hostName = '';
 
   Map<String, dynamic> toMap() {

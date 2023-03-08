@@ -1016,4 +1016,17 @@ class Storage {
     final bytes = await targetFile.readAsBytes();
     return bytes;
   }
+
+  /// Returns a Future with the basenames of the files within the images directory.
+  Future<List<String>> listImageFileNames() async {
+    final names = <String>[];
+
+    await for (var entity in _activeShowPaths.images.list()) {
+      if (entity is File) {
+        names.add(p.basename(entity.path));
+      }
+    }
+
+    return names;
+  }
 }

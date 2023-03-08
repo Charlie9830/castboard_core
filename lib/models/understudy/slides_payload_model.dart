@@ -10,6 +10,9 @@ class UnderstudySlidesPayloadModel {
   final UnderstudyFontManifest fontManifest;
   final int width;
   final int height;
+  final List<String> headshotSourcePaths;
+  final List<String> imageSourcePaths;
+  final List<String> backgroundSourcePaths;
 
   UnderstudySlidesPayloadModel({
     required this.currentSlideIndex,
@@ -17,6 +20,9 @@ class UnderstudySlidesPayloadModel {
     required this.fontManifest,
     required this.width,
     required this.height,
+    required this.headshotSourcePaths,
+    required this.imageSourcePaths,
+    required this.backgroundSourcePaths,
   });
 
   Map<String, dynamic> toMap() {
@@ -26,6 +32,9 @@ class UnderstudySlidesPayloadModel {
       'fontManifest': fontManifest.toMap(),
       'width': width,
       'height': height,
+      'headshotSourcePaths': headshotSourcePaths,
+      'imageSourcePaths': imageSourcePaths,
+      'backgroundSourcePaths': backgroundSourcePaths,
     };
   }
 
@@ -37,6 +46,9 @@ class UnderstudySlidesPayloadModel {
       fontManifest: UnderstudyFontManifest.fromMap(map['fontManifest']),
       width: map['width'] ?? 1920,
       height: map['height'] ?? 1080,
+      headshotSourcePaths: List.from(map['headshotSourcePaths'] ?? []),
+      imageSourcePaths: List.from(map['imageSourcePaths'] ?? []),
+      backgroundSourcePaths: List.from(map['backgroundSourcePaths'] ?? []),
     );
   }
 

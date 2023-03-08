@@ -2,7 +2,8 @@ import 'dart:convert';
 
 enum UnderstudyMessageType {
   unknown,
-  payload,
+  initialPayload, // Represents the payload sent to an Understudy client when it's session has started.
+  contentChange, // Represents the payload sent to an Understudy client when a change to the content slides has been made (cast change)
   slideIndex,
   noShow,
   clientId,
@@ -39,8 +40,10 @@ class UnderstudyMessageModel {
 
 UnderstudyMessageType _parseMessageType(String? messageType) {
   switch (messageType) {
-    case 'payload':
-      return UnderstudyMessageType.payload;
+    case 'initialPayload':
+      return UnderstudyMessageType.initialPayload;
+    case 'contentChange':
+      return UnderstudyMessageType.contentChange;
     case 'slideIndex':
       return UnderstudyMessageType.slideIndex;
     case 'noShow':

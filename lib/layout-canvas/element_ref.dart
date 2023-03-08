@@ -41,6 +41,9 @@ class ElementRef {
   }
 
   ElementRef reparented(ElementRef newParent) {
+    if (newParent == const ElementRef.none()) {
+      return ElementRef.fromSingle(lastSegment);
+    }
     return ElementRef.fromParent(newParent, lastSegment);
   }
 

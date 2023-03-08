@@ -194,7 +194,9 @@ class ContainerElementState extends State<ContainerElement> {
           maxHeight: double.infinity,
           child: _HorizontalContainer(
             mainAxisAlignment: widget.mainAxisAlignment,
-            crossAxisAlignment: widget.crossAxisAlignment,
+            crossAxisAlignment: widget.allowWrap
+                ? CrossAxisAlignment.center
+                : widget.crossAxisAlignment,
             allowWrap: widget.allowWrap,
             runAlignment: widget.runAlignment,
             runLoading: widget.runLoading,
@@ -207,7 +209,9 @@ class ContainerElementState extends State<ContainerElement> {
           maxWidth: double.infinity,
           child: _VerticalContainer(
               mainAxisAlignment: widget.mainAxisAlignment,
-              crossAxisAlignment: widget.crossAxisAlignment,
+              crossAxisAlignment: widget.allowWrap
+                  ? CrossAxisAlignment.center
+                  : widget.crossAxisAlignment,
               allowWrap: widget.allowWrap,
               runAlignment: widget.runAlignment,
               runLoading: widget.runLoading,

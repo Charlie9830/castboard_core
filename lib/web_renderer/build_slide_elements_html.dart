@@ -4,7 +4,6 @@ import 'package:castboard_core/elements/ActorElementModel.dart';
 import 'package:castboard_core/elements/ContainerElementModel.dart';
 import 'package:castboard_core/elements/ImageElementModel.dart';
 import 'package:castboard_core/elements/ShapeElementModel.dart';
-import 'package:castboard_core/utils/get_fitted_render_scale.dart';
 import 'package:castboard_core/web_renderer/dom_element_factory.dart';
 import 'package:castboard_core/web_renderer/html_element_mapping.dart';
 import 'package:castboard_core/enums.dart';
@@ -415,26 +414,28 @@ String _buildContainerElement({
   }
 
   if (axis == Axis.horizontal) {
-    // Horizontal Container
+    // Horizontal Wrapped Container
     return '''
   <div ${HTMLElementMapping.containerElement}
   style="width: 100%; height: 100%; display: flex; flex-direction: ${runLoading == ContainerRunLoading.topOrLeftHeavy ? 'column' : 'column-reverse'}; justify-content: ${convertRunAlignmentToJustifyContent(runAlignment)}">
     ${children.map((run) => _buildHorizontalContainer(
               mainAxisAlignment: mainAxisAlignment,
-              crossAxisAlignment: crossAxisAlignment,
+              crossAxisAlignment: CrossAxisAlignment
+                  .center, // CrossAxisAlignment locked to Center when Wrapping.
               runLoading: runLoading,
               children: run,
             )).join('\n')}
   </div>
 ''';
   } else {
-    // Vertical Container
+    // Vertical Wrapped Container
     return '''
   <div ${HTMLElementMapping.containerElement}
   style="width: 100%; height: 100%; display: flex; flex-direction: ${runLoading == ContainerRunLoading.topOrLeftHeavy ? 'row' : 'row-reverse'}; justify-content: ${convertRunAlignmentToJustifyContent(runAlignment)}">
     ${children.map((run) => _buildVerticalContainer(
               mainAxisAlignment: mainAxisAlignment,
-              crossAxisAlignment: crossAxisAlignment,
+              crossAxisAlignment: CrossAxisAlignment
+                  .center, // CrossAxisAlignment locked to Center when Wrapping.
               runLoading: runLoading,
               children: run,
             )).join('\n')}

@@ -1,6 +1,6 @@
 name: castboard_core
 description: Core library for castboard
-version: 1.3.0
+version: 1.3.1
 homepage: www.github.com/charlie9830
 
 environment:

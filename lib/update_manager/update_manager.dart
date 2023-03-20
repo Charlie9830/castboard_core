@@ -154,6 +154,8 @@ class UpdateManager {
     try {
       manifestResponse = await http.get(manifestAddress);
     } catch (e, stacktrace) {
+      // Unable to contact Update Server. Log the occurance and then attempt to update from a previously
+      // downloaded update package.
       LoggingManager.instance.autoUpdate
           .info("Unable to fetch Update Manifest", e, stacktrace);
 
@@ -169,11 +171,13 @@ class UpdateManager {
       return UpdateCheckResult(status: UpdateStatus.unknown);
     }
 
-    // Convert to Domain object.
+    // We received a reply from the Update server. Convert it to a Domain object.
     UpdateManifestModel manifest;
     try {
       manifest = UpdateManifestModel.fromJson(manifestResponse.body);
     } catch (e, stacktrace) {
+      // Unable to parse the Manifest file. Log the occurance then Attempt to update off an already downloaded package
+      // if we have one.
       LoggingManager.instance.autoUpdate
           .warning("Unable to parse Update Manifest", e, stacktrace);
 
@@ -190,33 +194,26 @@ class UpdateManager {
     }
 
     if (manifest.version == currentVersion) {
-      // We are already up to date.
-      LoggingManager.instance.autoUpdate.info(
-          "Current version matches platform manifest version. No update required. $currentVersion -> ${manifest.version}");
+      // Running and remote version matches. No update required.
       lastManifest = manifest;
       return UpdateCheckResult(status: UpdateStatus.upToDate);
     }
 
-    // Determine if we have a previously downloaded, but as yet uninstalled file.
-    final downloadedPackageFile = File(p.join(
-        Storage.instance.getPackageUpdateDirectory().path,
-        p.basename(manifest.downloadPath)));
-
-    // Validate it's integrity with a checksum test.
-    if (await downloadedPackageFile.exists() &&
-        await _verifyChecksum(manifest.checksum, downloadedPackageFile)) {
-      updatePackagePath = downloadedPackageFile.path;
+    // Compare our running version to that of the manifest version.
+    if (_isCurrentOutdated(currentVersion, manifest.version)) {
+      // Newer version if available on the Server.
       lastManifest = manifest;
-
-      LoggingManager.instance.autoUpdate.info(
-          "Update package downloaded and ready to install at $updatePackagePath");
-      return UpdateCheckResult(status: UpdateStatus.readyToInstall);
+      return UpdateCheckResult(status: UpdateStatus.readyToDownload);
     }
 
-    LoggingManager.instance.autoUpdate
-        .info("Update ready to download: Version ${manifest.version}");
-    lastManifest = manifest;
-    return UpdateCheckResult(status: UpdateStatus.readyToDownload);
+    if (Version.parse(currentVersion) > Version.parse(manifest.version)) {
+      LoggingManager.instance.autoUpdate.warning(
+          'Local application package version is ahead of update server package version.');
+      return UpdateCheckResult(status: UpdateStatus.unknown);
+    }
+
+    // All options exhausted. Return an unknown Status.
+    return UpdateCheckResult(status: UpdateStatus.unknown);
   }
 
   Future<UpdateManifestModel?> _fetchLocalUpdateManifest(String path) async {
@@ -402,5 +399,12 @@ class UpdateManager {
   Uri _getManifestAddress() {
     final platformSlug = Platform.isMacOS ? 'macos' : 'windows';
     return Uri.parse('$updateServerAddress/$platformSlug.json');
+  }
+
+  bool _isCurrentOutdated(String current, String incoming) {
+    final currentVersion = Version.parse(current);
+    final incomingVersion = Version.parse(incoming);
+
+    return currentVersion < incomingVersion;
   }
 }

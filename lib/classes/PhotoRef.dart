@@ -3,10 +3,6 @@ import 'dart:convert';
 import 'package:quiver/core.dart';
 import 'package:path/path.dart' as p;
 
-// TODO: Refactor the file name to ImageRef.
-
-// TODO: Explore making uid and ext non nullable.
-
 class ImageRef {
   final String uid;
   final String ext;

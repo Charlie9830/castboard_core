@@ -379,8 +379,7 @@ class Storage {
   Future<File> addBackground(String uid, String path) async {
     LoggingManager.instance.storage.info("Adding background from $path");
     final image = File(path);
-    final ext = CompressionConfig.instance
-        .backgroundExtension; // Image Compressor will encode as jpg file.
+    final ext = CompressionConfig.instance.backgroundExtension;
 
     if (await image.exists()) {
       // Instantiate the image compressor.
@@ -389,11 +388,13 @@ class Storage {
 
       Uint8List sourceBytes = await image.readAsBytes();
       sourceBytes = await maybeCompressImage(
-          compressor: compressor,
-          sourceBytes: sourceBytes,
-          maxHeight: CompressionConfig.instance.maxBackgroundHeight,
-          maxWidth: CompressionConfig.instance.maxBackgroundWidth,
-          ratio: CompressionConfig.instance.backgroundCompressionRatio);
+        compressor: compressor,
+        sourceBytes: sourceBytes,
+        maxHeight: CompressionConfig.instance.maxBackgroundHeight,
+        maxWidth: CompressionConfig.instance.maxBackgroundWidth,
+        ratio: CompressionConfig.instance.backgroundCompressionRatio,
+        outputFileType: ImageOutputParameters.determineImageType(ext),
+      );
 
       compressor.spinDown();
 
@@ -407,10 +408,10 @@ class Storage {
     }
   }
 
-  Future<File> addImage(String uid, String path) async {
-    LoggingManager.instance.storage.info("Adding Image from $path");
-    final imageFile = File(path);
-    final ext = CompressionConfig.instance.imageExtension;
+  Future<File> addImage(ImageRef ref, String sourcePath) async {
+    LoggingManager.instance.storage.info("Adding Image from $sourcePath");
+    final imageFile = File(sourcePath);
+    final ext = ref.ext;
 
     if (await imageFile.exists()) {
       // Instantiate the image compressor.
@@ -419,16 +420,18 @@ class Storage {
 
       Uint8List sourceBytes = await imageFile.readAsBytes();
       sourceBytes = await maybeCompressImage(
-          compressor: compressor,
-          sourceBytes: sourceBytes,
-          maxHeight: CompressionConfig.instance.maxImageHeight,
-          maxWidth: CompressionConfig.instance.maxImageWidth,
-          ratio: CompressionConfig.instance.imageCompressionRatio);
+        compressor: compressor,
+        sourceBytes: sourceBytes,
+        maxHeight: CompressionConfig.instance.maxImageHeight,
+        maxWidth: CompressionConfig.instance.maxImageWidth,
+        ratio: CompressionConfig.instance.imageCompressionRatio,
+        outputFileType: ImageOutputParameters.determineImageType(ext),
+      );
 
       compressor.spinDown();
 
       final targetFile =
-          await File(p.join(_activeShowPaths.images.path, '$uid$ext'))
+          await File(p.join(_activeShowPaths.images.path, ref.basename))
               .writeAsBytes(sourceBytes);
 
       return targetFile;

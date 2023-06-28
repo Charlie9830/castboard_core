@@ -12,6 +12,7 @@ Future<Uint8List> maybeCompressImage({
   required int maxHeight,
   required int maxWidth,
   required int ratio,
+  required ImageType outputFileType,
 }) async {
   final decodedImage = await compressor.decodeImage(sourceBytes);
 
@@ -23,7 +24,9 @@ Future<Uint8List> maybeCompressImage({
   final imageWidth = decodedImage.width;
   final imageHeight = decodedImage.height;
 
+  // Check if the Image is already smaller then the Maximum allowed size.
   if (imageWidth <= maxWidth && imageHeight <= maxHeight) {
+    // No rescaling required. Apply "Lossless" compression.
     return await compressImage(
       sourceBytes,
       compressor,
@@ -31,6 +34,7 @@ Future<Uint8List> maybeCompressImage({
       ImageOutputParameters(
         targetSize: ImageSize(imageWidth, imageHeight),
         quality: 100,
+        type: outputFileType,
       ),
     );
   }
@@ -74,8 +78,4 @@ ImageOutputParameters _getOutputParameters(
         ));
   }
   return outputParams;
-}
-
-Uint8List _getUncompressedBytes(DecodeResult decodedImage) {
-  return Uint8List.fromList(decodedImage.bytes);
 }

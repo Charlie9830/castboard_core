@@ -6,6 +6,7 @@ import 'package:castboard_core/storage/ImportedShowData.dart';
 import 'package:castboard_core/storage/showfile_migration/foldAsyncMigratorValues.dart';
 import 'package:castboard_core/storage/showfile_migration/migrateToV2.dart';
 import 'package:castboard_core/storage/showfile_migration/migrateToV3.dart';
+import 'package:castboard_core/storage/showfile_migration/migrateToV4.dart';
 import 'package:castboard_core/version/fileVersion.dart';
 
 typedef ShowfileMigrator = Future<ImportedShowData> Function(
@@ -26,6 +27,7 @@ Future<ImportedShowData> migrateShowfileData({
     final List<ShowfileMigrator> migrators = [
       migrateToV2,
       migrateToV3,
+      migrateToV4,
     ];
 
     // Pick the approriate range of Migrator async functions.

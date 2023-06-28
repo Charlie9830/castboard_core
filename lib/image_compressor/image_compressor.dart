@@ -74,6 +74,7 @@ class ImageCompressor {
         targetWidth: outputParams.targetSize?.width,
         targetHeight: outputParams.targetSize?.height,
         tag: sourceData.tag,
+        outputFileType: outputParams.type,
         interpolation:
             _convertImageInterpolationType(outputParams.interpolationType)));
   }
@@ -151,6 +152,7 @@ class _Message {
   final int? targetWidth;
   final int? targetHeight;
   final Interpolation interpolation;
+  final ImageType? outputFileType;
 
   _Message({
     required this.jobType,
@@ -163,6 +165,7 @@ class _Message {
     this.targetHeight,
     this.tag,
     required this.interpolation,
+    this.outputFileType,
   });
 }
 
@@ -224,18 +227,19 @@ void _compressionIsolateWorker(SendPort sendPort) async {
               width: data.targetWidth,
               height: data.targetHeight,
               interpolation: data.interpolation);
-
-          // const smoothingFactor = 100;
-          // print(smoothingFactor);
-          // image = smooth(image, smoothingFactor);
         }
 
-        // Encode the image as a Jpg.
-        final jpg = encodeJpg(image, quality: data.quality);
+        // Encode the image as either a Jpg or Png.
+        print(data.outputFileType);
+        final encodedBytes = data.outputFileType == ImageType.jpeg
+            ? encodeJpg(image, quality: data.quality)
+            : encodePng(
+                image,
+              );
 
         // Send the result back to the main thread.
         channel.sink.add(_CompressionResultMessage(data.jobType, data.jobIndex,
-            bytes: jpg, tag: data.tag));
+            bytes: encodedBytes, tag: data.tag));
       }
 
       // Decoding Job.

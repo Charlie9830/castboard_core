@@ -19,6 +19,7 @@ import 'package:castboard_core/models/TrackIndex.dart';
 import 'package:castboard_core/models/TrackModel.dart';
 import 'package:castboard_core/models/SlideModel.dart';
 import 'package:castboard_core/models/TrackRef.dart';
+import 'package:castboard_core/models/subtitle_field_model.dart';
 import 'package:castboard_core/path_provider_shims.dart';
 import 'package:castboard_core/storage/AppStoragePaths.dart';
 import 'package:castboard_core/storage/ShowStoragePaths.dart';
@@ -750,6 +751,7 @@ class Storage {
     required List<TrackIndexBase> trackIndex,
     required Map<String, TrackRef> trackRefsByName,
     required Map<String, PresetModel> presets,
+    required Map<String, SubtitleFieldModel> subtitleFields,
     required Map<String, SlideModel> slides,
     required SlideOrientation slideOrientation,
     required ManifestModel manifest,
@@ -779,8 +781,16 @@ class Storage {
             slides: slides,
             slideOrientation: slideOrientation,
           )),
-      _stageShowData(stagingPaths.showData, tracks, trackRefsByName, actors,
-          actorIndex, trackIndex, presets),
+      _stageShowData(
+        targetFile: stagingPaths.showData,
+        tracks: tracks,
+        trackRefsByName: trackRefsByName,
+        actors: actors,
+        actorIndex: actorIndex,
+        trackIndex: trackIndex,
+        presets: presets,
+        subtitleFields: subtitleFields,
+      ),
     ]);
 
     try {
@@ -834,21 +844,23 @@ class Storage {
   }
 
   Future<void> _stageShowData(
-      File targetFile,
-      Map<TrackRef, TrackModel> tracks,
-      Map<String, TrackRef> trackRefsByName,
-      Map<ActorRef, ActorModel> actors,
-      List<ActorIndexBase> actorIndex,
-      List<TrackIndexBase> trackIndex,
-      Map<String, PresetModel> presets) async {
+      {required File targetFile,
+      required Map<TrackRef, TrackModel> tracks,
+      required Map<String, TrackRef> trackRefsByName,
+      required Map<ActorRef, ActorModel> actors,
+      required List<ActorIndexBase> actorIndex,
+      required List<TrackIndexBase> trackIndex,
+      required Map<String, PresetModel> presets,
+      required Map<String, SubtitleFieldModel> subtitleFields}) async {
     final data = ShowDataModel(
-      actors: actors,
-      actorIndex: actorIndex,
-      trackIndex: trackIndex,
-      tracks: tracks,
-      trackRefsByName: trackRefsByName,
-      presets: presets,
-    ).toMap();
+            actors: actors,
+            actorIndex: actorIndex,
+            trackIndex: trackIndex,
+            tracks: tracks,
+            trackRefsByName: trackRefsByName,
+            presets: presets,
+            subtitleFields: subtitleFields)
+        .toMap();
 
     final jsonData = json.encoder.convert(data);
     await targetFile.writeAsString(jsonData);

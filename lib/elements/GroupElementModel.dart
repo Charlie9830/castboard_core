@@ -3,7 +3,6 @@ import 'package:castboard_core/elements/multi_child_element_model.dart';
 import 'package:castboard_core/layout-canvas/element_ref.dart';
 import 'package:castboard_core/models/LayoutElementModel.dart';
 import 'package:castboard_core/utils/getUid.dart';
-import 'package:collection/collection.dart';
 
 class GroupElementModel extends LayoutElementChild
     implements MultiChildElementModel {

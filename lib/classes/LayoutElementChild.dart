@@ -104,6 +104,7 @@ abstract class LayoutElementChild {
         shadowXOffset: map['shadowXOffset'] ?? 0,
         shadowYOffset: map['shadowYOffset'] ?? 0,
         shadowBlurRadius: map['shadowBlurRadius'] ?? 0,
+        subtitleFieldId: map['subtitleFieldId'] ?? '',
       );
     }
 

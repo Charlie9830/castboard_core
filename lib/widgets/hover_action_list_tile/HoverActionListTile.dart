@@ -8,16 +8,18 @@ class HoverActionListTile extends StatefulWidget {
   final Widget? subtitle;
   final void Function()? onTap;
   final List<Widget>? actions;
+  final EdgeInsetsGeometry? padding;
 
-  const HoverActionListTile(
-      {Key? key,
-      this.selected,
-      this.leading,
-      this.title,
-      this.subtitle,
-      this.onTap,
-      this.actions})
-      : super(key: key);
+  const HoverActionListTile({
+    Key? key,
+    this.selected,
+    this.leading,
+    this.title,
+    this.subtitle,
+    this.onTap,
+    this.actions,
+    this.padding,
+  }) : super(key: key);
 
   @override
   _HoverActionListTileState createState() => _HoverActionListTileState();
@@ -32,6 +34,7 @@ class _HoverActionListTileState extends State<HoverActionListTile> {
       onHoverChanged: (hovering) => setState(() => _hovering = hovering),
       child: ListTile(
         minLeadingWidth: 16,
+        contentPadding: widget.padding,
         selected: widget.selected ?? false,
         onTap: widget.onTap,
         dense: true,

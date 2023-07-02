@@ -12,9 +12,11 @@ class ActorElementModel extends TextElementModel
     implements TrackAssignmentInterface {
   @override
   final TrackRef trackRef;
+  final String subtitleFieldId;
 
   ActorElementModel({
     required this.trackRef,
+    this.subtitleFieldId = "",
     String? text,
     String fontFamily = "Arial",
     double fontSize = 24,
@@ -61,6 +63,7 @@ class ActorElementModel extends TextElementModel
     double? shadowXOffset,
     double? shadowYOffset,
     double? shadowBlurRadius,
+    String? subtitleFieldId,
   }) {
     return ActorElementModel(
       trackRef: trackRef ?? this.trackRef,
@@ -76,6 +79,7 @@ class ActorElementModel extends TextElementModel
       shadowXOffset: shadowXOffset ?? this.shadowXOffset,
       shadowYOffset: shadowYOffset ?? this.shadowYOffset,
       shadowBlurRadius: shadowBlurRadius ?? this.shadowBlurRadius,
+      subtitleFieldId: subtitleFieldId ?? this.subtitleFieldId,
     );
   }
 
@@ -85,6 +89,7 @@ class ActorElementModel extends TextElementModel
       'elementType': 'actor',
       'trackRef': trackRef.toMap(),
       'text': text,
+      'subtitleFieldId': subtitleFieldId,
       'fontFamily': fontFamily,
       'fontSize': fontSize,
       'italics': italics,

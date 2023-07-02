@@ -355,7 +355,8 @@ String? _lookupText(
   Map<String, TrackRef> trackRefsByName,
 ) {
   if (element is ActorElementModel) {
-    return _lookupActorName(element.trackRef, castChange, actors, tracks);
+    return _lookupActorName(
+        element.trackRef, element.subtitleFieldId, castChange, actors, tracks);
   }
 
   if (element is TrackElementModel) {
@@ -381,7 +382,7 @@ String? _lookupText(
         return 'NOT FOUND';
       }
 
-      return _lookupActorName(trackRef, castChange, actors, tracks) ??
+      return _lookupActorName(trackRef, "", castChange, actors, tracks) ??
           'NOT FOUND';
     });
 
@@ -402,8 +403,12 @@ String _lookupTrackName(TrackRef trackRef, CastChangeModel? castChange,
   return tracks[trackRef]?.title ?? 'Untitled track';
 }
 
-String? _lookupActorName(TrackRef trackRef, CastChangeModel? castChange,
-    Map<ActorRef, ActorModel>? actors, Map<TrackRef, TrackModel>? tracks) {
+String? _lookupActorName(
+    TrackRef trackRef,
+    String subtitleFieldId,
+    CastChangeModel? castChange,
+    Map<ActorRef, ActorModel>? actors,
+    Map<TrackRef, TrackModel>? tracks) {
   if (trackRef == const TrackRef.blank() ||
       tracks == null ||
       tracks.containsKey(trackRef) == false) {
@@ -421,6 +426,11 @@ String? _lookupActorName(TrackRef trackRef, CastChangeModel? castChange,
   final actor = actors![castChange.actorAt(trackRef)!];
   if (actor == null) {
     return "Artist missing";
+  }
+
+  // Check if this element should be displaying a Subtitle field and return the value of that field instead.
+  if (subtitleFieldId.isNotEmpty) {
+    return actor.subtitleValues[subtitleFieldId] ?? '';
   }
 
   return actor.name;

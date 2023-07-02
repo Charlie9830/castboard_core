@@ -4,6 +4,9 @@ import 'package:castboard_core/elements/ActorElementModel.dart';
 import 'package:castboard_core/elements/ContainerElementModel.dart';
 import 'package:castboard_core/elements/ImageElementModel.dart';
 import 'package:castboard_core/elements/ShapeElementModel.dart';
+import 'package:castboard_core/elements/get_assigned_actor.dart';
+import 'package:castboard_core/elements/lookup_text.dart';
+import 'package:castboard_core/elements/should_build_element.dart';
 import 'package:castboard_core/web_renderer/dom_element_factory.dart';
 import 'package:castboard_core/web_renderer/html_element_mapping.dart';
 import 'package:castboard_core/enums.dart';
@@ -43,7 +46,7 @@ dom.Element buildSlideElementsHtml({
   }
 
   for (final element in slide.elements.values
-      .where((element) => _shouldBuild(element, castChange))) {
+      .where((element) => shouldBuildElement(element, castChange))) {
     elementCanvas.append(dom.Element.html(_buildElement(
         urlPrefix: urlPrefix,
         element: element,
@@ -128,7 +131,7 @@ String _buildChild({
         (element.runLoading == ContainerRunLoading.bottomOrRightHeavy
                 ? element.children.values.toList().reversed
                 : element.children.values.toList())
-            .where((item) => _shouldBuild(item, castChange));
+            .where((item) => shouldBuildElement(item, castChange));
 
     // Delegate to fetch the Item Width or Height depending on the provided axis.
     double getItemLength(LayoutElementModel item) =>
@@ -168,7 +171,7 @@ String _buildChild({
   // Text Element
   if (element is TextElementModel) {
     String text =
-        _lookupText(element, castChange, actors, tracks, trackRefsByName) ?? '';
+        lookupText(element, castChange, actors, tracks, trackRefsByName) ?? '';
 
     return '''
       <div ${HTMLElementMapping.textAligner} cb-element="text-aligner"
@@ -200,7 +203,7 @@ String _buildChild({
       return '<div/>';
     }
 
-    final actor = _getAssignedActor(element, castChange, actors);
+    final actor = getAssignedActor(element, castChange, actors);
 
     if (actor == null) {
       return '<div/>';
@@ -251,141 +254,6 @@ String _buildImageHtml(String sourcePrefix, ImageRef imageRef) {
   <img $crossoriginAtrr ${HTMLElementMapping.imageElement}
   style="height: 100%; width: 100%; object-fit: contain" src="$sourcePrefix${imageRef.basename}"/>
   ''';
-}
-
-bool _shouldBuild(LayoutElementModel element, CastChangeModel? castChange) {
-  if (castChange == null) {
-    return true;
-  }
-
-  final child = element.child;
-  if (child.canConditionallyRender == false) {
-    return true;
-  }
-
-  if (child is GroupElementModel) {
-    final canAllChildrenConditionallyRender = child.children.values
-        .every((item) => item.child.canConditionallyRender == true);
-
-    if (canAllChildrenConditionallyRender == false) {
-      return true;
-    }
-
-    final shouldBuild =
-        child.children.values.every((item) => _shouldBuild(item, castChange));
-
-    return shouldBuild;
-  }
-
-  if (child is HeadshotElementModel) {
-    return !castChange.isCut(child.trackRef);
-  }
-
-  if (child is TrackElementModel) {
-    return !castChange.isCut(child.trackRef);
-  }
-
-  if (child is ActorElementModel) {
-    return !castChange.isCut(child.trackRef);
-  }
-
-  return true;
-}
-
-String? _lookupText(
-  TextElementModel element,
-  CastChangeModel? castChange,
-  Map<ActorRef, ActorModel>? actors,
-  Map<TrackRef, TrackModel>? tracks,
-  Map<String, TrackRef> trackRefsByName,
-) {
-  if (element is ActorElementModel) {
-    return _lookupActorName(element.trackRef, castChange, actors, tracks);
-  }
-
-  if (element is TrackElementModel) {
-    return _lookupTrackName(element.trackRef, castChange, actors, tracks);
-  }
-
-  if (element.needsInterpolation == true) {
-    if (TextElementModel.matchInterpolationRegex.hasMatch(element.text) ==
-        false) return 'NOT FOUND';
-
-    String interpolated = element.text
-        .replaceAllMapped(TextElementModel.matchInterpolationRegex, (match) {
-      final matchText = match.group(0);
-
-      if (matchText == null) return 'NOT FOUND';
-
-      final trackName = matchText.replaceAll(
-          TextElementModel.matchInterpolationOperatorsRegex, '');
-
-      final trackRef = trackRefsByName[trackName];
-
-      if (trackRef == null) {
-        return 'NOT FOUND';
-      }
-
-      return _lookupActorName(trackRef, castChange, actors, tracks) ??
-          'NOT FOUND';
-    });
-
-    return interpolated;
-  }
-
-  return element.text;
-}
-
-String _lookupTrackName(TrackRef trackRef, CastChangeModel? castChange,
-    Map<ActorRef, ActorModel>? actors, Map<TrackRef, TrackModel>? tracks) {
-  if (trackRef == const TrackRef.blank() ||
-      tracks == null ||
-      tracks.containsKey(trackRef) == false) {
-    return 'Unassigned';
-  }
-
-  return tracks[trackRef]?.title ?? 'Untitled track';
-}
-
-String? _lookupActorName(TrackRef trackRef, CastChangeModel? castChange,
-    Map<ActorRef, ActorModel>? actors, Map<TrackRef, TrackModel>? tracks) {
-  if (trackRef == const TrackRef.blank() ||
-      tracks == null ||
-      tracks.containsKey(trackRef) == false) {
-    return 'Unassigned';
-  }
-
-  if (castChange == null) {
-    return "Artist's name";
-  }
-
-  if (castChange.hasAssignment(trackRef) == false) {
-    return "Artist's name";
-  }
-
-  final actor = actors![castChange.actorAt(trackRef)!];
-  if (actor == null) {
-    return "Artist missing";
-  }
-
-  return actor.name;
-}
-
-ActorModel? _getAssignedActor(HeadshotElementModel element,
-    CastChangeModel? castChange, Map<ActorRef, ActorModel>? actors) {
-  if (castChange == null) {
-    return null;
-  }
-
-  final actorRef = castChange.actorAt(element.trackRef);
-
-  if (actorRef == null ||
-      actorRef.isBlank ||
-      actors!.containsKey(actorRef) == false) {
-    return null;
-  }
-
-  return actors[actorRef];
 }
 
 String _buildContainerElement({

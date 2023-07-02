@@ -5,7 +5,9 @@ import 'package:castboard_core/elements/ContainerElementModel.dart';
 import 'package:castboard_core/elements/ContainerItem.dart';
 import 'package:castboard_core/elements/ImageElement.dart';
 import 'package:castboard_core/elements/ImageElementModel.dart';
+import 'package:castboard_core/elements/get_assigned_actor.dart';
 import 'package:castboard_core/elements/lookup_text.dart';
+import 'package:castboard_core/elements/should_build_element.dart';
 import 'package:castboard_core/enums.dart';
 import 'package:castboard_core/layout-canvas/MultiChildCanvasItem.dart';
 import 'package:castboard_core/elements/GroupElementModel.dart';
@@ -50,7 +52,9 @@ Map<ElementRef, LayoutBlock> buildElements({
   bool isInSlideEditor = false,
 }) {
   return Map<ElementRef, LayoutBlock>.fromEntries(
-    elements.values.where((element) => _shouldBuild(element, castChange)).map(
+    elements.values
+        .where((element) => shouldBuildElement(element, castChange))
+        .map(
       (element) {
         final id = element.uid;
         final isEditingContainer = id == openElementId;
@@ -152,7 +156,7 @@ Widget _buildChild({
           const HeadshotFallback(reason: HeadshotFallbackReason.noTrack));
     }
 
-    final actor = _getAssignedActor(element, castChange, actors);
+    final actor = getAssignedActor(element, castChange, actors);
 
     if (actor == null) {
       return withPadding(
@@ -262,7 +266,7 @@ Widget buildContainer({
     onItemEdit: onItemEdit,
     onOrderChanged: onItemReorder,
     items: containerItems
-        .where((child) => _shouldBuild(child, castChange))
+        .where((child) => shouldBuildElement(child, castChange))
         .map((child) {
       final id = child.uid;
 
@@ -307,60 +311,4 @@ EdgeInsets _buildEdgeInsets(LayoutElementModel element) {
     element.rightPadding.toDouble(),
     element.bottomPadding.toDouble(),
   );
-}
-
-bool _shouldBuild(LayoutElementModel element, CastChangeModel? castChange) {
-  if (castChange == null) {
-    return true;
-  }
-
-  final child = element.child;
-  if (child.canConditionallyRender == false) {
-    return true;
-  }
-
-  if (child is GroupElementModel) {
-    final canAllChildrenConditionallyRender = child.children.values
-        .every((item) => item.child.canConditionallyRender == true);
-
-    if (canAllChildrenConditionallyRender == false) {
-      return true;
-    }
-
-    final shouldBuild =
-        child.children.values.every((item) => _shouldBuild(item, castChange));
-
-    return shouldBuild;
-  }
-
-  if (child is HeadshotElementModel) {
-    return !castChange.isCut(child.trackRef);
-  }
-
-  if (child is TrackElementModel) {
-    return !castChange.isCut(child.trackRef);
-  }
-
-  if (child is ActorElementModel) {
-    return !castChange.isCut(child.trackRef);
-  }
-
-  return true;
-}
-
-ActorModel? _getAssignedActor(HeadshotElementModel element,
-    CastChangeModel? castChange, Map<ActorRef, ActorModel>? actors) {
-  if (castChange == null) {
-    return null;
-  }
-
-  final actorRef = castChange.actorAt(element.trackRef);
-
-  if (actorRef == null ||
-      actorRef.isBlank ||
-      actors!.containsKey(actorRef) == false) {
-    return null;
-  }
-
-  return actors[actorRef];
 }

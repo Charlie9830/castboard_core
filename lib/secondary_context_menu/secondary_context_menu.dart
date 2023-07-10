@@ -63,7 +63,7 @@ class _SecondaryContextMenuState extends State<SecondaryContextMenu> {
             trailing: item.shortcut == null
                 ? null
                 : Text(item.shortcut!,
-                    style: Theme.of(context).textTheme.caption),
+                    style: Theme.of(context).textTheme.bodySmall),
             dense: true,
           ),
         );

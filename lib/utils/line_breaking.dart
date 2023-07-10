@@ -27,10 +27,11 @@ class MinimumRaggedness {
 
     num cost(int i, int j) {
       num width = offsets[j] - offsets[i] + spacing * (j - i - 1);
-      if (width > maxWidth)
+      if (width > maxWidth) {
         return 9007199254740991;
-      else
+      } else {
         return minimum[i] + pow(maxWidth - width, 2);
+      }
     }
 
     void search(int i0, int j0, int i1, int j1) {

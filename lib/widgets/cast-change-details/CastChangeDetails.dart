@@ -77,7 +77,7 @@ class CastChangeDetails extends StatelessWidget {
           child: Text(track.internalTitle,
               overflow: TextOverflow.ellipsis,
               softWrap: false,
-              style: Theme.of(context).textTheme.bodyText2),
+              style: Theme.of(context).textTheme.bodyMedium),
         ),
 
         // Source Nested Preset Indicator.
@@ -115,7 +115,7 @@ class CastChangeDetails extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: Center(
           child: Text(divider.title,
-              style: Theme.of(context).textTheme.bodyText2)),
+              style: Theme.of(context).textTheme.bodyMedium)),
     );
   }
 
@@ -209,7 +209,7 @@ class CastChangeDetails extends StatelessWidget {
             keyword: actor.name,
             child: Text(actor.name,
                 overflow: TextOverflow.ellipsis,
-                style: Theme.of(context).textTheme.bodyText2),
+                style: Theme.of(context).textTheme.bodyMedium),
             value: actor.ref,
           );
         case ActorOrDividerViewModelType.divider:
@@ -219,7 +219,7 @@ class CastChangeDetails extends StatelessWidget {
               keyword: '',
               interactive: false,
               child: Text(divider.title,
-                  style: Theme.of(context).textTheme.caption),
+                  style: Theme.of(context).textTheme.bodySmall),
               value: divider.uid);
       }
     }).toList();
@@ -273,7 +273,7 @@ class _UnassignedOption extends StatelessWidget {
         Text('Unassigned',
             style: Theme.of(context)
                 .textTheme
-                .bodyText2!
+                .bodyMedium!
                 .copyWith(color: Theme.of(context).colorScheme.secondary)),
       ],
     );
@@ -298,7 +298,7 @@ class _TrackCutOption extends StatelessWidget {
         Text('Track Cut',
             style: Theme.of(context)
                 .textTheme
-                .bodyText2!
+                .bodyMedium!
                 .copyWith(color: Theme.of(context).colorScheme.secondary)),
       ],
     );

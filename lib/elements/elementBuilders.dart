@@ -1,5 +1,4 @@
 import 'package:castboard_core/classes/LayoutElementChild.dart';
-import 'package:castboard_core/elements/ActorElementModel.dart';
 import 'package:castboard_core/elements/ContainerElement.dart';
 import 'package:castboard_core/elements/ContainerElementModel.dart';
 import 'package:castboard_core/elements/ContainerItem.dart';
@@ -17,7 +16,6 @@ import 'package:castboard_core/elements/ShapeElement.dart';
 import 'package:castboard_core/elements/ShapeElementModel.dart';
 import 'package:castboard_core/elements/TextElement.dart';
 import 'package:castboard_core/elements/TextElementModel.dart';
-import 'package:castboard_core/elements/TrackElementModel.dart';
 import 'package:castboard_core/layout-canvas/LayoutBlock.dart';
 import 'package:castboard_core/layout-canvas/element_ref.dart';
 import 'package:castboard_core/models/ActorModel.dart';
@@ -96,7 +94,6 @@ Widget _buildChild({
   Map<ActorRef, ActorModel> actors = const {},
   required Map<String, TrackRef> trackRefsByName,
   Map<TrackRef, TrackModel> tracks = const {},
-  OnContainerItemsReorder? onContainerItemsReorder,
   bool isEditingContainer = false,
   bool isInSlideEditor = false,
   bool isHighlighted = false,
@@ -163,7 +160,7 @@ Widget _buildChild({
           const HeadshotFallback(reason: HeadshotFallbackReason.noActor));
     }
 
-    if (actor.headshotRef.uid!.isEmpty) {
+    if (actor.headshotRef.uid.isEmpty) {
       return withPadding(const HeadshotFallback(
         reason: HeadshotFallbackReason.noPhoto,
       ));

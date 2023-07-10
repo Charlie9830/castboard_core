@@ -1,4 +1,3 @@
-import 'package:castboard_core/models/FontModel.dart';
 import 'package:castboard_core/models/SlideSizeModel.dart';
 import 'package:html/dom.dart';
 

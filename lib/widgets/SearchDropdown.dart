@@ -108,8 +108,8 @@ class SearchDropdownState extends State<SearchDropdown> {
               width: MediaQuery.of(context).size.width,
             )));
 
-    Overlay.of(context)?.insert(_backdrop!);
-    Overlay.of(context)?.insert(_entry!, above: _backdrop);
+    Overlay.of(context).insert(_backdrop!);
+    Overlay.of(context).insert(_entry!, above: _backdrop);
   }
 
   void _handleValueChanged(dynamic newValue) {
@@ -441,20 +441,17 @@ class __SearchDropdownContentState extends State<_SearchDropdownContent> {
 
 class _Closed extends StatelessWidget {
   final Widget? child;
-  final Widget? hint;
   final bool enabled;
 
   const _Closed({
     Key? key,
     required this.child,
-    this.hint,
     this.enabled = true,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    final concreteHint = hint ?? const _Hint();
-    final concreteChild = child ?? concreteHint;
+    final concreteChild = child ?? const _Hint();
 
     return Container(
       height: 40,
@@ -481,7 +478,7 @@ class _Hint extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Text('Select',
-        style: Theme.of(context).textTheme.subtitle1!.copyWith(
+        style: Theme.of(context).textTheme.titleMedium!.copyWith(
               color: Theme.of(context).hintColor,
             ));
   }

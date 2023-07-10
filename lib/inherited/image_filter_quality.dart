@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 class ImageFilterQuality extends InheritedWidget {
+  @override
   final Widget child;
 
   final FilterQuality filterQuality;

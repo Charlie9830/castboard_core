@@ -1,4 +1,3 @@
-import 'dart:typed_data';
 
 import 'package:castboard_core/font-loading/FontLoadCandidate.dart';
 import 'package:castboard_core/font-loading/FontLoadingError.dart';

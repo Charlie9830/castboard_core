@@ -34,5 +34,7 @@ class ImportedShowData {
     );
   }
 
-  static Future<ImportedShowData?> fromDirectory(Directory dir) async {}
+  static Future<ImportedShowData?> fromDirectory(Directory dir) async {
+    return null;
+  }
 }

@@ -9,7 +9,6 @@ import 'package:castboard_core/enum-converters/runAlignmentConverters.dart';
 import 'package:castboard_core/enums.dart';
 import 'package:castboard_core/models/LayoutElementModel.dart';
 import 'package:castboard_core/utils/getUid.dart';
-import 'package:collection/collection.dart';
 import 'package:flutter/widgets.dart';
 
 import '../layout-canvas/element_ref.dart';

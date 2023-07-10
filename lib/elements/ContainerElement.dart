@@ -778,7 +778,7 @@ class _EditingLabel extends StatelessWidget {
       child: Text('Auto Layout',
           style: Theme.of(context)
               .textTheme
-              .caption!
+              .bodySmall!
               .copyWith(color: Colors.black, fontSize: 24 * renderScale)),
     );
   }

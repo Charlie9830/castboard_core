@@ -480,7 +480,7 @@ class Storage {
     ImageRef ref, {
     Directory? baseDir,
   }) {
-    if (ref.uid == null || ref.uid!.isEmpty) {
+    if (ref.uid.isEmpty) {
       return null;
     }
 
@@ -492,7 +492,7 @@ class Storage {
   }
 
   File? getThumbnailFile(ImageRef ref, {bool withoutExtension = false}) {
-    if (ref.uid == null || ref.uid!.isEmpty) {
+    if (ref.uid.isEmpty) {
       return null;
     }
 
@@ -501,7 +501,7 @@ class Storage {
   }
 
   File? getBackgroundFile(ImageRef ref) {
-    if (ref.uid == null || ref.uid!.isEmpty) {
+    if (ref.uid.isEmpty) {
       return null;
     }
 
@@ -509,7 +509,7 @@ class Storage {
   }
 
   File? getImageFile(ImageRef ref) {
-    if (ref.uid == null || ref.uid!.isEmpty) {
+    if (ref.uid.isEmpty) {
       return null;
     }
 

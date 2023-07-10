@@ -27,7 +27,7 @@ class SlideEnableSelector extends StatelessWidget {
               onChanged: (value) => _handleAllCheckboxChanged(value, slideVms),
             ),
             const SizedBox(width: 12),
-            Text('All', style: Theme.of(context).textTheme.caption),
+            Text('All', style: Theme.of(context).textTheme.bodySmall),
           ],
         ),
         ListView(

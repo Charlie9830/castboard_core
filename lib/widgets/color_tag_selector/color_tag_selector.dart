@@ -28,7 +28,7 @@ class ColorTagSelector extends StatelessWidget {
           leftAligned ? CrossAxisAlignment.start : CrossAxisAlignment.center,
       children: [
         if (labelPosition == ColorTagSelectorLabelPosition.top) ...[
-          Text('Color Tag', style: Theme.of(context).textTheme.caption),
+          Text('Color Tag', style: Theme.of(context).textTheme.bodySmall),
           const SizedBox(height: 4),
         ],
         Wrap(children: [
@@ -49,7 +49,7 @@ class ColorTagSelector extends StatelessWidget {
         ]),
         if (labelPosition == ColorTagSelectorLabelPosition.bottom) ...[
           const SizedBox(height: 4),
-          Text('Color Tag', style: Theme.of(context).textTheme.caption)
+          Text('Color Tag', style: Theme.of(context).textTheme.bodySmall)
         ]
       ],
     );

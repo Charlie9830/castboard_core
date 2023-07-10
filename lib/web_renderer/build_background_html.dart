@@ -52,7 +52,7 @@ z-index: -1000;
     // Adding the crossoriginAttr allows img src to be parsed correctly by the browser in debug mode.
     // Otherwise the browser will prefix the Web page address, which may be getting served from the
     // development server, not performer itself.
-    final crossoriginAttr = kDebugMode ? 'crossorigin' : '';
+    const crossoriginAttr = kDebugMode ? 'crossorigin' : '';
 
     // Image Background.
     return Element.html('''

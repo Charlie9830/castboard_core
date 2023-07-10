@@ -77,10 +77,10 @@ Future<ImportedShowData> _migrateActorThumbnailsDelegate(
   // Collect all ImageRefs of Actors that have headshots associated with them
   final imageRefs = data.showData.actors.values
       .where((model) =>
-          model.headshotRef.uid != null && model.headshotRef.uid!.isNotEmpty)
+          model.headshotRef.uid.isNotEmpty)
       .map((model) => model.headshotRef);
 
-  final imageRefIds = imageRefs.map((ref) => ref.uid!).toList();
+  final imageRefIds = imageRefs.map((ref) => ref.uid).toList();
   final imageFiles = imageRefs
       .map((ref) => Storage.instance.getHeadshotFile(ref, baseDir: baseDir)!)
       .toList();

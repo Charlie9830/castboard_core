@@ -1,11 +1,9 @@
 import 'package:castboard_core/elements/background/get_background_decoration.dart';
 import 'package:castboard_core/elements/elementBuilders.dart';
-import 'package:castboard_core/enums.dart';
 import 'package:castboard_core/layout-canvas/LayoutCanvas.dart';
 import 'package:castboard_core/models/ActorModel.dart';
 import 'package:castboard_core/models/ActorRef.dart';
 import 'package:castboard_core/models/CastChangeModel.dart';
-import 'package:castboard_core/models/SlideSizeModel.dart';
 import 'package:castboard_core/models/TrackModel.dart';
 import 'package:castboard_core/models/SlideModel.dart';
 import 'package:castboard_core/models/TrackRef.dart';
@@ -124,7 +122,7 @@ class Player extends StatelessWidget {
                 borderRadius:
                     BorderRadius.all(Radius.circular(80 * renderScale))),
             child: Text('Demonstration File',
-                style: Theme.of(context).textTheme.headline2!.copyWith(
+                style: Theme.of(context).textTheme.displayMedium!.copyWith(
                     color: const Color(0x99999999),
                     fontSize: 180 * renderScale,
                     fontFamily: 'Poppins')),
@@ -196,11 +194,11 @@ class _UnknownErrorFallback extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Material(
+    return const Material(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Icon(Icons.sentiment_dissatisfied, size: 32),
+          Icon(Icons.sentiment_dissatisfied, size: 32),
         ],
       ),
     );
@@ -218,7 +216,7 @@ class _NoSlidesFallback extends StatelessWidget {
         const SizedBox(
           height: 16,
         ),
-        Text('No Slides', style: Theme.of(context).textTheme.headline6),
+        Text('No Slides', style: Theme.of(context).textTheme.titleLarge),
       ]),
     );
   }

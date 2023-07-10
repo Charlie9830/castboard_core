@@ -215,8 +215,12 @@ void _compressionIsolateWorker(SendPort sendPort) async {
       // Compression Job
       if (data.jobType == _JobType.compression) {
         // Instantiate an image object from the provided data.
-        Image image =
-            Image.fromBytes(data.sourceWidth, data.sourceHeight, data.bytes);
+        Image image = Image.fromBytes(
+            width: data.sourceWidth,
+            height: data.sourceHeight,
+            bytes: ByteData.sublistView(data.bytes).buffer);
+
+        
 
         // If resizing is required, perform it.
         if ((data.targetHeight != null || data.targetWidth != null) &&
@@ -230,7 +234,6 @@ void _compressionIsolateWorker(SendPort sendPort) async {
         }
 
         // Encode the image as either a Jpg or Png.
-        print(data.outputFileType);
         final encodedBytes = data.outputFileType == ImageType.jpeg
             ? encodeJpg(image, quality: data.quality)
             : encodePng(

@@ -12,7 +12,7 @@ dependencies:
   collection: ^1.16.0
   flutter:
     sdk: flutter
-  image: ^3.2.0
+  image: ^4.0.17
   logging: ^1.0.2
   path: ^1.8.0
   path_provider: ^2.0.11
@@ -21,7 +21,7 @@ dependencies:
   stream_channel: ^2.1.0
   vector_math: ^2.1.2
   html: ^0.15.1
-  http: ^0.13.5
+  http: ^1.1.0
   version: ^3.0.2
   crypto: ^3.0.2
   url_launcher: ^6.1.10
